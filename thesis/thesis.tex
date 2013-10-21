@@ -1,0 +1,55 @@
+%----------------------------------------------------------------------
+% HAUPTDATEI
+% Enthlt die Verknpfungen aller Dateien zur gesamten Diplomarbeit
+%----------------------------------------------------------------------
+
+\input{preamble/header.tex}															% Definitionen, Makros...
+\begin{document}																% Beginn des Dokuments
+%----------------------------------------------------------------------
+% TITELSEITEN
+\pagenumbering{Roman}														% Rmische Ziffern fr Seitenzahlen
+\input{preamble/titelseite.tex}													% Titelseite
+\pagestyle{plain}																% Keine Titelzeile
+\input{preamble/erklaerung.tex}													% Erklrung, Verbreitungsformen
+\cleardoublepage																% Neue Doppelseite beginnen
+
+%----------------------------------------------------------------------
+% VERZEICHNISSE	
+\tableofcontents																% Inhaltsverzeichnis
+\listoffigures																	% Abbildungsverzeichnis
+\listoftables																		% Tabellenverzeichnis
+\lstlistoflistings															% Quellcodeverzeichnis
+\listofalgorithms
+
+\onehalfspacing																	% 1,5facher
+% Zeilenabstand
+
+% Vorwort ...
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \input{chapters/vorwort.tex}
+
+%----------------------------------------------------------------------
+% KAPITEL
+\cleardoublepage																% Neue Doppelseite beginnen
+\pagenumbering{arabic}													% Arabische Ziffern fr Seitenzahlen
+\pagestyle{fancyplain}													% Titelzeile
+
+
+% EINLEITUNG
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Hier alle LaTeX-Dateien mit dem Inhalt per input-Kommando einbinden.
+\input{chapters/abstract.tex}
+\input{chapters/grundlagen.tex}
+\input{chapters/anforderungsanalyse.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% REFERENZEN
+\input{literatur.tex}														% Literaturverzeichnis
+
+% ANHANG
+\appendix
+%----------------------------------------------------------------------
+
+\end{document}																	% Ende des Dokuments
+%-------------------------------- EOF --------------------------------%
