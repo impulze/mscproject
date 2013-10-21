@@ -1,0 +1,140 @@
+%---------------------------------------------------------------------- 
+% ANMERKUNGEN
+% Diese Datei enthält einige Anmerkungen und Hinweise zu dieser LaTeX-
+% Vorlage für Diplomarbeiten.
+%----------------------------------------------------------------------
+\chapter{Anmerkungen zur Vorlage}
+Einige Anmerkungen und Hinweise zur \LaTeX{}-Vorlage für Diplomarbeiten.
+%---------------------------------------------------------------------- 
+% ANPASSUNGEN
+%----------------------------------------------------------------------
+\section{Notwendige Anpassungen}
+\label{ref:anpassungen}
+Folgende Anpassungen sind unbedingt vorzunehmen:
+\begin{itemize}
+	\item \file{erklaerung.tex}\\
+	In den Zeilen 12 und 32 sind Ort, Datum und Name einzutragen und die Verbreitungsformen wie gewünscht anzugeben.
+	\item \file{titelseite.tex}\\
+	Auf der Titelseite ist der Titel der Diplomarbeit (Zeile 43), Name (Zeile 51), Abgabedatum (Zeile 53) sowie die Namen des Referenten und des Korreferenten (Zeilen 57/58) anzugeben.  
+	\item \file{header.tex}\\
+	In Zeile 60 sollte der Titel des Dokuments und in Zeile 61 der Name des Autors eingetragen werden. Die beiden Angaben erscheinen in den Eigenschaften des PDFs.
+\end{itemize}
+%---------------------------------------------------------------------- 
+% GRAPHIKEN
+%----------------------------------------------------------------------
+\section{Graphiken}
+\label{ref:graphiken}
+Das Einbinden von Graphiken erfolgt zumeist in sogenannten float-Umgebung, die die Abbildung an der nächsten passenden Position im Dokument einfügt:
+\begin{verbatim}
+\begin{figure}[htb]
+  \centering
+     \includegraphics*[width=0.20\textwidth]{images/hsrm}
+   \caption{\em Logo der Hochschule RheinMain}
+   \label{fig:hsrm_logo}
+\end{figure}
+\end{verbatim}
+Je nach gewähltem Ausgabeformat wird automatisch ein anderer Dateityp der Graphik \file{hsrm} gewählt:
+\begin{itemize}
+	\item \textbf{DVI}\\
+	Fügt die EPS-Version der benannten Graphik ein. Soll eine JPG- oder PNG-Datei eingebunden werden, so muss  aus dieser zuvor eine Angabe zur \glqq{}Bounding Box\grqq{} ermittelt werden. Unter Windows kann dies mit \file{images/ebb.exe}\footnote{Für Windows. Dieses Tool existiert auch für andere Systeme.} erfolgen.
+	\item \textbf{PDF}\\
+	Fügt die PDF-Version der benannten Graphik ein. Diese kann mit \mbox{\file{epstopdf.exe}}\footnote{Siehe Fußnote 1.} direkt aus dem EPS erzeugt werden (siehe Verzeichnis \file{images}).
+\end{itemize}
+Obiges Kommando erzeugt folgende Ausgabe:
+\begin{figure}[htb]
+	\centering
+		\includegraphics*[width=0.20\textwidth]{images/hsrm}
+	\caption{\em Logo der Hochschule RheinMain}
+	\label{fig:hsrm_logo}
+\end{figure}
+
+Das beiliegende Makefile wandelt zur PDF-Generierung automatisch Grafiken aus dem EPS ins PDF-Format, so dass Grafiken immer als EPS erstellt werden sollten.
+%---------------------------------------------------------------------- 
+% QUELLCODE
+%----------------------------------------------------------------------
+\section{Quellcode}
+\label{ref:quellcode}
+Quellcode-Ausschnitte können mit der \code{listings}-Umgebung eingefügt werden:
+\begin{lstlisting}[caption={\emph{A simple loop}}, label={lst:simple_loop}]{}
+// The for-loop
+for (int i=0;i<10;i++) {
+  doSomething();
+}
+\end{lstlisting}
+Das Resultat des obigen Kommandos ist folgendes:
+\begin{lstlisting}[caption={\emph{A simple loop}}, label={lst:simple_loop}]{}
+// The for-loop
+for (int i=0;i<10;i++) {
+  doSomething();
+}
+\end{lstlisting}
+Die Formatierung der eingefügten Codestücke kann über die Angaben in \file{header.tex} (Zeilen 98-125) vorgenommen werden. Details zu den möglichen Parametern sind in der Dokumentation \file{listings-1.3.pdf} nachzulesen.
+
+Mit dem Kommando \textbackslash{}code\{\} lassen sich kurze Codestücke wie Klassen- oder Methodennamen in den Fließtext integrieren:
+\begin{verbatim}
+\code{myMethod(String param)}
+\end{verbatim}
+%---------------------------------------------------------------------- 
+% TOOLS
+%----------------------------------------------------------------------
+\section{Tools}
+\label{ref:tools}
+Eine kleine Auswahl an nützlichen Werkzeugen für \LaTeX{}:
+\begin{itemize}
+	\item \textbf{MiKTeX}\\
+		\LaTeX{}-Distribution für Windows.\\
+		\guillemotright \url{http://www.miktex.org}
+	\item \textbf{teTeX}\\
+		\LaTeX{}-Distribution für Linux\textbackslash{}Unix\textbackslash{}MacOS.\\
+		\guillemotright \url{http://www.tug.org/tetex/}
+	\item \textbf{TeXnicCenter}\\
+		Komfortabler \LaTeX{}-Editor (Textmodus) für Windows.\\
+		\guillemotright \url{http://www.toolscenter.org}
+	\item \textbf{Kile}\\
+		Komfortabler \LaTeX{}-Editor (Textmodus) für Linux (KDE).\\
+		\guillemotright \url{http://kile.sourceforge.net}
+	\item \textbf{AUCTeX} \textbackslash{} \textbf{Preview-Latex}\\
+		Erweiterung für den Texteditor Emacs zur Unterstützung von \LaTeX{}, teilweise mit WYSIWYG.\\
+		\guillemotright \url{http://www.gnu.org/software/auctex/index.html}
+	\item \textbf{TeXmacs}\\
+		Editor mit WYSIWYG-Fähigkeiten. Für zahlreiche Plattformen.\\
+		\guillemotright \url{http://www.texmacs.org}
+	\item \textbf{Lyx}\\
+		\LaTeX{}-Editor mit WYSIWYG-Fähigkeiten.\\
+		\guillemotright \url{http://www.lyx.org}
+	\item \textbf{JabRef}\\
+		Plattformunabhängiges (Java) Werkzeug zum Verwalten von Literaturquellen im \BibTeX{}-Format.\\ 				
+		\guillemotright \url{http://jabref.sourceforge.net}
+	\item \textbf{Dia}\\
+		OpenSource-Klon von Microsofts Visio zur Erstellung von Diagrammen. Gute Unterstützung für EPS 				(siehe Abschnitt \ref{ref:graphiken}).\\
+		\guillemotright \url{http://www.gnome.org/projects/dia}\\
+		\guillemotright \url{http://dia-installer.sourceforge.net} (Windows)
+\end{itemize}
+%---------------------------------------------------------------------- 
+% LINKS
+%----------------------------------------------------------------------
+\section{Links}
+\label{ref:links}
+\begin{itemize}
+	\item \url{http://www.weinelt.de/latex/}\\
+		Eine \LaTeX{}-Befehlsübersicht.
+	\item \url{http://latex-tutorium.sourceforge.net}\\
+		Das LaTeX-Tutorium.
+	\item \url{http://www.dante.de}\\
+		Deutschsprachige Anwendervereinigung TeX e.V. (Dante)
+	\item \url{http://www.dante.de/TeX-Service-Paket/tex/cookbook/cookbook.html}\\
+		Kochbuch für \LaTeX{} von Dante.
+	\item \url{http://www.ctan.org}\\
+		CTAN - The Comprehensive TeX Archive Network.
+	\item \url{http://www.fernuni-hagen.de/URZ/urzbib/ls\_broschueren.html}\\
+		PDF-Broschüren mit zwei sehr guten Dokumentationen zu \LaTeX{} (unter \textit{Text \& Graphik}).
+	\item \url{http://www.dml.drzoom.ch}\\
+		\textit{Diplomarbeit mit LaTeX.}
+	\item \url{http://www.joachimschlosser.de/latexsystem.html}\\
+		Ein komplettes Setup unter Windows.
+	\item \url{http://makingtexwork.sourceforge.net/mtw/}\\
+		\textit{Making TeX Work} von Norman Walsh 
+\end{itemize}
+\section{Literaturverweise}
+Literaturverweise werden im BibTeX-Format notiert. Referenzen auf Literatur können mithilfe von \code{\textbackslash{}cite\{SymbolischerName\}} eingebunden werden. Beispiel: \cite{tanenbaum:2001}. Nur referenzierte Literatur wird im generierten Verzeichnis dargestellt.
+%-------------------------------- EOF --------------------------------%
