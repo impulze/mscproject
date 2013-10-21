@@ -1,11 +1,44 @@
 \chapter{Anforderungsanalyse}
 
-\section{Einbinden von HomeMatic-Geräten}
+Das Hauptziel der Software ist die Bereitstellung von HomeMatic-Hausautomationsgeräten
+im WieDAS-Datenraum.
+Wie im Kapitel \ref{gru_aalcache} bereits aufgeführt, wird der WieDAS-Datenraum über eine Instanz
+einer Cache-Software bereitgestellt.
+Die HomeMatic-Geräte sind über eine Zentralkomponente mit dem Verarbeitungssystem verbunden.
+Daher muss eine Zwischenkomponente (Gateway) entwickelt werden, welche bestimmten Anforderungen
+gerecht wird.
 
-\section{Umwandeln der Gerätedaten}
+Im Kapitel \ref{ana_ermittlung} wird untersucht, wie und wann die HomeMatic-Gerätedaten
+abgerufen werden können.
+Dabei wird die Schnittstelle der Geräte betrachtet und ermittelt welche Teile dieser Schnittstelle
+für die Software relevant sind.
 
-\section{Einsatzumgebung der Software}
+Der nächste Schritt ist die Bereitstellung der ermittelten Geräte in WieDAS.
+Dazu müssen die Daten umgewandelt bzw. abgebildet werden, was im Kapitel \ref{ana_abb} näher erläutert wird.
 
-\section{Datenerhaltung und -verbreitung}
+Danach werden, wie in Kapitel \ref{ana_einpflegen} aufgezeigt wird, die umgewandelten Daten in den
+WieDAS-Datenraum eingepflegt.
+Dabei sind nicht nur Geräte zu berücksichtigen, welche zum Zeitpunkt der Programmausführung vorhanden sind,
+sondern auch Geräte, die zur Laufzeit des Programms in der Umgebung hinzugefügt werden, wodurch weitere
+Anforderungen entstehen.
+
+In Kapitel \ref{ana_laufzeitumgebung} wird weiterhin überprüft auf welchen Geräten die Software eingesetzt wird
+und welche Anforderungen daraus entstehen.
+Daraus entscheidet sich auch die verwendete Programmiersprache der Implementierung.
+
+Abschließend sind Konfigurationsanforderungen der Software in Kapitel \ref{ana_konfiguration} hinterlegt.
+
+\section{Ermittlung von HomeMatic-Gerätedaten}
+\label{ana_ermittlung}
+
+\section{Abbildung der Gerätedaten}
+\label{ana_abb}
+
+\section{Einpflegen der Gerätedaten in WieDAS}
+\label{ana_einpflegen}
+
+\section{Laufzeitumgebung der Software}
+\label{ana_laufzeitumgebung}
 
 \section{Konfiguration des Systems}
+\label{ana_konfiguration}
