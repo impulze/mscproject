@@ -1,15 +1,37 @@
 \chapter{Einleitung}
 
-In der Thesis wird eine Software entwickelt, welche es erlaubt HomeMatic-Hausautomationsgeräte
-in die, von der Hochschule RheinMain und Fachhochschule Düsseldorf, im Rahmen von Forschungsprojekten
-entwickelte AAL-Dienstplattform WieDAS zu integrieren.
+Da in der heutigen Zeit der prozentuale Anteil der einsamen und älteren Bevölkerung steigt,
+versucht man diesen ``demografischen Wandel'' mit der Nutzung und Verbreitung technischer
+Hilfsmittel im Alltag entgegenzuwirken.
+Der Begriff des \emph{Ambient Assisted Living} umfasst die Produkte und Dienstleistungen, welche
+diese Hilfsmittel ermöglichen.
+
+In der Thesis wird eine Software entwickelt, welche es erlaubt Hausautomationsgeräte der Produktreihe
+\emph{HomeMatic} der Firma \emph{eQ-3} in die, von der Hochschule RheinMain und Fachhochschule Düsseldorf,
+im Rahmen von Forschungsprojekten entwickelte, AAL-Dienstplattform WieDAS zu integrieren.
+Die Dienstplattform erfasst und verarbeitet Daten die von verschiedenen Geräten und somit über
+verschiedene Protokolle an den WieDAS-Datenraum angebunden sind.
+
 Die Software bildet eine Adapterkomponente zwischen der von HomeMatic-Geräten angebotene Schnittstelle
-und der WieDAS Komponente für Datenerfassung und Datenerhaltung.
-Darin enthalten ist eine Abbildung der Geräte in die WieDAS-Sprache zur Beschreibung von Geräten.
+und der WieDAS-Schnittstelle für Datenerfassung und Datenerhaltung.
+Darin enthalten ist eine Abbildung der Geräte in die WieDAS-Beschreibungssprache für Geräte.
 Ziel ist es, die HomeMatic-Geräte, welche von WieDAS unterstützt werden können, vollständig in die
-Dienstplattform einzubinden.
-Die Thesis vermittelt zunächst Grundlagen der verwendeten Systeme und zeigt die Anforderung an eine
-solche Softwarekomponente.
-Darauf folgen Überlegungen zur Konzipierung und der Darstellung des gewählten Designs.
-Das implementierte Design wird erklärt und anschließend mit einigen Laufzeittests bezüglich
-der Performance und dem Speicherverbrauch getestet.
+Dienstplattform einzubinden, so dass Geräte herstellerunabhängig miteinander verbunden werden können.
+
+Die Thesis vermittelt zunächst Grundlagen der verwendeten Systeme in Kapitel \ref{grundlagen}.
+Folgend werden die Problemfelder, die bei der Entwicklung eines solchen Adapters auftreten, in
+Kapitel \ref{analyse} analysiert.
+In Kapitel \ref{ana_uc} werden typische Anwendungsfälle aufgelistet und näher betrachtet.
+
+Darauf folgen Überlegungen zur Konzipierung und der Darstellung des gewählten Designs 
+in Kapitel \ref{design} unter der Berücksichtigug der Designentscheidungen aus der Analyse.
+Das implementierte Design wird in Kapitel \ref{implementierung} erklärt und anschließend mit
+einigen Laufzeittests bezüglich der Performance und dem Speicherverbrauch getestet.
+Neben den Tests findet in Kapitel \ref{bewertung} auch eine Bewertung der Software bezüglich
+Aufwand der Konzipierung und Implementierung und Verwendbarkeit (insbesondere statische
+Modularität, Kompatibilität und Möglichkeiten für zukünftige Erweiterungen).
+
+Das Kapitel \ref{fazit} beendet die Thesis fasst die erreichten Ziele zusammen und zeigt
+offene Probleme und Softwarekomponenten, die nicht implementiert werden konnten.
+Weiterhin wird gezeigt, wie die Software weiterentwickelt werden kann, um diese Probleme
+zu beheben und Implementationslücken zu füllen.

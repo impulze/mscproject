@@ -1,44 +1,308 @@
-\chapter{Anforderungsanalyse}
+%Diese zentrale Station kann darüber informiert werden, dass neue Geräte in der Umgebung hinzugefügt
+%oder aus ihr entfernt wurden.
+
+\chapter{Analyse}
+\label{analyse}
+
+\section{Anforderungen}
+\label{ana_anforderungen}
 
 Das Hauptziel der Software ist die Bereitstellung von HomeMatic-Hausautomationsgeräten
 im WieDAS-Datenraum.
 Wie im Kapitel \ref{gru_aalcache} bereits aufgeführt, wird der WieDAS-Datenraum über eine Instanz
 einer Cache-Software bereitgestellt.
 Die HomeMatic-Geräte sind über eine Zentralkomponente mit dem Verarbeitungssystem verbunden.
-Daher muss eine Zwischenkomponente (Gateway) entwickelt werden, welche bestimmten Anforderungen
+Daher muss ein Connector \ref{gru_connector} entwickelt werden, welche bestimmten Anforderungen
 gerecht wird.
 
-Im Kapitel \ref{ana_ermittlung} wird untersucht, wie und wann die HomeMatic-Gerätedaten
-abgerufen werden können.
-Dabei wird die Schnittstelle der Geräte betrachtet und ermittelt welche Teile dieser Schnittstelle
-für die Software relevant sind.
-
 Der nächste Schritt ist die Bereitstellung der ermittelten Geräte in WieDAS.
-Dazu müssen die Daten umgewandelt bzw. abgebildet werden, was im Kapitel \ref{ana_abb} näher erläutert wird.
+Dazu wird zunächst das Gerätemodell von WieDAS in Kapitel \ref{ana_wd_modell} analysiert.
+Durch die Betrachtung des Modells kann ermittelt werden, welche Informationen aus den HomeMatic-Geräten
+benötigt werden.
 
-Danach werden, wie in Kapitel \ref{ana_einpflegen} aufgezeigt wird, die umgewandelten Daten in den
-WieDAS-Datenraum eingepflegt.
-Dabei sind nicht nur Geräte zu berücksichtigen, welche zum Zeitpunkt der Programmausführung vorhanden sind,
-sondern auch Geräte, die zur Laufzeit des Programms in der Umgebung hinzugefügt werden, wodurch weitere
-Anforderungen entstehen.
+Das Kapitel \ref{ana_hm} untersucht, wie HomeMatic-Geräte beschrieben sind und wie diese
+Beschreibungen abgerufen werden können.
+Dabei wird auch die Schnittstelle betrachtet, die für das Anfordern der Gerätedaten relevant ist und
+wie die übertragenen Informationen interpretiert werden müssen.
 
-In Kapitel \ref{ana_laufzeitumgebung} wird weiterhin überprüft auf welchen Geräten die Software eingesetzt wird
+Da die HomeMatic-Geräte in WieDAS eingepflegt werden, müssen eine Abbildung des Modells erstellt werden.
+Dazu müssen die Strukturen, Datentypen und evtl. Schnittstellen umgewandelt bzw. abgebildet werden,
+was im Kapitel \ref{ana_abb} näher erläutert wird.
+
+Der Aufbau des Connectors wird in Kapitel \ref{ana_connector} geschildert.
+Der Connector ist nicht nur für das initiale Befüllen des WieDAS-Datenraums mit HomeMatic-Geräten
+zum Programmstart verantwortlich, sondern reagiert auch während der Laufzeit auf neue und entferne Geräte
+und stellt Signale an verschiedene Geräte zu.
+
+Kapitel \ref{ana_laufzeitumgebung} wird weiterhin überprüft auf welchen Geräten die Software eingesetzt wird
 und welche Anforderungen daraus entstehen.
 Daraus entscheidet sich auch die verwendete Programmiersprache der Implementierung.
 
 Abschließend sind Konfigurationsanforderungen der Software in Kapitel \ref{ana_konfiguration} hinterlegt.
 
-\section{Ermittlung von HomeMatic-Gerätedaten}
-\label{ana_ermittlung}
+Die Anforderungen werden näher mit Anwendungsfällen veranschaulicht und die Vor- und Nachteile
+verschiedener Lösungsansätze abgewägt.
+Die Entscheidungen die getroffen wurden, werden in Kapitel \ref{ana_entscheidungen} dokumentiert.
+
+\subsection{WieDAS-Gerätemodell}
+
+Das WieDAS-Gerätemodell wird durch eine IDL beschrieben.
+Es wird untersucht, welche Struktur ein Gerät aufweist und welche Datentypen oder Schnittstellen
+zur Verfügung stehen.
+
+\subsection{HomeMatic-Geräte}
+
+Die Geräte der HomeMatic-Hausautomation kommunizieren mit der HomeMatic-CCU.
+Weiterhin ist sie für Konfiguration und Abrufen der Gerätedaten zuständig (Kapitel \ref{gru_ccu}).
+Es muss analysiert werden, wie das XML-RPC Protokoll, welches die HomeMatic-CCU anbietet,
+angewendet wird, um Gerätedaten abzurufen und wie diese aufgebaut sind.
+
+\subsection{Abbildung der Gerätedaten}
+
+Die Daten der Hausautomationsgeräte unterliegen einer gewissen Struktur, welche aus verschiedenen
+Datentypen zusammengesetzt ist und in Kapitel \ref{ana_hm_modell} analysiert wurden.
+Auch in WieDAS ist die Struktur einer Entität aus verschiedenen Datentypen zusammengesetzt (Kapitel \ref{ana_wd_modell}).
+Diese Strukturen müssen dahingehend untersucht werden, dass eine nahezu vollständige Abbildung
+zwischen den beiden Strukturen ermöglicht wird.
+
+\subsection{Aufbau und Arbeitsweise des Connectors}
+
+Der Kern-Anwendungsfall der Arbeit ist die Steuerung und das Reagieren auf Befehle in einer
+heterogenen Hausautomationsumgebung.
+Dieser Anwendungsfall hat Anforderungen an den Connector, da man bestimmte Mechanismen zur
+Benachrichtigung von Geräten nutzen oder implementieren muss.
+
+\subsection{Laufzeitumgebung der Software}
+
+Das Gateway, welches die HomeMatic-Geräte anbindet muss in einer für Hausautomation typischen
+Umgebung (z.B. Netzwerken mit Router oder andere Embedded-PC) lauffähig sein.
+Dadurch entstehen weitere Anforderungen bzgl. der Implementierungssprache, der Einschränkungen
+von Speichernutzung, verwendete Bibliotheken und ähnliches.
+
+\subsection{Konfiguration des Systems}
+
+Da das Gateway auf verschiedenen Geräten lauffähig sein soll und in einem beliebigen Netzwerk
+agiert, müssen bestimmte Eigenschaften des Systems statisch und ggf. dynamisch konfiguriert werden.
+Dafür muss ein Zugang zur Konfigurationseinheit bereitgestellt werden.
+
+\section{WieDAS-Gerätemodell}
+\label{ana_wd_modell}
+
+WieDAS selbst wird durch eine Instanzierung der AAL-Cache Software (Kapitel \ref{gru_aalcache})
+repräsentiert.
+Diese Software dient der Konfiguration des WieDAS-Datenraums, sowie dem Auslesen und Hinzufügen von
+Hausautomationsgeräten.
+Diese Geräte werden in einer IDL \cite{idl} spezifiziert \cite{wiedas_idl}.
+Es existieren wenige primitive Datentypen, darunter z.B. eine ID, Schaltzustände oder Aufzählungen.
+Weiterhin werden gewöhnliche Aufgaben, wie das Erfassen einer Temperatur, das Schalten, oder ähnliches
+in Funktionalitäten zusammengefasst.
+Die Geräte besitzen kaum spezifische Daten, dafür jedoch aussagekräftige kleinere Daten.
+Das liegt zum Einen daran, dass WieDAS versucht Geräte verschiedener Hersteller einzubinden und zum
+anderen daran, dass sich der Speicherverbrauch der Geräteinformationen im AAL-Cache deutlich steigt,
+wenn einfache Gerätefunktionen mit mehreren Daten abgebildet werden.
+
+Einzelne speziellere Geräte besitzen eine eigene Struktur, welche wiederum genauso aufgebaut sein
+kann, wie eine Funktionalität oder andere Geräte.
+Zum Beispiel ist die Struktur eines Wasserstandsmelders identisch mit der Datenstruktur einer
+normalen Lampe, da sie beide nur Informationen bezüglich des Einschaltzustands haben (An oder Aus).
+Sind diese Geräte komplexer, wie z.B. eine dimmbare Lampe oder eine einstellbare Steckdose, so werden
+weitere Parameter dieser Geräte mit vorher spezifizierten primitiven Datentypen oder den
+Zahlentypen aus der IDL-Spezifikation erweitert.
+
+\begin{absolutelynopagebreak}
+Ein typisches Gerät besteht aus einer ID und einer für die Funktion relevanten Datentyp.
+
+\lstset{language=IDL}
+\begin{lstlisting}[frame=single,caption={Gerätebeschreibung eines dimmbaren Lichts in WieDAS}]
+typedef unsigned short deviceID_t;
+enum OnOff { off, on };
+typedef OnOff OnOffState_t;
+struct DimmableLight_dt {
+	deviceID_t id;
+	octet LightIntensityState;
+	OnOffState_t state;
+};
+\end{lstlisting}
+\end{absolutelynopagebreak}
+
+Die WieDAS-IDL muss für die verwendete Implementierungssprache so interpretiert werden, dass die
+sprachabhängigen Typen die Typeigenschaften (insbesondere Restriktionen) der IDL (z.B. Wertebereich)
+unterstützen bzw. abdecken.
+Eine IDL ist ähnlich aufgebaut wie eine Schnittstellenbeschreibung in der Programmiersprache C.
+Es existieren bereits Konvertierungsmöglichkeiten von IDL zu C und C++, wie z.B. von der
+DCE-Spezifikation \cite{cde} oder von Orbix \cite{orbix}.
+Für weitere Konvertierung zu anderen Sprachen existieren Code-Konvertierungsprogramme wie SWIG \cite{swig}.
+
+Falls der Aufwand einer eigenständigen Konvertierung in die verwendete Zielsprache zu hoch ist, sollte
+auf solche automatischen Konvertierungen zurückgegriffen werden.
+Die Entscheidung sollte von der Implementierungssprache und dem Umfang der IDL abhängig gemacht werden.
+Da die IDL zu diesem Zeitpunkt noch nicht vollständig ist \cite{wiedas_onto},
+ könnte eine zukünftige Verwendung von Generatoren im Entwicklungsprozess vorgesehen werden.
+
+\section{HomeMatic-Geräte}
+\label{ana_hm}
+
+\subsection{Gerätemodell}
+\label{ana_hm_modell}
+Die Geräte werden aus einer Menge von Kanälen modelliert \cite[Seite 13]{hmscript2} in welchen
+die eigentliche Funktionalität steckt \cite[Seite 16]{hmscript2}.
+Diese Funktionalität wird in Datenpunkten abgebildet.
+Jedes Gerät besitzt eine verschiedene Anzahl und Art von Kanälen mit verschiedenen Datenpunkten.
+Die Datenpunkte werden dann entweder ausgelesen um Zustände von Geräten zu erfahren oder gesetzt
+um Funktionalitäten zu erfüllen.
+
+Die Datenpunkte sind typisiert, haben bestimmte Eigenschaften und Metadaten \cite[Seite 21]{hmscript2}.
+Die Eigenschaften und Metadaten eines Datenpunkts sind der aktuelle typisierte Wert, den letzten Wert
+(z.B. sinnvoll für dimmbare Aktoren), die Operationen die auf dem Datenpunkt ausgeführt werden können
+und den Zeitstempel der letzten Aktualisierung.
+
+Die Kanäle und die dazugehörigen Datenpunkte der zur Zeit verfügbaren Geräte sind
+spezifiziert \cite{hmscript4}.
+Die folgenden Tabellen zeigen Ausschnitte aus dem Modell für ein
+HomeMatic-Funk-Wandthermostat \cite[Seite 12]{hmscript4}.
+
+\begin{table}[h]
+\begin{tabular}{|l|l|l|}
+\hline
+Kanaltyp & Kanalnummer \\
+\hline
+WEATHER & 1 \\
+\hline
+CLIMATECONTROL\_REGULATOR & 2 \\
+\hline
+\end{tabular}
+\caption{Kanaltypen eines HomeMatic-Wandthermostats}
+\label{tab_hm_chan}
+\end{table}
+
+\begin{table}[h]
+\begin{tabular}{|l|l|l|l|}
+\hline
+Kanal & Name & Typ & Zugriff \\
+\hline
+1 & TEMPERATURE & float & lesend und über Ereignisse \\
+\hline
+2 & SETPOINT & boolean & lesend, schreibend und über Ereignisse \\
+\hline
+\end{tabular}
+\caption{Datenpunkte eines HomeMatic-Wandthermostats}
+\label{tab_hm_dp}
+\end{table}
+
+Die Tabelle \ref{tab_hm_chan} zeigt, dass das Thermostat 2 Kanäle besitzt.
+Ein Kanal existiert für die Zustandsinformationen bezüglich der Wetterdaten, ein anderer
+für das Interagieren mit der Regulierung.
+Die Datenpunkte in Tabelle \ref{tab_hm_dp} sind beide direkt auszulesen oder können
+Ereignisse auslösen (z.B. wenn sich die Raumtemperatur ändert oder die Stelltemperatur
+gesetzt wird).
+Nicht aufgezeigt sind in dieser Tabelle weiterführende Attribute der Datenpunkte, welche
+den Wert genauer beschreiben \cite[Seite 3]{hmscript4}.
+
+\begin{enumerate}
+\item Minimalwert
+\item Maximalwert
+\item Standardwert
+\item Einheit
+\item Spezielle Werte
+\end{enumerate}
+
+Diese Wertebeschreibung ist nur dort sinnvoll, wo der Datentyp numerisch ist.
+Spezielle Werte treten auf, um bestimmte Zustände zu beschreiben.
+Zum Beispiel gibt es für den Datenpunkt \emph{SETPOINT} in Tabelle \ref{tab_hm_dp}
+die speziellen Werte \emph{VENT\_CLOSED} und \emph{VENT\_OPEN} um den Zustand des angeschlossenen
+bzw. gekoppelten Ventils zu beschreiben.
+Diese Werte sind speziell zu interpretieren und liegen außerhalb des Wertebereichs
+(hier 0 und 100).
+
+Die Aufgabe des Connectors ist es, diese Gerätedaten anhand Ihrer Namensgebung zu interpretieren.
+Eine allgemeine Dokumentation darüber, wie die Datenpunkte zu interpretieren sind, liegt leider
+nicht vor.
+
+\subsection{XML-RPC Schnittstelle}
+\label{ana_hm_xmlrpc}
+
+Für das Abrufen von Gerätedaten aus der zentralen Steuereinheit (HomeMatic-CCU) wird das XML-RPC
+Protokoll verwendet.
+Das Protokoll verwendet HTTP für den Transport der Daten (Kapitel \ref{gru_xmlrpc}).
+Dadurch muss die Software einen HTTP-Client implementieren, der in der Lage ist die geforderte
+Datenstruktur des Protokolls an die HomeMatic-CCU zu übertragen.
+Da die Anforderung von Gerätedaten nicht häufig vorkommt, muss die Implementierung keinen großen
+Wert auf die Performance des Clients legen.
+Die XML-Struktur ist durch das Protokoll vordefiniert und kann daher in statischer Form als
+Template vorliegen und gefüllt werden oder mit parametrisierten Subroutinen erstellt werden.
+
+Die HomeMatic-CCU bietet Methoden an, die für die Erfassung von Gerätedaten erforderlich
+sind \cite{homematic_xmlrpc}.
+In homogenen HomeMatic-Umgebungen ist es üblich, dass Verbindungen zwischen Ihnen besteht.
+Zum Beispiel kann ein Taster mit Wippe mit einem Aktor gekoppelt sein, um eine Lampe zu dimmen.
+Die Art und Beschreibung der Teilnehmer dieser Verbindung kann ebenfalls über eine
+bereitgestellte Methode ermittelt werden.
+
+Der Connector muss in der Lage sein die für die Datenerfassung und Steuerung von Geräten benötigten
+XML-RPC abzusetzen.
+Dazu muss eine Verbindung zur HomeMatic-CCU aufgebaut werden.
+Es existieren derzeit 2 Verbindungsmöglichkeiten zur Steuereinheit \cite{homematic_ccu}:
+\begin{enumerate}
+\item USB-Steckverbindung
+\item Ethernet-Steckverbindung
+\end{enumerate}
+
+Je nach Lage des Systems auf dem der Connector ausgeführt wird und wo sich die Steuereinheit räumlich
+befindet kann eine Verbindung bevorzugt werden.
+Da übliche Systeme über beide Möglichkeiten verfügen, sollte der Connector die Steckverbindung wählen,
+die weniger Implementierungsaufwand bedeutet.
 
 \section{Abbildung der Gerätedaten}
 \label{ana_abb}
 
-\section{Einpflegen der Gerätedaten in WieDAS}
-\label{ana_einpflegen}
+Die von HomeMatic-Geräten bereitgestellten Daten sind sehr detailliert und oft aus vielen kleineren
+Daten zusammengesetzt.
+Gerätedaten von WieDAS sind in der Regel einfacher (Kapitel \ref{ana_wd_modell}), da sie viele
+herstellerspezifische Gerätedaten mit einem geringen Modell abdecken müssen, da die Speicherkapazität
+auf den Systemen, auf denen die Plattform läuft, stark begrenzt ist.
+Dies hat zur Folge, dass HomeMatic-Gerätedaten auf ein wesentliches Minimum gekürzt werden müssen und
+eventuell komplexere Funktionalitäten auf mehrere kleinere umgesetzt werden müssen.
+
+Dadurch, dass die Spezifikation für das WieDAS-Gerätemodell und für HomeMatic-Geräte nur momentan sind,
+ist es erstrebenswert einen Generator zu entwickeln, welcher zumindest einfache Funktionalitäten
+automatisch abbilden kann.
+Mit dieser Art der Generierung ist es einfacher neue HomeMatic-Geräte einzubinden oder bereits vorhandene
+Geräte, welche nicht von WieDAS unterstützt werden zu unterstützen.
+Ebenfalls sollte angestrebt werden, dass neue Geräte zu einem späteren Zeitpunkt dem Connector mitgeteilt
+werden.
+Deshalb ist es notwendig, dass Geräte Informationen bereitstellen, um sie dynamisch anbinden zu können.
+
+
+\section{Aufbau und Arbeitsweise des Connectors}
+\label{ana_connector}
+
+Die registrierte Logik-Schnittstelle wird mittels einem Aufruf von einer Methode darüber
+informiert, dass neue Geräte an der HomeMatic-CCU angemeldet wurden.
+Dieser Aufruf übermittelt die gleichen Informationen, wie das explizite Anfordern
+der Gerätedaten bei der ersten Verwendung \cite{homematic_xmlrpc}.
 
 \section{Laufzeitumgebung der Software}
 \label{ana_laufzeitumgebung}
 
 \section{Konfiguration des Systems}
 \label{ana_konfiguration}
+
+\section{Designentscheidung}
+\label{ana_entscheidungen}
+
+\section{Anwendungsfälle}
+\label{ana_uc}
+
+%Der Connector muss zur Laufzeit Signale von HomeMatic-Geräten an WieDAS weiterleiten oder
+%Signale von Geräten, die bereits in WieDAS eingepflegt wurden an Aktoren aus der HomeMatic
+%Umgebung weitergeben.
+%Auch müssen Geräte im Connector während der Laufzeit hinzugefügt oder entfernt werden.
+%Entsprechend müssen die notwendigen Teile der Schnittstelle betrachtet werden, welche für
+%das Reagieren auf solche Ereignisse und das Weiterleiten relevant sind.
+%In Kapitel \ref{ana_reagieren} wird aufgezeigt, welche Anforderungen beim Reagieren auf Steuerungsbefehle,
+%insbesondere dem Weiterleiten der Steuerungsbefehle von HomeMatic-Geräten zu anderen Geräten aus der Umgebung,
+%welche in WieDAS zur Verfügung stehen und umgekehrt.
+
+Insbesondere werden dabei die Gerätedaten betrachtet, die in \ref{ana_wd_modell} als wichtig
+herausgefiltert wurden.
+

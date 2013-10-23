@@ -187,6 +187,17 @@
 \newcommand{\file}[1]{{\sffamily #1}}
 % \code{<text>}: Formatierung von "Code" (Klassenname, Methodennamen etc.) im Fließtext
 \newcommand{\code}[1]{\mbox{\texttt{#1}}}
+% \begin{absolutelynopagebreaks}: prevent page breaks
+%\newenvironment{absolutelynopagebreak}
+%  {\par\nobreak\vfil\penalty0\vfilneg
+%   \vtop\bgroup}
+%  {\par\xdef\tpd{\the\prevdepth}\egroup
+%   \prevdepth=\tpd}
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg
+   \vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup
+   \prevdepth=\tpd}
 %-----------------------------------------------------------------------
 % Spezielle TRENN-VORGABEN
 \hyphenation{Tren-nung}

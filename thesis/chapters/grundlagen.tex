@@ -1,52 +1,69 @@
 \chapter{Grundlagen}
+\label{grundlagen}
 
-\section{Ambient Assisted Living}
+\section{AAL-Dienstplattform WieDAS}
+
+\subsection{Ambient Assisted Living}
 
 Ambient Assisted Living oder kurz AAL bezweckt eine Verschmelzung von neuen Technologien und
 dem sozialen Umfeld.
 
 Die Anzahl der Älteren und alleinstehenden Menschen in der deutschen Bevölkerung steigt stärker
 als die Anzahl der jüngeren und geselligen Menschen \cite{aaldeu}.
-Dieser so genannte ``Demografische Wandel'' hat als Auswirkung, dass dieser Bevölkerungsteil
+Dieser so genannte ``Demografische Wandel'' hat als Auswirkung, dass der stärker steigende Bevölkerungsteil
 mehr Pflege und Unterstützung benötigt.
+Da es heutzutage immer mehr Geräte gibt, welche Menschen in jeder Lebenslage unterstützen (Fahrstühle, elektrische
+Jalousien, Heizungssteuerungen, usw.) versucht AAL diesem Wandel entgegenzuwirken, indem es diese und andere neuen
+Technologien im Haushalt und dem sozialen Umfeld bereitstellt.
 
-Die Idee des AAL versucht diesem Wandel geringfügig entgegenzuwirken, indem es neue Technologien
-in den Haushalt und dem sozialen Umfeld bereitstellt.
 AAL zielt dabei auf die Unterstützung im Alltag durch z.B. technische Hilfsgeräte, als auch
 z.B. Diagnose und Therapie ohne das Aufsuchen eines Arztes (Telemedizin).
-Zur Verwendung kommen vor allem Mikro- bzw. eingebettete Systeme.
-Immer häufiger werden für Bedienungsgeräte auch Touchscreens verwendet.
+Daran merkt man, dass das initiale Ziel die Verbesserung der Lebensqualität von älteren
+Menschen ist.
+In der AAL-Umgebung finden vor Mikro- bzw. eingebettete Systeme Verwendung, da sie in der Regel
+leicht in der Umgebung untergebracht werden und wenig Leistung bei gleichzeitig hoher Lebensdauer
+benötigen.
+Immer häufiger werden für Bedienungsgeräte auch Touchscreens verwendet, was jedoch die Lebensdauer
+der Komponente stark verringert und somit nur Verwendung bei Steuerungen findet, welche nicht darauf
+ausgelegt sind ständig benutzt zu werden.
 Da nicht nur Benutzer, die technologiescheu sind unterstützt werden sollen, müssen AAL-Produkte
 stets intuitiv und einfach in der Bedienung und Wartung sein \cite{aaldeu}, was eine Herausforderung für
 die Entwickler bergt.
 
 Die Nutzung von AAL im eigenen Wohnraum hat für Senioren und Seniorinnen zur Folge, dass sie
 länger selbstständig dort verweilen können, was auch eine Entlastung des Pflegepersonals und
-Pflegeaufwendungen nach sich zieht.
-Das großflächige Ziel des AAL ist es, die Lebensqualität der Person in seinem sozialen Umfeld zu heben,
+Pflegeaufwendungen nach sich zieht und somit auch soziale Aspekte mit sich bringt.
+Das großflächige Folgeziel des AAL ist es, die Lebensqualität der Person in seinem sozialen Umfeld zu heben,
 wobei der Ausgangspunkt die eigene Wohnung bildet \cite{aaldeu}.
 
 Nicht nur ältere und alleinstehende Menschen sollen von AAL profitieren.
 Durch ständige Forschung in diesem Bereich entstehen neue Konzepte und Produkte, welche wiederum
 für jede Generation wertvoll sind \cite{mtidw}.
-Es werden z.B. auch Kommunikationsmittel was auch Menschen die gemeinschaftlich leben zu Gute kommt.
+Es werden z.B. auch Kommunikationsmittel in eine AAL-Umgebung integriert (z.B. Smartphones), was
+auch Menschen die gemeinschaftlich leben zu Gute kommt.
 Weiterhin fördert Deutschland mit dem Bundesministerium für Bildung und Forschung AAL-Projekte,
 wodurch Forschungen, Produkte und Dienstleistungen von Forschungsinstituten, Hochschulen und Firmen
-stets auf Kooperation stößt und Abnehmer findet.
+stets auf Kooperation stößt und Abnehmer findet \cite{bmbf_aal}.
 
 Eine weitere Auswirkung der Nutzung von AAL ist die Erhöhung der Sicherheit.
 Beispielsweise kann einer Person, die sich vor einem Bildschirm befindet (z.B. PC oder TV),
 eine derzeitige Kameraaufzeichnung eingespielt werden, sobald jemand das Grundstück betritt \cite{crestron}.
 
-Die AAL-Dienstplattform, bietet der Software, die im Rahmen dieser Thesis beschrieben wird, den AAL-Kernaspekt,
-durch Verwendung von Geräten zur Steuerung und Regelung im Wohnungsalltag.
+Durch den andauernden Trend des demografischen Wandels und der Weiterentwicklung von eingebetteten
+Systemen bietet AAL ein großes Geschäftsfeld \cite{fhf_aal}.
+Da AAL viele Möglichkeiten bietet Dienstleistungen und Produkte anzubieten und es keine technischen Standards
+und Schnittstellenbeschreibungen für AAL-Produkte gibt, versuchen Hersteller sehr homogene Umgebungen
+herzustellen \cite{aal_interop}.
+Die Interoperabilitätsprobleme umfassen logische Problemfelder wie Bediensoftware und insbesondere Semantik
+der Produkte, als auch Hardware und Kommunikationsprotokolle.
 
-\section{AAL-Dienstplattform WieDAS}
-
-\subsection{Was ist WieDAS?}
+\subsection{Projektbeschreibung}
+\label{gru_wiedas}
 
 Das WieDAS (Wiesbaden-Düsseldorfer Ambient Assisted Living Service Plattform) ist eine AAL-Dienstplattform
 für verteilte Assistenzsystem.
+Die AAL-Dienstplattform, bietet der Software, die im Rahmen dieser Thesis beschrieben wird, den AAL-Kernaspekt,
+durch Verwendung von Geräten zur Steuerung und Regelung im Wohnungsalltag.
 
 Der Schwerpunkt des WieDAS-Projekts ist die Verwendung des verteilten Computersystems in der eigenen Wohnung,
 welches zumeist aus Routern, Smartphones, Laptops und Arbeitsplatzrechnern besteht.
@@ -64,25 +81,59 @@ Rückmeldung über die sozialen Aspekte des Themenfelds AAL und kann diese bei d
 einbeziehen.
 
 Dem WieDAS-Projekt stehen mehrere Partner aus dem Bereich für verteilte Systeme, ambulante Dienste und
-Wohnberatung zur Seite und wird bezüglich der Verwertbarkeit in Wiesbaden und Düsseldorf evaluiert \cite{wiedas}.
+Wohnberatung zur Seite und wird bezüglich der Verwertbarkeit in Wiesbaden und Düsseldorf evaluiert \cite[Partner]{wiedas}.
+
+\subsection{Plattform}
+\label{gru_wiedas_plattform}
+
+\begin{figure}[h]
+\includegraphics[scale=0.8]{images/wiedas_plattform}
+\caption{WieDAS-Plattform}
+\label{wiedas_plattform}
+\end{figure}
+
+Auf die WieDAS-Plattform (Abbildung \ref{wiedas_plattform}) wird von Benutzern über Anwendungen zugegriffen.
+Diese Anwendungen steuern Aktoren oder liefern Mess- und Zustandsinformationen von Sensoren.
+Für zusätzliche Hilfestellung beim Bedienen der Anwendungen steht in der Architektur ein
+tutorielles System bereit.
+Die Plattform kann über Fernwartung oder andere verbundene Management-Modulen verwaltet werden.
+Weiterhin stellt die Plattform Verwaltungseinheiten für den Betrieb bereit.
+Dazu gehört unter anderem das Sicherheits-Management und das anbieten virtueller fehlertolerante
+Dienste, welche den implementierten Diensten überlagert sind.
+
+Der Kern der Plattform ist der Kontext-Bus.
+Er besteht aus verschiedenen Adaptermodulen (im weiteren Connectoren), welche für die WieDAS-Komponente
+entwickelt werden müssen.
+Die Zentraleinheit des Busses (im weiteren Cache) lagert die vorliegenden Daten und bietet sie
+den angeschlossenen Modulen (Management- und Connectormodule) über eine Schnittstelle an.
+Der Kontext-Bus spielt die zentrale Rolle dabei, Geräte die in der homogenen Einsatzumgebung vorkommen, zu
+heterogenisieren.
+
+Zur realen Welt liegt die Schnittstelle der Sensorik.
+Hier befinden sich Sensoren, welche autarke Messwerte \cite[Plattform]{wiedas} in den WieDAS-Datenraum
+befüllen.
+Weitere Komponenten der Sensorik sind Aktoren, welche aus dem System heraus angesprochen werden können
+und wiederum Aktionen in WieDAS selbst ausführen können.
+Durch die Heterogenisierung im Kontext-Bus, soll z.B. der Sensor eines bestimmten Herstellers in der
+Lage sein einen Aktor eines anderen Herstellers zu steuern oder mit Informationen zu befüllen.
+
+Die Plattform enthält weitere Module für z.B. Mining und Reasoning, die für die Entwicklung
+der Software keine Relevanz besitzen.
 
 \subsection{AAL-Cache}
+\label{gru_aalcache}
 
-AAL-Cache ist die zentrale Softwarekomponente von WieDAS.
-Der Cache läuft in einem eigenständigen Prozess und soll die Geräte, die in der heterogenen Einsatzumgebung
-vorkommen, homogenisieren.
-So soll z.B. der Sensor eines bestimmten Herstellers in der Lage sein einen Aktor eines anderen Herstellers
-zu verwenden.
+AAL-Cache ist die zentrale Softwarekomponente des Kontext-Busses des WieDAS-Projekts \ref{gru_wiedas}.
 
 Der Kern des AAL-Cache ist die Speicherung und Erfassung von Gerätedaten aus dem Umfeld.
 Damit die herstellerspezifischen Geräte und Protokolle vom AAL-Cache verarbeitet werden können, schreiben
-die Softwareentwickler, die mit dem Cache arbeiten, Adaptermodule (im weiteren ``Connectoren'').
+die Softwareentwickler, die mit dem Cache arbeiten, Adaptermodule (im weiteren Connectoren).
 Der Cache läuft stets dauerhaft und kann mittels der geschrieben Connectoren, welche für die
-Hersteller spezifische Codestücke enthält, Daten aus der Umgebung erfassen bzw. in diese verbreiten.
+Hersteller spezifische Codestücke enthalten, Daten aus der Umgebung erfassen bzw. in diese verbreiten.
 Connectoren sind Module, welche entweder zum Startzeitpunkt oder während der Laufzeit geladen werden
 können.
-Der AAL-Cache stellt für diese eine Schnittstelle bereit und kann sie zum Startzeitpunkt oder auch
-zur Laufzeit laden.
+Der AAL-Cache stellt für diese eine Schnittstelle bereit, welche wieder beim Starten der Connectoren
+verwendet wird, um sich beim AAL-Cache zu registrieren.
 Das Programm bedient sich dabei der Möglichkeit unter Linux dynamische Bibliotheken zu laden.
 
 Für jeden Cache-Eintrag speichert AAL-Cache URIs in Form von Tags und binäre anwendungsspezifische Daten.
@@ -152,13 +203,14 @@ Als Aktoren dienen Dimmer, Unterputzeinsätze für vorhandene Installationen, ei
 komplexe Steuerungsmodule für z.B. Heizung oder Türgriffe.
 
 \subsection{XML-RPC}
+\label{gru_xmlrpc}
 
 XML-RPC ist der Begriff für einen entfernten Prozeduraufruf unter der Benutzung von XML.
 Es baut, wie der Name verrät, auf dem weit verbreiteten und anerkannten Interprozessprotokoll RPC
-(``Remote Procedure Call'').
+(Remote Procedure Call).
 Wie der Begriff verrät, findet man RPC in verteilten Systemen, wo der Aufrufer eine gewisse
 Aufgabe ausgeführt haben möchte und einen Aufruf an ein System absendet.
-Der Aufrufer oder Sender wird ``Client'' und das System, welches die Aufgabe ausführt ``Server'' genannt.
+Der Aufrufer oder Sender wird Client und das System, welches die Aufgabe ausführt Server genannt.
 
 
 Für den Programmierer ist der Aufruf selbst nicht von einem lokal ausgeführten Aufruf zu unterscheiden.
@@ -166,7 +218,7 @@ Der Programmierer sorgt lediglich für den Verbindungsaufbau zum Server.
 Die Transportmechanismen sind dabei vom Programmierer versteckt und befinden sich in den jeweiligen
 Implementierungen.
 Für den Transport zwischen den Teilnehmern werden Nachrichten genutzt, dadurch muss die Implementierung
-eine Kodierung (sogenanntes ``Marshalling'') vornehmen.
+eine Kodierung (sogenanntes Marshalling) vornehmen.
 
 Für dieses Marshalling bzw. den Transport selbst kann XML verwendet werden.
 XML-RPC jedoch ist ein eigenständiges Protokoll, welches ein gewisses Nachrichtenformat erwartet und keine
