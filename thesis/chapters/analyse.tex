@@ -14,8 +14,12 @@ einer Cache-Software bereitgestellt.
 Die HomeMatic-Geräte sind über eine Zentralkomponente mit dem Verarbeitungssystem verbunden.
 Es wird ein Connector \ref{gru_aalcache} entwickelt, der die HomeMatic-Geräte an den Cache koppelt
 und bestimmten Anforderungen gerecht werden muss.
+In der Analyse werden häufiger Lösungsansätze vorgeschlagen oder ihre Vor- und Nachteile aufgezeigt.
 
-Der erste Schritt der Analyse ist die Betrachtung der Herangehensweise bei der Entwicklung der
+Die Anforderungen werden zunächst durch die Bereitstellen von Anwendungsfällen in Kapitel \ref{ana_uc}
+veranschaulicht.
+
+Der erste Analyseschritt ist dann die Betrachtung der Herangehensweise bei der Entwicklung der
 Software in Kapitel \ref{ana_sw}.
 
 Die erste Aufgabe des Connectors, ist die Bereitstellung der ermittelten Geräte in WieDAS.
@@ -43,9 +47,8 @@ Daraus entscheidet sich auch die verwendete Programmiersprache der Implementieru
 
 Abschließend sind Konfigurationsanforderungen der Software in Kapitel \ref{ana_konfiguration} hinterlegt.
 
-Die Anforderungen werden näher mit Anwendungsfällen veranschaulicht und die Vor- und Nachteile
-verschiedener Lösungsansätze abgewägt.
-Die Entscheidungen die getroffen wurden, werden in Kapitel \ref{ana_entscheidungen} dokumentiert.
+Die Entscheidungen die getroffen wurden, und dem Design der Software zu Grunde liegen, werden in
+Kapitel \ref{ana_entscheidungen} dokumentiert.
 
 \subsection{Entwicklung}
 
@@ -96,9 +99,35 @@ Dafür muss ein Zugang zur Konfigurationseinheit bereitgestellt werden.
 \section{Anwendungsfälle}
 \label{ana_uc}
 
+Für die Anwendungsfälle wird davon ausgegangen, dass sich das System in einem lauffähigen Zustand
+befindet.
+Das bedeutet, dass
 \begin{itemize}
-\item[UC01] Anmelden eines neuen HomeMatic-Geräts
+\item die notwendigen Netzwerkeinstellungen vorgenommen hat
+\item der Connector in der Konfigurationsdatei korrekt eingetragen wurde
+\item die Konfiguration für den Connector den Netzwerkeinstellungen entspricht
+\end{itemize}
+Die Anwendungsfälle \emph{UC02} bis \emph{UC04} setzen einen direkten Zugriff
+auf die Laufzeitumgebung des AAL-Cache voraus (z.B. mit der Fernsteuerungssoftware \emph{SSH}).
+
+\begin{itemize}
+\item[UC01] Starten des AAL-Cache mit eingebundenem Connector
 \item[Standardablauf]
+ \begin{enumerate}
+ \item Der AAL-Cache wird auf der Kommandozeil gestartet
+ \end{enumerate}
+\item[Ergebnis]
+ \begin{enumerate}
+ \item Der AAL-Cache meldet wieviele Geräte gefunden worden sind und ob Fehler aufgetreten sind
+ \end{enumerate}
+\end{itemize}
+
+\begin{itemize}
+\item[UC02] Anmelde eines neuen HomeMatic-Geräts
+\item[Standardablauf]
+ \begin{enumerate}
+ \item Das Gerät wird laut Gerätebeschreibung in der HomeMatic-CCU angemeldet
+ \end{enumerate}
 \item[Ergebnis]
  \begin{enumerate}
  \item Das Gerät taucht in der HomeMatic-CCU auf. 
@@ -107,12 +136,27 @@ Dafür muss ein Zugang zur Konfigurationseinheit bereitgestellt werden.
 \end{itemize}
 
 \begin{itemize}
-\item[UC02]
+\item[UC03] Löschen eines Geräts
 \item[Standardablauf]
  \begin{enumerate}
- \item
+ \item Ein angemeldetes Gerät (siehe \emph{UC02}) wird im WebUI abgemeldet
  \end{enumerate}
 \item[Ergebnis]
+ \begin{enumerate}
+ \item Das Gerät erscheint nicht mehr in der HomeMatic-CCU.
+ \item Das Abmelden beim Connector wird mit einer kurzen Statusmeldung bestätigt.
+ \end{enumerate}
+\end{itemize}
+
+\begin{itemize}
+\item[UC04] Durchführen eines Schaltbefehls
+ \begin{enumerate}
+ \item Ein angemeldetes Schaltgerät führt verschiedene Schaltbewegungen aus (Lang, Kurz, Oben, Unten)
+ \end{enumerate}
+\item[Ergebnis]
+ \begin{enumerate}
+ \item Der Connector meldet einen erfolgreichen Schaltvorgang
+ \end{enumerate}
 \end{itemize}
 
 \section{Entwicklung}
