@@ -89,10 +89,10 @@ Wohnberatung zur Seite und wird bezüglich der Verwertbarkeit in Wiesbaden und D
 \begin{figure}[h]
 \includegraphics[scale=0.8]{images/wiedas_plattform}
 \caption{WieDAS-Plattform}
-\label{wiedas_plattform}
+\label{abb_wiedas_plattform}
 \end{figure}
 
-Auf die WieDAS-Plattform (Abbildung \ref{wiedas_plattform}) wird von Benutzern über Anwendungen zugegriffen.
+Auf die WieDAS-Plattform (Abbildung \ref{abb_wiedas_plattform}) wird von Benutzern über Anwendungen zugegriffen.
 Diese Anwendungen steuern Aktoren oder liefern Mess- und Zustandsinformationen von Sensoren.
 Für zusätzliche Hilfestellung beim Bedienen der Anwendungen steht in der Architektur ein
 tutorielles System bereit.
@@ -124,85 +124,76 @@ der Software keine Relevanz besitzen.
 \label{gru_aalcache}
 
 AAL-Cache ist die zentrale Softwarekomponente des Kontext-Busses des WieDAS-Projekts \ref{gru_wiedas}.
+Der Kern des AAL-Cache ist die Erfassung und Speicherung von Gerätedaten aus dem Umfeld.
+Der Cache wird auf verschiedenen Netzwerksystemen wie DSL-Routern oder NAS-Systemen eingesetzt \cite{aalcache_online}
+und ist daher in C++ implementiert und bietet C Schnittstellen zur Interaktion mit dem Cache bereit.
 
-Der Kern des AAL-Cache ist die Speicherung und Erfassung von Gerätedaten aus dem Umfeld.
-Damit die herstellerspezifischen Geräte und Protokolle vom AAL-Cache verarbeitet werden können, schreiben
-die Softwareentwickler, die mit dem Cache arbeiten, Adaptermodule (im weiteren Connectoren).
-Der Cache läuft stets dauerhaft und kann mittels der geschrieben Connectoren, welche für die
-Hersteller spezifische Codestücke enthalten, Daten aus der Umgebung erfassen bzw. in diese verbreiten.
-Connectoren sind Module, welche entweder zum Startzeitpunkt oder während der Laufzeit geladen werden
-können.
-Der AAL-Cache stellt für diese eine Schnittstelle bereit, welche wieder beim Starten der Connectoren
-verwendet wird, um sich beim AAL-Cache zu registrieren.
-Das Programm bedient sich dabei der Möglichkeit unter Linux dynamische Bibliotheken zu laden.
-
-Für jeden Cache-Eintrag speichert AAL-Cache URIs in Form von Tags und binäre anwendungsspezifische Daten.
+Für jeden Cache-Eintrag speichert AAL-Cache URIs in Form von Tags und dazugehörige binäre anwendungsspezifische
+Daten.
 Die URIs dienen als Schlüssel und Identifikator für Cache-Einträge.
 Aus Performancegründen sind die Einträge Maschinenworte.
 Weiterhin speichert der Cache einige Metadaten für jedes Datum.
 Darunter z.B. die Identifikation des Schreibers, Zeitstempel für die Erstellung und des letzten
-Lesezugriffs des Datums, sowie der Energiebedarf zur Erhebung des Werts \cite{aalcache}.
+Lesezugriffs des Datums, sowie der Energiebedarf zur Erhebung des Werts \cite{aalcache_online}.
 Zum Zwecke der Lesbarkeit des Datums wird weiterhin ein Datentyp-Hint hinterlegt.
 
-Der Cache selbst kann zur Laufzeit mittels der Management-Schnittstelle konfiguriert werden.
-Initial kann der Cache mit XML-Datenstrukturen konfiguriert werden.
-Darin enthalten sind z.B. Einstellungen bezüglich der Anzahl und Größte von Speicherpools und Anzahl
-der bereitgestellten Cache-Einträge \cite{aalcache}.
-Management-Module, welche diese Schnittstelle dann verwenden können, sind in der Lage weitere Speicherpools
-anzulegen, falls die vorkonfigurierte Anzahl nicht ausreichend sein sollte.
+\begin{figure}[h]
+\includegraphics[scale=0.7]{images/aalcache}
+\caption{Architektur des AAL-Cache}
+\label{abb_aalcache}
+\end{figure}
 
-Im aktuellen Code-Repository befinden sich bereits Connectoren für z.B. OSGi, Ontology-Homeautomation,
-DDS und sDDS.
+Die Abbildung \ref{abb_aalcache} zeigt welche Komponenten in der AAL-Cache Architektur verwendet werden.
 
-\subsection{Beschreibung der Geräte}
+Damit die herstellerspezifischen Geräte und Protokolle vom AAL-Cache verarbeitet werden können, schreiben
+die Softwareentwickler, die mit dem Cache arbeiten, Adaptermodule (im weiteren Connectoren).
+Die Connectoren stellen somit eine Verbindung mit externen Systemen oder Einzelkomponenten.
+Connectoren werden stets im Kontext des AAL-Cache Prozesses ausgeführt \cite{aalcache_online}.
+Der Cache läuft stets dauerhaft und kann mittels der geschrieben Connectoren, welche
+für die Hersteller spezifische Codestücke enthalten, Daten aus der Umgebung erfassen bzw. in diese verbreiten.
 
-\section{HomeMatic}
+Dadurch dass der Prozess dauerhaft läuft, werden die Connectoren als Arbeiter realisiert und laufen in
+Ihren eigenen Threads.
+Die Connectoren können wiederum selbst Threads benutzen.
 
-HomeMatic ist ein Protokoll der Firma eQ-3 und wird in der Haus- und Gebäudeautomation
-verwendet.
-HomeMatic-Hausautomation bietet verschiedene Geräte für die Hausinstallation und wirbt damit einfach bedienbar,
-zuverlässig, sicher und erweiterbar zu sein \cite{homematic_eq3}.
-Das Funk-Kommunikationsprotokoll, welches für die Geräte eingesetzt wird, heißt BidCoS®.
-Das Protokoll ist bidirektional und bestätigt empfangene Daten, wodurch die Sicherheit
-erhöht wurde.
-Es bietet jedoch weitere Sicherheitsmerkmale, z.B. die verschlüsselte Kommunikation.
-Es wurde speziell für die drahtlose Ansteuerung der Geräte entwickelt \cite{homematic_eq3_faq},
-wird jedoch auch für die Kommunikation über Kabelverbindungen genutzt.
-
-\subsection{Hausautomationsgeräte}
-
-Diese Produktserie befasst sich mit der Hausautomationstechnik und wird in mehrere
-Kategorien aufgeteilt.
+Connectoren sind Module, welche entweder zum Startzeitpunkt oder während der Laufzeit geladen werden
+können.
+Der AAL-Cache stellt für diese eine Schnittstelle bereit, welche beim Starten der Connectoren
+verwendet wird, um sich beim AAL-Cache zu registrieren.
+Das Programm bedient sich dabei der Möglichkeit unter Linux dynamische Bibliotheken zu laden.
+Wie die Abbildung \ref{abb_aalcache} zeigt, existieren derzeit die Möglichkeiten eine Implementierung
+von Connectoren in
 \begin{enumerate}
-\item{Zentralen und Gateways}
-\item{Sender und Controller}
-\item{Sensoren}
-\item{Aktoren}
+\item C
+\item Java
 \end{enumerate}
+vorzunehmen.
+Die Java-Connectoren bedienen sich dabei einer Java VM, die über JNI-Code auf der C-Schnittstelle aufsetzt.
+Der Cache selbst ist in C++ verfasst, bietet jedoch eine C-Schnittstelle, so dass auch Implementierungen von
+Connectoren in purem C ermöglicht werden, um z.B. den Speicherverbrauch geringer zu halten.
+Im aktuellen Code-Repository \cite{aalcache_code} befinden sich bereits Connectoren für z.B. OSGi,
+Ontology-Homeautomation, DDS und sDDS.
 
-Um eine komfortable Steuerung und Verwaltung der im Haus befindlichen Geräte durchzuführen,
-bietet HomeMatic Stationen an, die als Zentrale dienen.
-Die Geräte in der HomeMatic-Umgebung können über Funk oder Kabel mit der Zentrale verbunden
-werden.
-Um die Zentrale nicht zwangsläufig am PC-Arbeitsplatz aufzustellen, bietet HomeMatic weitere
-Adapter und Gateways an, um so z.B. Konfiguration mit USB-Sticks vorzunehmen.
-Die Konfiguration selbst geschieht dann über das Aufrufen einer Internetanwendung, die
-auf der Zentrale läuft.
-Dieses Programm wird WebUI genannt \cite{homematic_webui_manual}.
 
-Durch das Verwenden von HTTP und damit auch TCP, ist man auch in der Lage die Zentrale
-über das Internet, z.B. durch die Verwendung von Smartphones zu konfigurieren.
-Dazu müssen lediglich die Aufrufe aus dem Internet an die Zentrale weitergeleitet werden
-(Router-Portforwarding).
+Die Connectoren sind die Verbindung zur realen Welt.
+Diese Verbindung kann über Produkte für Sensorik, Steuerungseinheiten oder ähnlichem existieren.
+Es können auch Anwendungen für Benutzer oder weitere Module geschrieben werden \ref{gru_wiedas_plattform},
+die an der Datenverarbeitung der WieDAS-Daten interessiert sind.
 
-HomeMatic bietet zur Ansteuerung von Aktoren moderne Funk-Fernbedienungen mit verschiedener
-Anzahl von Tastern, sowie Möglichkeiten Taster in Gebäude-Elektroinstallationen Unterputz anzubringen.
-Um automatisch Werte aus der Hausinstallation zu erfassen, gibt es verschiedene Sensoren für z.B.
-Wetter, Rauch, Bewegung und elektrische Impulserkennung.
-Als Aktoren dienen Dimmer, Unterputzeinsätze für vorhandene Installationen, einfache Ausgangsmodule und
-komplexe Steuerungsmodule für z.B. Heizung oder Türgriffe.
+Der Cache selbst kann zur Laufzeit mittels der Management-Schnittstelle konfiguriert werden.
+Funktionen die die dynamische Verwaltung erlauben umfassen:
+\begin{enumerate}
+\item Anlegen von Speicherpools, falls die vorkonfigurierte Anzahl nicht ausreichend sein sollte
+\item Laden von Connectoren, durch Angabe von Dateinamen und der benötigten Funktionen
+\item Statusabfragen (z.B. Liste aller Connectoren, Anzahl belegter/gesamter Inodes, Zugriffszähler)
+\item Zurücksetzen der Zugriffszähler
+\end{enumerate}
+Da manche Konfigurationen nicht zur Laufzeit vorgenommen werden können (Anzahl der Inodes, Threads,
+Callback-Warteschlangenlänge), werden diese statisch konfiguriert.
+Der Cache wird mit XML-Daten konfiguriert, worin auch die dynamisch konfigurierbaren Einstellungen
+initial vorgenommen werden.
 
-\subsection{XML-RPC}
+\section{XML-RPC}
 \label{gru_xmlrpc}
 
 XML-RPC ist der Begriff für einen entfernten Prozeduraufruf unter der Benutzung von XML.
@@ -212,22 +203,151 @@ Wie der Begriff verrät, findet man RPC in verteilten Systemen, wo der Aufrufer 
 Aufgabe ausgeführt haben möchte und einen Aufruf an ein System absendet.
 Der Aufrufer oder Sender wird Client und das System, welches die Aufgabe ausführt Server genannt.
 
-
 Für den Programmierer ist der Aufruf selbst nicht von einem lokal ausgeführten Aufruf zu unterscheiden.
 Der Programmierer sorgt lediglich für den Verbindungsaufbau zum Server.
-Die Transportmechanismen sind dabei vom Programmierer versteckt und befinden sich in den jeweiligen
+Die Transportmechanismen sind dabei für den Programmierer nicht sichtbar und befinden sich in den jeweiligen
 Implementierungen.
 Für den Transport zwischen den Teilnehmern werden Nachrichten genutzt, dadurch muss die Implementierung
-eine Kodierung (sogenanntes Marshalling) vornehmen.
+des Protokolls eine Kodierung (sogenanntes Marshalling) vornehmen.
 
 Für dieses Marshalling bzw. den Transport selbst kann XML verwendet werden.
 XML-RPC jedoch ist ein eigenständiges Protokoll, welches ein gewisses Nachrichtenformat erwartet und keine
-anwendungsspezifischen Datentypen erlaubt.
-Somit müssen Daten mit den vom Protokoll spezifizierten Datentypen strukturiert werden.
+anwendungsspezifischen Datentypen erlaubt, bzw. diese nur mittels den primitiven Datentypen, die bereitgestellt werden,
+zusammenbauen lässt.
+XML-RPC ist durch den Verlust der Kompaktifizierung von reinem XML etwas größer, jedoch durch die Standardisierung
+etwas komfortabler \cite{xmlrpc_so}.
+
+Es bietet z.B. Vorteile durch:
+\begin{enumerate}
+\item einfache Datentypen (String, Integer, usw.).
+\item standardisiertes Datumformat
+\item häufige Integration der Transportschicht in den Bibliotheken
+\end{enumerate}
+
+\lstset{language=XML}
+\begin{lstlisting}[frame=single,caption={Aufbau einer XML-RPC-Nachricht}]
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<methodCall>
+	<methodName>sample.sum</methodName>
+	<params>
+		<param>
+			<value><int>17</int></value>
+		</param>
+		<param>
+			<value><int>13</int></value>
+		</param>
+	</params>
+</methodCall>
+\end{lstlisting}
 
 Während bei einer Verwendung von XML für RPC der Transportmechanismus keine Rolle spielen würde, findet
 der Aufruf eines XML-RPC über HTTP statt.
-Dadurch müssen die Clients und Server das HTTP Protokoll implementieren.
+Dadurch müssen die Clients und Server das HTTP-Protokoll implementieren.
 Ein Vorteil, welcher auch gleichzeitig ein Nachteil sein kann, ist die Einsehbarkeit der Kommunikation
 von beteiligten Systemen.
 Um diesem Sicherheitsmangel entgegen zu wirken, wäre eine Kommunikation über HTTPS denkbar.
+
+\section{HomeMatic-Hausautomation}
+\label{gru_hm_ha}
+
+HomeMatic ist ein Protokoll der Firma eQ-3 und wird in der Haus- und Gebäudeautomation
+verwendet.
+HomeMatic-Hausautomation bietet verschiedene Geräte für die Hausinstallation und wirbt damit einfach bedienbar,
+zuverlässig, sicher und erweiterbar zu sein \cite{homematic_eq3}.
+Das Funk-Kommunikationsprotokoll, welches für die Geräte eingesetzt wird, heißt BidCoS®.
+Das Protokoll ist bidirektional und bestätigt empfangene Daten, wodurch die Sicherheit
+erhöht wurde.
+Es bietet jedoch weitere Sicherheitsmerkmale, z.B. die verschlüsselte Kommunikation.
+Es wurde speziell für die drahtlose Ansteuerung der Geräte entwickelt \cite{homematic_eq3_faq} (BidCoS®-RF),
+wird jedoch auch für die Kommunikation über Kabelverbindungen genutzt (BidCoS®-Wired).
+
+Die Produktserie befasst sich mit der Hausautomationstechnik und wird in mehrere
+Kategorien aufgeteilt.
+\begin{enumerate}
+\item{Zentralen und Gateways}
+\item{Sender und Controller}
+\item{Sensoren}
+\item{Aktoren}
+\end{enumerate}
+
+Um eine komfortable Steuerung und Verwaltung der im Haus befindlichen Geräte durchzuführen,
+bietet HomeMatic Stationen an, die als Zentrale oder Gateway dienen.
+Die Zentrale der HomeMatic-Umgebung ist die HomeMatic-CCU.
+
+\subsection{HomeMatic-CCU Zentrale}
+\label{gru_hm_ccu}
+
+Die Geräte in der HomeMatic-Umgebung können über Funk oder Kabel mit der Zentrale verbunden
+werden.
+Um die Zentrale nicht zwangsläufig am PC-Arbeitsplatz aufzustellen, bietet HomeMatic weitere
+Adapter und Gateways an, um so z.B. Konfiguration mit USB-Sticks vorzunehmen.
+
+Die HomeMatic-CCU bietet Möglichkeiten mit der Sensorik auf verschiedene Art und Weise zu
+interagieren \cite[Seite 6]{homematic_ccu}.
+Die Anwendung die dafür bereitgestellt wird heißt HomeMatic-WebUI \cite{homematic_webui_manual}
+und kann folgende Aufgaben bewältigen:
+\begin{enumerate}
+\item Konfiguration und Bedienung der Geräte
+\item Abfrage von Statusinformationen
+\item Herstellen von Verknüpfungen unter den Geräten
+\item Komplexere Funktionen über Zentralprogramme realisieren
+\end{enumerate}
+
+Es existieren derzeit 2 Verbindungsmöglichkeiten zur Steuereinheit \cite[Seite 10]{homematic_ccu}:
+\begin{enumerate}
+\item USB-Steckverbindung
+\item Ethernet-Steckverbindung
+\end{enumerate}
+
+Je nach Lage des Systems auf dem der Connector ausgeführt wird und wo sich die Steuereinheit räumlich
+befindet kann eine Verbindung bevorzugt werden.
+Dabei ist zu beachten, dass die Verwendung der USB-Verbindung nur unter Windows Betriebssystemen
+verwendet werden kann.
+
+Durch das Verwenden von HTTP ist man auch in der Lage die Zentrale
+über das Internet, z.B. durch die Verwendung von Smartphones zu konfigurieren.
+Dazu müssen lediglich die Aufrufe aus dem Internet an die Zentrale weitergeleitet werden
+(Router-Portforwarding).
+
+Die HomeMatic-CCU benötigt nur für das Stellen der Uhrzeit Zugriff auf das Internet.
+Je nach Netzwerkkonfiguration im Hause, kann die Netzwerkkonfiguration, sowie Zeitserver
+für die Zentrale manuell konfiguriert werden.
+
+HomeMatic bietet zur Ansteuerung von Aktoren moderne Funk-Fernbedienungen mit verschiedener
+Anzahl von Tastern, sowie Möglichkeiten Taster in Gebäude-Elektroinstallationen Unterputz anzubringen.
+Um automatisch Werte aus der Hausinstallation zu erfassen, gibt es verschiedene Sensoren für z.B.
+Wetter, Rauch, Bewegung und elektrische Impulserkennung.
+Als Aktoren dienen Dimmer, Unterputzeinsätze für vorhandene Installationen, einfache Ausgangsmodule und
+komplexe Steuerungsmodule für z.B. Heizung oder Türgriffe.
+Um komplexere Steuerungen zu realisieren bietet HomeMatic die Möglichkeit Scripts in der Zentrale
+zu hinterlegen \cite{hmscript1}.
+
+Um eine Verbindung zwischen den Geräten und der Zentrale herzustellen, müssen die Geräte zunächst
+angemeldet werden.
+Voraussetzung dafür ist das korrekte Setzen der Uhrzeit in der Zentrale und das eventuelle
+Aktualisieren der installierten Firmware.
+Sind diese erfüllt (es blinken keine Status-LED am Gerät) ist die Zentrale bereit Anmeldungen
+durchzuführen.
+Eine Anmeldung wird prinzipiell durch Drücken Anmeldesequenz mittels Klick auf den ``Teach-In Devices''
+in der WebUI an der Zentrale eingeleitet.
+Die Sequenz am Gerät ist spezifisch und ist in den Bedienungsanleitungen hinterlegt.
+
+Für die je verfügbaren Geräteverbindungen (Kabel, Funk, Intern) existiert eine Programmierschnittstelle
+\cite[Seite 4]{homematic_xmlrpc}.
+Diese Programmierschnittstelle verwendet das im Kapitel \ref{gru_xmlrpc} beschriebene XML-RPC-Protokoll.
+Die Nutzung der Schnittstelle unterscheidet dabei zwischen dem Schnittstellenprozess und dem Logikprozess.
+Der Schnittstellenprozess wird von der HomeMatic-CCU angeboten und dient der expliziten Steuerung
+bzw. dem Anfordern von Informationen.
+Der Logikprozess ist auf der Seite der Anwendung (bzw. des Programms) und ist der Prozess, welcher die
+Aufrufe tätigt oder vom Schnittstellenprozess über bestimmte Ereignisse benachrichtigt wird.
+Ein Logikprozess kann mit mehreren Schnittstellenprozesse kommunizieren \cite[Seite 3]{homematic_xmlrpc}
+und identifiziert diese mit einer ID.
+Die CCU stellt für jede Verbindungsart der Geräte einen extra XML-RPC-Server unter einem anderen Port
+bereit.
+\begin{enumerate}
+\item Port 2000 für drahtgebundene Komponenten
+\item Port 2001 für Funk-Komponenten
+\item Port 2002 für interne Komponenten
+\end{enumerate}
+Die XML-RPC-Server stehen unter der vergebenen IP-Adresse (s.o.) und dem entsprechenden Port
+zur Verfügung.

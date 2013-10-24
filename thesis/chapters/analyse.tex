@@ -7,15 +7,18 @@
 \section{Anforderungen}
 \label{ana_anforderungen}
 
-Das Hauptziel der Software ist die Bereitstellung von HomeMatic-Hausautomationsgeräten
+Das Hauptziel der Software ist die Bereitstellung und Verwendung von HomeMatic-Hausautomationsgeräten
 im WieDAS-Datenraum.
 Wie im Kapitel \ref{gru_aalcache} bereits aufgeführt, wird der WieDAS-Datenraum über eine Instanz
 einer Cache-Software bereitgestellt.
 Die HomeMatic-Geräte sind über eine Zentralkomponente mit dem Verarbeitungssystem verbunden.
-Daher muss ein Connector \ref{gru_connector} entwickelt werden, welche bestimmten Anforderungen
-gerecht wird.
+Es wird ein Connector \ref{gru_aalcache} entwickelt, der die HomeMatic-Geräte an den Cache koppelt
+und bestimmten Anforderungen gerecht werden muss.
 
-Der nächste Schritt ist die Bereitstellung der ermittelten Geräte in WieDAS.
+Der erste Schritt der Analyse ist die Betrachtung der Herangehensweise bei der Entwicklung der
+Software in Kapitel \ref{ana_sw}.
+
+Die erste Aufgabe des Connectors, ist die Bereitstellung der ermittelten Geräte in WieDAS.
 Dazu wird zunächst das Gerätemodell von WieDAS in Kapitel \ref{ana_wd_modell} analysiert.
 Durch die Betrachtung des Modells kann ermittelt werden, welche Informationen aus den HomeMatic-Geräten
 benötigt werden.
@@ -29,7 +32,7 @@ Da die HomeMatic-Geräte in WieDAS eingepflegt werden, müssen eine Abbildung de
 Dazu müssen die Strukturen, Datentypen und evtl. Schnittstellen umgewandelt bzw. abgebildet werden,
 was im Kapitel \ref{ana_abb} näher erläutert wird.
 
-Der Aufbau des Connectors wird in Kapitel \ref{ana_connector} geschildert.
+Die Arbeitsweise des Connectors wird in Kapitel \ref{ana_connector} geschildert.
 Der Connector ist nicht nur für das initiale Befüllen des WieDAS-Datenraums mit HomeMatic-Geräten
 zum Programmstart verantwortlich, sondern reagiert auch während der Laufzeit auf neue und entferne Geräte
 und stellt Signale an verschiedene Geräte zu.
@@ -44,6 +47,11 @@ Die Anforderungen werden näher mit Anwendungsfällen veranschaulicht und die Vo
 verschiedener Lösungsansätze abgewägt.
 Die Entscheidungen die getroffen wurden, werden in Kapitel \ref{ana_entscheidungen} dokumentiert.
 
+\subsection{Entwicklung}
+
+Connectoren werden in der Umgebung der Cache-Software entwickelt.
+In diesem Kapitel wird untersucht, welche Anforderungen an die Entwicklung gestellt werden.
+
 \subsection{WieDAS-Gerätemodell}
 
 Das WieDAS-Gerätemodell wird durch eine IDL beschrieben.
@@ -53,7 +61,7 @@ zur Verfügung stehen.
 \subsection{HomeMatic-Geräte}
 
 Die Geräte der HomeMatic-Hausautomation kommunizieren mit der HomeMatic-CCU.
-Weiterhin ist sie für Konfiguration und Abrufen der Gerätedaten zuständig (Kapitel \ref{gru_ccu}).
+Weiterhin ist sie für Konfiguration und Abrufen der Gerätedaten zuständig (Kapitel \ref{gru_hm_ccu}).
 Es muss analysiert werden, wie das XML-RPC Protokoll, welches die HomeMatic-CCU anbietet,
 angewendet wird, um Gerätedaten abzurufen und wie diese aufgebaut sind.
 
@@ -85,13 +93,63 @@ Da das Gateway auf verschiedenen Geräten lauffähig sein soll und in einem beli
 agiert, müssen bestimmte Eigenschaften des Systems statisch und ggf. dynamisch konfiguriert werden.
 Dafür muss ein Zugang zur Konfigurationseinheit bereitgestellt werden.
 
+\section{Anwendungsfälle}
+\label{ana_uc}
+
+\begin{itemize}
+\item[UC01] Anmelden eines neuen HomeMatic-Geräts
+\item[Standardablauf]
+\item[Ergebnis]
+ \begin{enumerate}
+ \item Das Gerät taucht in der HomeMatic-CCU auf. 
+ \item Das Anmelden beim Connector wird mit einer kurzen Statusmeldung bestätigt.
+ \end{enumerate}
+\end{itemize}
+
+\begin{itemize}
+\item[UC02]
+\item[Standardablauf]
+ \begin{enumerate}
+ \item
+ \end{enumerate}
+\item[Ergebnis]
+\end{itemize}
+
+\section{Entwicklung}
+\label{ana_sw}
+
+Connectoren sind sehr eng an den AAL-Cache gekoppelt und von der Umgebung der eigentliche Geräte
+entkoppelt (siehe Kapitel \ref{gru_wiedas_plattform}).
+Da es schon verschiedene Connectoren gibt, kann man sich vorhandene Implementierungen und die
+verwendeten Werkzeuge, die bei der Entstehung verwendet wurden, betrachten.
+Das Code-Repository des AAL-Caches enthält die Schnittstellen und deren Beschreibungen, sowie
+Bauanleitungen und verschiedene Connectoren-Implementierungen.
+
+Die Connectoren, die im Repository enthalten sind, werden mit ANT-Dateien und Makefiles erstellt.
+Das Ergebnis ist eine dynamische Bibliothek, wessen Aufenthaltsort dem Connector über eine
+Konfigurationsdatei (connectors.conf) mitgeteilt wird.
+Die verwendete Toolchain, sowie Bauanleitungen müssen also in der Lage sein dynamische Bibliotheken
+zu erstellen.
+
+Die WieDAS-Geräte werden mit der Beschreibungssprache IDL beschrieben.
+Eine IDL ist ähnlich aufgebaut wie eine Schnittstellenbeschreibung in der Programmiersprache C.
+Es existieren bereits Konvertierungsmöglichkeiten von IDL zu C und C++, wie z.B. von der
+DCE-Spezifikation \cite{cde} oder von Orbix \cite{orbix}.
+Für weitere Konvertierung zu anderen Sprachen existieren Code-Konvertierungsprogramme wie SWIG \cite{swig}.
+
+Falls der Aufwand einer eigenständigen Konvertierung in die verwendete Zielsprache zu hoch ist, sollte
+auf solche automatischen Konvertierungen zurückgegriffen werden.
+Die Entscheidung sollte von der Implementierungssprache und dem Umfang der IDL abhängig gemacht werden.
+Da die IDL zu diesem Zeitpunkt noch nicht vollständig ist \cite{wiedas_onto},
+könnte eine zukünftige Verwendung von Generatoren im Entwicklungsprozess vorgesehen werden.
+
 \section{WieDAS-Gerätemodell}
 \label{ana_wd_modell}
 
 WieDAS selbst wird durch eine Instanzierung der AAL-Cache Software (Kapitel \ref{gru_aalcache})
 repräsentiert.
-Diese Software dient der Konfiguration des WieDAS-Datenraums, sowie dem Auslesen und Hinzufügen von
-Hausautomationsgeräten.
+Diese Softwarekomponente dient der Konfiguration des WieDAS-Datenraums, sowie dem Auslesen und
+Hinzufügen von beteiligten Geräten in der Umgebung.
 Diese Geräte werden in einer IDL \cite{idl} spezifiziert \cite{wiedas_idl}.
 Es existieren wenige primitive Datentypen, darunter z.B. eine ID, Schaltzustände oder Aufzählungen.
 Weiterhin werden gewöhnliche Aufgaben, wie das Erfassen einer Temperatur, das Schalten, oder ähnliches
@@ -128,16 +186,7 @@ struct DimmableLight_dt {
 Die WieDAS-IDL muss für die verwendete Implementierungssprache so interpretiert werden, dass die
 sprachabhängigen Typen die Typeigenschaften (insbesondere Restriktionen) der IDL (z.B. Wertebereich)
 unterstützen bzw. abdecken.
-Eine IDL ist ähnlich aufgebaut wie eine Schnittstellenbeschreibung in der Programmiersprache C.
-Es existieren bereits Konvertierungsmöglichkeiten von IDL zu C und C++, wie z.B. von der
-DCE-Spezifikation \cite{cde} oder von Orbix \cite{orbix}.
-Für weitere Konvertierung zu anderen Sprachen existieren Code-Konvertierungsprogramme wie SWIG \cite{swig}.
-
-Falls der Aufwand einer eigenständigen Konvertierung in die verwendete Zielsprache zu hoch ist, sollte
-auf solche automatischen Konvertierungen zurückgegriffen werden.
-Die Entscheidung sollte von der Implementierungssprache und dem Umfang der IDL abhängig gemacht werden.
-Da die IDL zu diesem Zeitpunkt noch nicht vollständig ist \cite{wiedas_onto},
- könnte eine zukünftige Verwendung von Generatoren im Entwicklungsprozess vorgesehen werden.
+Daher ist eine Konvertierung in die verwendete Implementierungssprache nötig (siehe Kapitel \ref{ana_sw}).
 
 \section{HomeMatic-Geräte}
 \label{ana_hm}
@@ -150,6 +199,17 @@ Diese Funktionalität wird in Datenpunkten abgebildet.
 Jedes Gerät besitzt eine verschiedene Anzahl und Art von Kanälen mit verschiedenen Datenpunkten.
 Die Datenpunkte werden dann entweder ausgelesen um Zustände von Geräten zu erfahren oder gesetzt
 um Funktionalitäten zu erfüllen.
+Ein Gerät wird über eine Adresse identifiziert.
+
+Der Schnittstellenprozess der CCU behandelt nur logische Geräte \cite{homematic_xmlrpc}.
+Somit werden auch Funktionen der Geräte als eigenständiges Gerät bezeichnet und
+erhalten eine eigenständige Adresse.
+Ein Multifunktionsgerät könnte folgendermaßen adressiert werden:
+\begin{itemize}
+\item ABC123 Gerät selbst
+\item ABC123:1 Schaltausgang 1
+\item ABC213:3 Schalteingang 3
+\end{itemize}
 
 Die Datenpunkte sind typisiert, haben bestimmte Eigenschaften und Metadaten \cite[Seite 21]{hmscript2}.
 Die Eigenschaften und Metadaten eines Datenpunkts sind der aktuelle typisierte Wert, den letzten Wert
@@ -198,13 +258,13 @@ gesetzt wird).
 Nicht aufgezeigt sind in dieser Tabelle weiterführende Attribute der Datenpunkte, welche
 den Wert genauer beschreiben \cite[Seite 3]{hmscript4}.
 
-\begin{enumerate}
+\begin{itemize}
 \item Minimalwert
 \item Maximalwert
 \item Standardwert
 \item Einheit
 \item Spezielle Werte
-\end{enumerate}
+\end{itemize}
 
 Diese Wertebeschreibung ist nur dort sinnvoll, wo der Datentyp numerisch ist.
 Spezielle Werte treten auf, um bestimmte Zustände zu beschreiben.
@@ -214,9 +274,25 @@ bzw. gekoppelten Ventils zu beschreiben.
 Diese Werte sind speziell zu interpretieren und liegen außerhalb des Wertebereichs
 (hier 0 und 100).
 
-Die Aufgabe des Connectors ist es, diese Gerätedaten anhand Ihrer Namensgebung zu interpretieren.
+Datenpunkte werden mit ihrem Namen und dem dazugehörigen Wert im XML-RPC als Parametersets
+zusammengefasst .
+Diese Parametersets haben Beschreibungen, die ebenfalls mit Funktionen vom Schnittstellenprozess
+angefordert werden können.
+Parametersets sind dann wiederum noch einmal nach Typ kategorisiert.
+\begin{enumerate}
+\item MASTER dient der Konfiguration eines Geräts
+\item LINK offeriert ein Parameterset zur Beschreibung einer Verknüpfung zwischen Kanälen
+\item VALUES ist das Set, welches die Messwerte, Statusinformationen und Schaltzustände beschreibt
+\end{enumerate}
+
+Die Aufgabe des Connectors ist es, diese Datenpunkte anhand Ihrer Namensgebung zu interpretieren.
 Eine allgemeine Dokumentation darüber, wie die Datenpunkte zu interpretieren sind, liegt leider
 nicht vor.
+
+Für die Implementierung werden die Geräte als Datenstruktur benötigt.
+Falls dafür ein Generator geschrieben werden soll (siehe Kapitel \ref{ana_sw}), so müssen
+die Geräte zunächst mit einer Beschreibungssprache vorliegen, da sie bisher nur in
+PDF Dokumenten von HomeMatic dokumentiert sind.
 
 \subsection{XML-RPC Schnittstelle}
 \label{ana_hm_xmlrpc}
@@ -241,19 +317,22 @@ bereitgestellte Methode ermittelt werden.
 Der Connector muss in der Lage sein die für die Datenerfassung und Steuerung von Geräten benötigten
 XML-RPC abzusetzen.
 Dazu muss eine Verbindung zur HomeMatic-CCU aufgebaut werden.
-Es existieren derzeit 2 Verbindungsmöglichkeiten zur Steuereinheit \cite{homematic_ccu}:
-\begin{enumerate}
-\item USB-Steckverbindung
-\item Ethernet-Steckverbindung
-\end{enumerate}
+Wie in \ref{gru_hm_ccu} beschrieben, existieren grundsätzlich 2 Verbindungsmöglichkeiten, jedoch
+dient nur die Netzwerkverbindung zur betriebssystemunabhängigen Verwendung der Programmierschnittstelle.
 
-Je nach Lage des Systems auf dem der Connector ausgeführt wird und wo sich die Steuereinheit räumlich
-befindet kann eine Verbindung bevorzugt werden.
-Da übliche Systeme über beide Möglichkeiten verfügen, sollte der Connector die Steckverbindung wählen,
-die weniger Implementierungsaufwand bedeutet.
+Für das Verwenden von XML-RPC existieren für beliebige Programmiersprachen viele Bibliotheken.
+Der Verbindungsaufbau und das Verschicken und Empfangen einer HTTP-Nachricht ist jedoch in
+den meisten Programmiersprachen leicht implementierbar, so dass auf den Overhead bei der Benutzung
+einer Bibliothek besteht evtl. verzichtet werden kann.
+Die XML-RPC Nachrichten, die von der Software gesendet werden müssen, sind sehr klein und einfach
+aufgebaut, so dass kein komplexes Marshalling benötigt wird.
 
 \section{Abbildung der Gerätedaten}
 \label{ana_abb}
+
+Zur Interpretierung und Umwandlung der Gerätemodelle von WieDAS und HomeMatic, muss der Connector
+die beiden Modelle zunächst in die Implementierungssprache abbilden.
+Dazu liegen Schnittstellenbeschreibungen bzw. Spezifikationen bereit.
 
 Die von HomeMatic-Geräten bereitgestellten Daten sind sehr detailliert und oft aus vielen kleineren
 Daten zusammengesetzt.
@@ -268,41 +347,173 @@ ist es erstrebenswert einen Generator zu entwickeln, welcher zumindest einfache 
 automatisch abbilden kann.
 Mit dieser Art der Generierung ist es einfacher neue HomeMatic-Geräte einzubinden oder bereits vorhandene
 Geräte, welche nicht von WieDAS unterstützt werden zu unterstützen.
-Ebenfalls sollte angestrebt werden, dass neue Geräte zu einem späteren Zeitpunkt dem Connector mitgeteilt
-werden.
+Ebenfalls sollte angestrebt werden, dass neue Geräte erst zur Laufzeit dem Connector mitgeteilt werden.
 Deshalb ist es notwendig, dass Geräte Informationen bereitstellen, um sie dynamisch anbinden zu können.
 
+Die HomeMatic-Geräte werden häufig durch Strings beschrieben, welche im WieDAS-Datenraum nicht
+verwendet werden.
+Sollte für die Kommunikation mit der HomeMatic-CCU zusätzliche Informationen zu den Geräten benötigt
+werden, die mit den Strings beschrieben werden, so muss der Connector ein eigenes Mapping vorbehalten,
+und mit den weiteren Informationen erweitern.
 
-\section{Aufbau und Arbeitsweise des Connectors}
+Da die Geräte in WieDAS mit spezifizierten Strukturen beschrieben werden und die HomeMatic-Geräte
+als Struktur vorliegen, mit den Namen als Schlüssel und einem variablen Wert, so können einfache
+Messdaten identisch übernommen werden.
+Sollten Messwerte den Wertebereich eines WieDAS-IDL-Datentypen überschreiten, so sollte der Maximalwert
+gewählt werden.
+Falls ein HomeMatic-Gerät Funktionen besitzt oder ein Mehrfachgerät ist, müssen für Spezialwerte und
+Funktionalitäten separate Strukturen aus der WieDAS-IDL gewählt werden.
+
+Da der AAL-Cache keine Information über die anwendungsspezifische Daten besitzt (hier WieDAS-Gerätemodell)
+müssen die Metadaten dazu verwendet werden um das Gerät zu ermitteln.
+Denkbar wäre auch eine Struktur zu definieren, die das Gerät kapselt und die Geräteinformation
+selbst bereitstellt.
+
+\section{Arbeitsweise des Connectors}
 \label{ana_connector}
 
-Die registrierte Logik-Schnittstelle wird mittels einem Aufruf von einer Methode darüber
-informiert, dass neue Geräte an der HomeMatic-CCU angemeldet wurden.
+In der Implementierung müssen verschiedene Funktionen bereitgestellt werden, die der AAL-Cache
+aufruft, um den Connector zu registrieren und ihm mitzuteilen, dass ein Tag nicht länger
+benutzt werden kann.
+Diese Eintrittsfunktionen werden dem AAL-Cache zusammen mit dem Namen der erstellten dynamischen
+Bibliothek über eine Konfigurationsdatei mitgeteilt.
+
+Der Connector muss beim Initialisieren oder zeitnah die gewünschten Geräte in den Cache
+eintragen.
+Dazu ist es notwendig eine Verbindung über das Netzwerk aufzubauen.
+Daher sollten nötige Steckverbindungen und Netzwerkeinstellungen bereits vor dem Start
+des Connectors vorhanden sein.
+
+Dann werden die Gerätebeschreibungen aus der HomeMatic-CCU gelesen, für WieDAS umgewandelt
+und schließlich in den Cache eingetragen.
+Um auf neue Geräte und Ereignisse der Geräte zu reagieren, muss sich der Logikprozess (Connector)
+bei dem Schnittstellenprozess (CCU-XML-RPC) registrieren.
+Das bedeutet auch, dass der Connector einen eigenen XML-RPC Server bereitstellen muss, welcher
+die Methoden bereitstellt, die von der HomeMatic Zentrale aufgerufen werden.
+Die registrierte Logik-Schnittstelle wird mittels dem Aufruf einer solchen Methode darüber
+informiert, dass neue Geräte an der HomeMatic-CCU angemeldet wurden bzw. Aktionen ausgeführt
+wurden.
 Dieser Aufruf übermittelt die gleichen Informationen, wie das explizite Anfordern
 der Gerätedaten bei der ersten Verwendung \cite{homematic_xmlrpc}.
+
+Aus Richtung des AAL-Cache werden ebenfalls Aktionen bzw. Veränderungen mitgeteilt.
+Dem Connector (Subscriber) wird vom AAL-Cache mitgeteilt, welche Tags sich geändert haben.
+Ihm wird in der registrierten Funktion zwei opake Daten übermittelt.
+Ein Datum ist für die Zugehörigkeit im Set zuständig und nicht für eine weitere Verwendung
+vorgesehen.
+Das andere Datum ist vom Programmierer beim Registrieren der Benachrichtigungsfunktion übergeben
+worden.
+Der Connector muss dann mit der AAL-Cache Schnittstelle eine Kopie auf das Datum im Cache
+anfordern, welches er bereits vorher hinzugefügt hat.
 
 \section{Laufzeitumgebung der Software}
 \label{ana_laufzeitumgebung}
 
-\section{Konfiguration des Systems}
+Da die Connectoren über dynamische Bibliotheken eingebunden werden, muss die Software
+auf einem UNIX-artigen System lauffähig sein (Mac, Linux, BSD, usw.).
+Da sich bereits vorhandene Connectoren und somit auch der Cache auf eingebetteten Geräten
+etabliert haben und die HomeMatic-CCU ein solches ist, muss der Connector die Anforderungen
+aus so einer Umgebung berücksichtigen.
+Darunter fällt:
+\begin{enumerate}
+\item geringe Speichernutzung
+\item kleinere, leicht optimierbare Subroutinen
+\item Verzicht auf komplexe Datenstrukturen, die den Connector unnötig vergrößern
+\item Energieeffizienz (in Bezug auf Threading, Polling, Sleep-State, usw.)
+\end{enumerate}
+
+Um die Speichernutzung gering zu halten, sollten redundante Informationen so weit es geht
+verworfen oder reduziert werden, ohne dass die Reaktionszeit des Systems stark beeinträchtigt wird.
+Es ist zum Beispiel nicht gewollt auf einen Schaltbefehl 2 Sekunden lang warten zu müssen
+bis die Lampe erleuchtet, weil das System viele Daten ermitteln muss, um den Schaltbefehl zu realisieren.
+
+Kleinere Subroutinen sind für Compiler aus der Embedded-Umgebung, welche evtl. nicht die
+Optimierungsfähigkeiten größerer Compiler besitzen, zu optimieren.
+Optimierter Code lässt das System schneller, effizienter und speicherschonender werden.
+
+Da der AAL-Cache dauerhaft auf dem System ausgeführt wird, ist es wichtig, wenig Gebrauch
+von globalen Informationen zu machen und stattdessen so viel wie möglich Datenstrukturen
+lokal zu halten.
+Sollte eine längere Pause oder Sleep-State eingerichtet werden, so dass der Prozess oder
+Thread erst bei einer Aktion wieder tätig werden muss und in der Zeit andere Prozesse
+arbeiten können.
+
+Falls eine Netzwerkverbindung getrennt wird oder die CCU nicht zu erreichen ist, muss dies
+in WieDAS erkennbar sein.
+Eine Möglichkeit wäre die Beendigung des Connectors oder das Nutzen der Management-API,
+um Fehler bekannt zu geben.
+
+\section{Konfiguration}
 \label{ana_konfiguration}
+
+Da der Connector verschiedene Informationen für die Verbindung zur HomeMatic-CCU benötigt,
+muss dem Connector die Netzwerkkonfiguration des Systems mitgeteilt werden.
+Als Alternative kann der Connector beim Initialisieren selbst Netzwerkeinstellungen,
+blockierte Ports, usw. mittels der Betriebssystem-API ermitteln.
+
+Um die Logik-Schnittstelle aufzubauen, benötigt die Software einen freien Port und
+eine zugewiesene IP-Adresse, an dem der Server bereitgestellt wird.
+Aus Sicherheitsgründen können hier Einschränkungen vorgenommen werden bezüglich
+der Reichweite der IP-Adresse und der Portnummer.
+
+Weiterhin ist der Port und die IP-Adresse der XML-RPC Schnittstellen der HomeMatic-CCU
+dem Connector mitzuteilen.
+Hierbei ist es auch entscheiden, ob auch drahtgebundene Geräte und interne Geräte
+beobachtet werden sollen (siehe Kapitel \ref{gru_hm_ha}).
+
+Die HomeMatic-CCU selbst muss ebenfalls zugänglich gemacht werden, da Geräte an ihr
+angemeldet werden müssen.
+Falls eine enge Kapselung der CCU an das System besteht (z.B. durch ein privates
+kleines Netzwerk) muss eine Weiterleitung eingerichtet werden.
+
+HomeMatic bietet mit \emph{NetFinder} eine eigene Software an, um eine oder mehrere
+HomeMatic-CCU im Netzwerk zu erkennen.
+Falls die Software oder die Vorgehensweise der Software eingesehen werden kann,
+könnte dieser Teil der Connector-Konfiguration übersprungen werden und dynamisch
+vorgenommen werden.
+
+Weiterhin müssen die Konfigurationsanforderungen des AAL-Cache
+(siehe Kapitel \ref{gru_aalcache}) erfüllt werden.
+Da die Standardkonfiguration von AAL-Cache für genau die Systeme
+gedacht ist, auf denen der Connector lauffähig sein soll.
 
 \section{Designentscheidung}
 \label{ana_entscheidungen}
 
-\section{Anwendungsfälle}
-\label{ana_uc}
+Aufgrund der Einsatzumgebung und der Schnittstellen wäre die Verwendung einer höheren
+Programmiersprache unnötig.
+Aufgrund der bisherigen Programmiererfahrungen fällt die Wahl zwischen C und C++, wobei
+C++ keine entscheidenen Nachteile für die Implementierung mit sich zieht.
+Daher wird als Implementierungssprache C++ verwendet.
+%TODO Standard
 
-%Der Connector muss zur Laufzeit Signale von HomeMatic-Geräten an WieDAS weiterleiten oder
-%Signale von Geräten, die bereits in WieDAS eingepflegt wurden an Aktoren aus der HomeMatic
-%Umgebung weitergeben.
-%Auch müssen Geräte im Connector während der Laufzeit hinzugefügt oder entfernt werden.
-%Entsprechend müssen die notwendigen Teile der Schnittstelle betrachtet werden, welche für
-%das Reagieren auf solche Ereignisse und das Weiterleiten relevant sind.
-%In Kapitel \ref{ana_reagieren} wird aufgezeigt, welche Anforderungen beim Reagieren auf Steuerungsbefehle,
-%insbesondere dem Weiterleiten der Steuerungsbefehle von HomeMatic-Geräten zu anderen Geräten aus der Umgebung,
-%welche in WieDAS zur Verfügung stehen und umgekehrt.
+Der Connector selbst wird mit Makefiles übersetzt und gelinkt.
+Sollten weitere Prozesse nötig sein, so werden diese auch mittels Makefile-Targets
+ausgeführt.
+Wie in Kapitel \ref{ana_sw} bereits ermittelt, werden manche Connectoren mit Makefiles
+übersetzt.
+Daher können diese als Vorlage verwendet werden.
+Das Programm \emph{make} mit verschiedenem Funktionsumfang auf fast jedem Betriebssystem
+zur Verfügung steht und dem Programmierer geläufig ist.
 
-Insbesondere werden dabei die Gerätedaten betrachtet, die in \ref{ana_wd_modell} als wichtig
-herausgefiltert wurden.
+Für das Absetzen und Bereitstellen von XML-RPC verwendet der Connector die Bibliothek
+\emph{xmlrpc-c} \cite{xmlrpc-c}.
+Diese Bibliothek ist leichtgewichtig (auf einem derzeitigen Ubuntusystem haben alle Teilbibliotheken
+eine Gesamtgröße von 840 KB) und ist in der Lage mit wenigen Aufrufen XML-RPC abzusetzen
+und einen Server zu Starten, der die gewünschten Methoden anbietet.
+
+Das Generieren der Schnittstellen und Datenstrukturen für HomeMatic-Geräte findet mittels
+einem Generator statt.
+Dieser Generator betrachtet zunächst nur Geräte, die zum Zeitpunkt der Entwicklung
+zugänglich sind.
+Dazu werden die notwendigen Informationen aus der HomeMatic-Dokumentation \cite{hmscript2,hmscript4}
+in Textdateien verfasst.
+Diese wird dann vom Generator gelesen und erstellt für C++ notwendige Funktionen und
+Datenstrukturen.
+Da C++ Klassen besitzt, werden die Geräte in jeweils eine Klasse abgebildet.
+
+Im Rahmen der Thesis wird die Entwicklung mit einer statisch adressierten HomeMatic-CCU
+und an einem festen Arbeitsplatz durchgeführt.
+Daher kann die IP-Adresse und der Port in die Konfigurationsdatei des AAL-Cache geschrieben werden,
+so dass der Connector diese beim Initialisieren übergeben bekommt.
 
