@@ -1,37 +1,75 @@
 \chapter{Einleitung}
 
-Da in der heutigen Zeit der prozentuale Anteil der einsamen und älteren Bevölkerung steigt,
-versucht man diesen ``demografischen Wandel'' mit der Nutzung und Verbreitung technischer
-Hilfsmittel im Alltag entgegenzuwirken.
+Immer mehr Haushalte benutzen Automatisierungstechnik oder Geräte mit Bezug zur Informationstechnik.
+Diese dient dazu, in Haushalten mit dem Einsatz von moderner Technik und Technologien einen gewissen Komfort
+zu ermöglichen.
+So werden z.B. bei der Elektroinstallation elektronische Jalousiemotoren verbaut, so dass diese
+um eine bestimmte Uhrzeit automatisch rauf- oder runter gefahren werden können.
+Auch findet man in modernen Installationen oft intelligente Regelungen von Heizungssystemen.
+Neuere Entwicklungen beziehen bei der Verknüpfung und Verwendung von Geräten weiterhin die
+Unterhaltungselektronik mit ein.
+So ist es z.B. möglich, an jedem Standort im Haus auf einen zentralen Medienserver über Netzwerktechnologie
+zuzugreifen und Audio- und Videomedien abzurufen.
+Diesen Aspekt der Vernetzung zusammen mit der Möglichkeit, diese vernetzten Komponenten über eine
+bereitgestellte Logikschnittstelle anzusprechen nennt man Smart Home.
+
+Gängige Übertragunstechnologien, die in diesem Umfeld zum Einsatz kommen, sind z.B.
+Zigbee Pro \cite{zigbee_p}, \emph{HomeMatic-BidCos ®} \cite{homematic_eq3} und andere WLAN basierte
+Technologien.
+Diese unterscheiden sich in mehreren Kategorien z.B. Länge des Übertragungsweg, Energieeffizienz und
+Sicherheitsmerkmale.
+
+In diesem Kontext der Hausautomatisierung findet man auch das \emph{Ambient Assisted Living} (AAL).
+Der prozentuale Anteil der alleinstehenden und älteren Bevölkerung steigt stetig.
+Dies nennt man den ``demografischen Wandel''.
+Durch die Nutzung und Verbreitung technischer Hilfsmittel im Alltag versucht man, diesen Menschen
+zu helfen.
 Der Begriff des \emph{Ambient Assisted Living} umfasst die Produkte und Dienstleistungen, welche
 diese Hilfsmittel ermöglichen.
 
-In der Thesis wird eine Software entwickelt, welche es erlaubt Hausautomationsgeräte der Produktreihe
-\emph{HomeMatic} der Firma \emph{eQ-3} in die, von der Hochschule RheinMain und Fachhochschule Düsseldorf,
-im Rahmen von Forschungsprojekten entwickelte, AAL-Dienstplattform WieDAS zu integrieren.
-Die Dienstplattform erfasst und verarbeitet Daten die von verschiedenen Geräten und somit über
-verschiedene Protokolle an den WieDAS-Datenraum angebunden sind.
+AAL ist in der Hinsicht auf Interoperabilität noch nicht weit ausgereift, da es noch keine weit verbreiteten
+Techniken und Technologien bzw. die dazugehörigen Standards existieren.
+Um die Entwicklungsarbeit von AAL-Plattformen zu erleichtern, existieren Frameworks wie OSGi\cite{osgi}.
+Diese bieten, durch Bereitstellen von Schnittstellen, eine einheitliche Sicht auf verschiedene Dienste,
+die vom Entwickler implementiert werden müssen (z.B. Logging, Gerätezugriff und Remote-Konfiguration).
+Das OSGi dient gleichzeitig als Ausgangspunkt für die AAL-Dienstplattform WieDAS \cite{wiedas}, welche
+im Rahmen eines Forschungsprojekts der Hochschule RheinMain und der Fachhochschule Düsseldorf entstand.
+Diese Plattform wurde unter dem Ansatz entwickelt, AAL mit dem Smart-Home-Kontext erfolgreich
+zu verknüpfen.
+WieDAS besitzt eine Beschreibungssprache zum Modellieren von Hausautomationsgeräten.
+Der Datenraum, in dem sich die Geräte befinden, wird über eine Programminstanz angeboten, welches
+eine Schnittstelle besitzt, um die Geräte zu identifizieren und über Ereignisse von Ihnen
+benachrichtigt zu werden.
 
-Die Software bildet eine Adapterkomponente zwischen der von HomeMatic-Geräten angebotene Schnittstelle
-und der WieDAS-Schnittstelle für Datenerfassung und Datenerhaltung.
-Darin enthalten ist eine Abbildung der Geräte in die WieDAS-Beschreibungssprache für Geräte.
+Im Rahmen der Thesis wird eine Software entwickelt, welche es erlaubt, Hausautomationsgeräte der Produktreihe
+\emph{HomeMatic} der Firma \emph{eQ-3} in die WieDAS zu integrieren.
+WieDAS dient der Vereinheitlichung von unterschiedlichen Daten, die von verschiedenen Geräten ähnlichen
+Typs stammen.
+Diese Geräte kommunizieren über proprietäre Protokolle miteinander und mit der Zentrale.
+Die Zentrale selbst wiederum bietet eine Schnittstelle, die über das Netzwerk benutzt werden kann, um die
+angeschlossenen Geräte zu verwalten und konfigurieren.
+
+Die zu entwickelnde Software bildet eine Adapterkomponente zwischen der von HomeMatic- und Datenraum-Schnittstelle von
+WieDAS.
+Darin enthalten ist eine Abbildung der HomeMatic-Geräte in die WieDAS-Beschreibungssprache.
 Ziel ist es, die HomeMatic-Geräte, welche von WieDAS unterstützt werden können, vollständig in die
 Dienstplattform einzubinden, so dass Geräte herstellerunabhängig miteinander verbunden werden können.
 
 Die Thesis vermittelt zunächst Grundlagen der verwendeten Systeme in Kapitel \ref{grundlagen}.
 Folgend werden die Problemfelder, die bei der Entwicklung eines solchen Adapters auftreten, in
 Kapitel \ref{analyse} analysiert.
-In Kapitel \ref{ana_uc} werden typische Anwendungsfälle aufgelistet und näher betrachtet.
+In Abschnitt \ref{ana_uc} werden typische Anwendungsfälle aufgelistet und näher betrachtet.
 
-Darauf folgen Überlegungen zur Konzipierung und der Darstellung des gewählten Designs 
-in Kapitel \ref{design} unter der Berücksichtigug der Designentscheidungen aus der Analyse.
+Darauf folgt die Darstellung des Konzepts in Kapitel \ref{design} unter der Berücksichtigug der
+Designentscheidungen aus der Analyse.
 Das implementierte Design wird in Kapitel \ref{implementierung} erklärt und anschließend mit
-einigen Laufzeittests bezüglich der Performance und dem Speicherverbrauch getestet.
-Neben den Tests findet in Kapitel \ref{bewertung} auch eine Bewertung der Software bezüglich
-Aufwand der Konzipierung und Implementierung und Verwendbarkeit (insbesondere statische
+einigen Laufzeittests bezüglich der Performance und des Speicherverbrauchs in Kapitel \ref{test}
+getestet.
+Neben den Tests findet in Kapitel \ref{bewertung} eine Bewertung der Software bezüglich
+der Implementierung und Verwendbarkeit (insbesondere statische
 Modularität, Kompatibilität und Möglichkeiten für zukünftige Erweiterungen).
 
-Das Kapitel \ref{fazit} beendet die Thesis fasst die erreichten Ziele zusammen und zeigt
-offene Probleme und Softwarekomponenten, die nicht implementiert werden konnten.
+Das Kapitel \ref{fazit} fasst die erreichten Ziele zusammen und zeigt
+offene Probleme und nicht implementierte Funktionalität.
 Weiterhin wird gezeigt, wie die Software weiterentwickelt werden kann, um diese Probleme
 zu beheben und Implementationslücken zu füllen.

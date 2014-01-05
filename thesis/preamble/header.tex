@@ -75,8 +75,8 @@
   		plainpages=false,
   		pdfpagelabels,
   		bookmarksnumbered=true,
-			pdftitle={Thema der Arbeit eintragen!},
-			pdfauthor={Max Mustermann},
+			pdftitle={Bachelor-Thesis Integration von HomeMatic-Geräten in die AAL-Dienstplattform WieDAS},
+			pdfauthor={Daniel Mierswa},
 			pdfkeywords={Key, Words} ]{hyperref}
   % PDF-Seite bei LScape-rotate drehen
   \makeatletter
@@ -198,6 +198,19 @@
    \vtop\bgroup}
   {\par\xdef\tpd{\the\prevdepth}\egroup
    \prevdepth=\tpd}
+\newcommand{\myfigureimpl}[4][]
+{
+ \begin{figure}[#2]
+ \centering
+ \includegraphics[#1]{images/#3}
+ \caption{#4}
+ \label{abb_#3}
+ \end{figure}
+}
+\newcommand{\myfigurescaled}[4][0.45]{\myfigureimpl[scale=#1]{#2}{#3}{#4}}
+\newcommand{\myfigurewidth}[3]{\myfigureimpl[width=\textwidth]{#1}{#2}{#3}}
+\newcommand{\myfigure}[3]{\myfigurescaled{#1}{#2}{#3}}
+
 %-----------------------------------------------------------------------
 % Spezielle TRENN-VORGABEN
 \hyphenation{Tren-nung}

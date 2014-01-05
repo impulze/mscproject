@@ -1,28 +1,778 @@
 \chapter{Implementierung}
 \label{implementierung}
 
-\section{XML-RPC Wrapper}
+Die in diesem Kapitel wird beschrieben, wie das Design aus Kapitel \ref{design}
+unter der Berücksichtigung der funktionalen und nicht-funtkionalen Anforderungen
+aus Abschnitt \ref{ana_anforderungen} implementiert wird.
+Die Implementierung wird prototypisch erstellt, um Tests durchzuführen und eine
+Bewertung des Konzepts zuzulassen.
+Dazu stehen verschiedene Geräte von HomeMatic und Geräte, die bereits im WieDAS-Datenraum
+getestet wurden, verwendet.
 
-\section{HomeMatic}
+\section{Entwicklungsumgebung}
+\label{impl_entw}
+Während der Entwicklung wurden ausschließlich Arbeitsplätze mit einem Ubuntu-Linux \cite{ubuntu}
+benutzt.
+Je nach Version des Systems wurden verschiedene Abhängigkeiten nachinstalliert oder Anpassungen
+an den Bauanleitungen vorgenommen.
+Die Implementierung wurde mit einem Compiler für 32-Bit Systeme erstellt und auf 32- und 64-Bit-Systemen
+getestet.
+Während der Entwicklung wurde das Versionskontrollwerkzeug Git \cite{git} genutzt, um bei der Entwicklung
+feste Meilensteine zeitlich festzuhalten.
+Um die ausführbare Datei, sowie die dynamischen Bibliotheken zu erstellen wurde GNU Make \cite{make} und
+die GNU Compiler Collection \cite{gcc} verwendet.
+Die Programmiersprache der Implementierung des Generators ist Python \cite{python} in der Version 2.
+Diese wurde gewählt, da bereits Erfahrungen mit dem Schreiben von Generatoren aus anderen Projekten existieren
+und Python-Interpreter durchaus auf vielen Systemen eingesetzt werden können.
+So kann Generierung der Programmteile für ein Gerät oder einer Verknüpfung unabhängig vom Entwicklungssystem
+geschehen.
+Die Programmiersprache für den Connector ist C++11 \cite{c++11}.
+Da C++ heutzutage in der Regel sehr gut durch Compiler optimiert werden kann und nur eine starke
+Die nichtfunktionalen Anforderungen aus Abschnitt \ref{ana_anforderungen} wären bei
+starker Verwendung von Templates oder sehr komplexen Objekthierarchien gegeben.
+Diese Sprachelemente werden aber nur selten oder gar nicht verwendet.
+Die neuere Version wurde deshalb benutzt, da sie in Bezug auf Sprachelemente und Werkzeuge aus
+der Standardbibliothek mehr anbietet und lesbarer geworden ist.
+Die folgenden Werkzeuge und Bibliotheken wurden verwendet:
+\begin{itemize}
+\item GNU Compiler Collection 4.8.1
+\item Ubuntu Linux 13.10
+\item Python 2.7.5
+\item GNU Make 3.81
+\item xmlrpc-c 1.16.33
+\end{itemize}
 
-\subsection{Client für Geräteerfassung}
+Die Entwicklung wurde dem Design entsprechend in 3 Phasen durchgeführt.
+Die 1. Phase umfasst das Implementieren der HomeMatic-Schnittstellen und der XML-RPC-Logik
+aus den Abschnitten \ref{des_xmlrpc_abbildung} und \ref{des_homematic}.
+In der 2. Phase wurde die Anbindung an den AAL-Cache implementiert (Abschnitt \ref{des_aalcache}
+und \ref{des_connector}).
+Die letzte Phase hat dann die Zwischenkomponenten entwickelt, also die Geräteverwaltung aus
+Abschnitt \ref{des_gemenge} und die Geräteabbildung aus Abschnitt \ref{des_abbildung}
+mit Bezug auf die Verwendung des Generators aus Abschnitt \ref{des_gen}.
 
-\subsection{Server für Weiterverarbeitung}
+\section{HomeMatic-Komponente}
+\label{imp_hm}
 
-\subsection{Geräteklassen}
+In diesem Abschnitt wird erklärt, wie der Client und der Server im Connector implementiert wurde.
+Die Kernaspekte umfassen das Umwandeln der Datentypen der Bibliothek und das Aufbauen und Abschicken
+von Requests, sowie das Implementieren und Anbieten von Methoden.
+Dabei wird erklärt wie die XML-RPC-Bibliothek benutzt werden muss, wie primitiven Datentypen für die
+Nutzung mit der Bibliothek konvertiert werden und wie die Basis-Klasse zur Implementierung der spezifischen
+HomeMatic-Datentypen implementiert wird.
+Anschließend wird die Implementierung der Schnittstellenabstraktion und des Logikprozesses beschrieben.
 
-\section{Integrationsprozess}
+\section{Typumwandlung und Basis-Klasse}
+\label{imp_hm_typ}
 
-\section{WieDAS}
+Für die Verwendung der XML-RPC-Typen in C++, müssen die Typen umgewandelt werden.
+Die Bibliothek arbeitet immer mit einem opaken Typen (\emph{value}, Abschnitt \ref{des_xmlrpc_abbildung}).
+Ein Objekt diesen Types besitzt die Information, um welchen Typen es sich eigentlich handelt.
+Es besitzt weiter Operationen, um zu Strukturen und Arrays hinzugefügt zu werden.
+Diese Operationen arbeiten mit der C-Repräsentierung des Typs.
+Von ihm leiten spezifische Typen ab, welche dann wiederum mehrere Operationen anbieten.
+Die Hauptaufgabe der abgeleiteten Klassen ist es den opaken XML-RPC-Typen in C++-spezifische
+Datentypen umzuwandeln oder aus ihnen erstellen zu lassen.
+Es existieren 2 weitere Typen, um einen Fehler und eine Parameterliste zu repräsentieren.
+Die Fehler-Klasse wird verwendet, um zu prüfen, ob ein Fehler bei einem Request aufgetaucht ist
+oder einen Fehler dem Aufrufer (der HomeMatic-Zentrale) zurückzugeben.
+Die Parameterliste wird benutzt, um in einer Methode die übergebenen Parameter zu extrahieren oder
+für einen Request die Parameter zusammenzusetzen.
 
-\subsection{Verwendung des Servers}
+Für die Umwandlung des opaken Typen wurden dennoch einfache Funktionen geschrieben und für
+Inline-Ersetzung deklariert.
+Dadurch wird lediglich die Sichtbarkeit der Bibliothek vom Code getrennt.
+Das Anbieten von Inline-Ersetzungen für Funktionen wurde durchgängig in der Implementierung für alle
+Definitionen angewandt, wo die Definition der Subroutinen sehr schlank ist.
+Das Gerüst für die in Abbildung \ref{des_xmlrpc_abbildung} dargestellte Basisklasse aller komplexeren
+Datentypen, die über XML-RPC übertragen werden, wird fast ausschließlich lesend benutzt.
+Der schreibende Zugriff auf das Objekt findet in den Geräteklassen statt, falls die intern
+gespeicherten Kanäle aufgrund eines Ereignisses aktualisiert werden müssen und im Logikprozess,
+um eine eigene Gerätebeschreibung mit der Adresse und der Version als Schlüssel (Abschnitt \ref{gru_hm_ccu})
+für den Abgleich durch die Zentrale zuzulassen.
+Die Modifizierungsoperation überschreibt den kompletten Assoziationseintrag, was je nach Verhalten
+des Assoziationstyps in C++ eine sehr zeitintensive Operation sein kann.
+Da die Operation jedoch selten benötigt wird, sind keine Optimierungen nötig.
 
-\subsection{C++ Abbildung der IDL}
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Modifizieren eines Basisobjekts für die Übertragung mit XML-RPC},label=modify_base]
+void Base::modify_map(char const *key, xmlrpc_c::value const &value)
+{
+  auto iterator = map_.find(key);
+
+  if (iterator != map_.end())
+  {
+    // key already known
+    std::pair<std::string, xmlrpc_c::value> const new_value = { key, value };
+
+    // erase old and insert new
+    iterator = map_.erase(iterator);
+    map_.insert(iterator, new_value);
+  }
+}
+\end{lstlisting}
+
+Quellcode \ref{modify_base} zeigt die Modifizierungsoperation.
+Zunächst wird eine leere Assoziation erstellt.
+Dann werden alle Schlüssel aus der gespeicherten Assoziation gelesen und geprüft, ob dieser mit dem
+Schlüssel übereinstimmt, der verändert werden möchte.
+Falls ja, wird der alte Wert für diesen Schlüssel gelöscht und darauf das neue Schlüssel-Werte-Paar
+eingefügt.
+Da die Standardbibliothek ein Iterieren der Einträge zuließ, musste hier nicht wie befürchtet die
+komplette Assoziation neu gespeichert werden.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Umwandung eines C++-Vektors in einein opaken XML-RPC-Typ},label=conv_from]
+template <class V>
+inline xmlrpc_c::value from_vector(std::vector<V> const &vector)
+{
+  std::vector<xmlrpc_c::value> result_vector;
+
+  for (auto const &element: vector)
+  {
+    result_vector.push_back(from_type<V>(element));
+  }
+
+  return from_vector(result_vector);
+}
+\end{lstlisting}
+
+In Quellcode \ref{conv_from} wird gezeigt, wie ein C++-Datentyp für die XML-RPC-Bibliothek zurückgewandelt wird.
+Dazu müssen die komplexeren Strukturen in C++ behandelt werden und in XML-RPC-Typen umgewandelt werden, erst dann
+wird der Container (z.B. Liste oder Mapping) in den XML-RPC-Typen umgewandelt.
+Spezifische HomeMatic-Datentypen leiten von der Basisklasse ab und bieten nur lesende Zugriffsfunktionen auf die
+gespeicherte Assoziation an.
+Schreibzugriffe passieren wie beschrieben nur durch den Aufruf der Modifizierungsoperation der Basisklasse.
+Bei diversen Testläufen wurde festgestellt, dass manche HomeMatic-Datentypen bestimmte Schlüssel immer
+in den Assoziationen gesetzt haben, obwohl dies nicht weiter in der Dokumentation spezifiziert wurde.
+In den betroffenen Klassen wurden beim Konstruktor Abfragen eingefügt, die prüfen ob diese Schlüssel einen Wert haben.
+Falls dies nicht der Fall ist, schlägt die Konstruktion fehl.
+Für alle anderen Klassen tritt beim Zugriff auf nicht vorhandene Schlüssel eine Ausnahme auf.
+
+\section{Schnittstelle}
+\label{imp_hm_iface}
+
+Die Schnittstelle ist eine Klasse zur Abstraktion des XML-RPC-Clients (Abschnitt \ref{des_hm_iface}).
+Sie besitzt die Methoden um die möglichen Funktionsaufrufe aus der HomeMatic-XML-RPC-Dokumentation \cite{homematic_xmlrpc}
+zu implementieren.
+Dabei wurden auch alle optional verfügbaren Methoden und Methoden implementiert, die für die prototypische
+Implementierung nicht notwendig gewesen wären.
+Falls in Zukunft weitere Geräte geschrieben werden, können diese den vollen Funktionsumfang der Zentrale verwenden.
+Bei der Konstruktion eines Schnittstellenobjekts wird nur die XML-RPC-URL gespeichert und der Client der Bibliothek
+erstellt.
+Die XML-RPC-Bibliothek bietet eine Vielfalt von Clientmodellen für C++.
+Bei den Modultests wurde herausgefunden, dass der zunächst verwendete Client die Anforderungen nicht erfüllt, da er keine
+Fehlerbehandlung zuließ.
+Im Fehlerfall traten im Client nur Ausnahmen auf, die zu wenig Information über die Fehlerart und Herkunft preisgaben.
+Stattdessen wurde ein etwas komplexeres Clientmodell verwendet.
+Für den Aufruf einer Funktion wurde eine Wrapperfunktion geschrieben, die eine Reihe von Parametern erhält und den Aufruf
+entsprechend der Typen und der Anzahl der Parametern formt und an den Client übergibt.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Absetzen eines XML-RPC-Requests},label=xmlrpc_req]
+/* transform arguments to xmlrpc_c::paramList and call the client */
+template <class... Args>
+xmlrpc_c::rpcOutcome call(xmlrpc_c::client_xml &client,
+                          xmlrpc_c::carriageParm_http0 &carriage_param,
+                          std::string const &method_name, Args &&... args);
+
+std::string ccu_interface::getParamsetId(std::string const &address, std::string const &type)
+{
+  auto outcome = call(client_, carriage_param_, "getParamsetId", address, type);
+  throw_if_fail(outcome);
+
+  return types::to_string(outcome.getResult());
+}
+\end{lstlisting}
+
+Quellcode \ref{xmlrpc_req} zeigt, wie die Parameter-Set-ID vom XML-RPC-Client angefordert wird.
+Dabei werden die C++-Parameter übergeben und von der Typumwandlung aus dem vorherigen Abschnitt \ref{imp_hm_typ}
+in die XML-RPC-Typen umgewandelt und an eine Parameterliste angehangen.
+Diese wird dann mit der URL (\emph{carriage\_param\_}) und dem Methodennamen an den Client übergeben und
+das Resultat zurückgegeben.
+Dieses kann dann benutzt werden um eine genaue Fehleranalyse durchzuführen.
+Im Normalfall werden Ausnahmen auftreten, sobald ein Fehler auftritt.
+Im Falle eines Netzwerkfehlers oder eines Timeouts, treten spezifische Ausnahmen auf, die der Connector
+dann abfangen kann, um diese zu ignorieren.
+Dieses Verhalten führt dazu, dass der Connector, wie in der Analyse in Abschnitt \ref{ana_schnitt} entschieden wurde,
+bei kleineren Netzwerkstörungen nicht abbricht.
+
+\section{Logikprozess}
+\label{imp_hm_logic}
+
+Der Logikprozess muss implementiert werden, um auf Ereignisse der HomeMatic-Zentrale zu reagieren.
+Der Aufbau und das Verhalten des Prozesses wurde in Abschnitt \ref{des_hm_logic} beschrieben.
+Dieser Abschnitt zeigt, wie die Methoden beim Erstellen des Logikprozesses registriert werden
+und wie eine Methode implementiert wird.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Erstellen des Objekts zum Reagieren auf HomeMatic-Ereignisse},label=hm_logic_create]
+xmlrpc_c::serverAbyss::constrOpt ccu_logic::construct_server(unsigned short port)
+{
+ xmlrpc_c::serverAbyss::constrOpt constructor;
+
+  constructor.registryPtr(registry_ptr_);
+  constructor.portNumber(port);
+  constructor.uriPath("/");
+
+  return constructor;
+}
+
+ccu_logic::ccu_logic(unsigned short port)
+  : registry_ptr_(create_registry()),
+    server_(construct_server(port))
+{
+}
+\end{lstlisting}
+
+Quellcode \ref{hm_logic_create} zeigt wie das Objekt konstruiert wird.
+Dabei wird zunächst ein Temporäres Konstruktorobjekt (\emph{constrOpt()}) erstellt, welches dann entsprechend
+der gewünschten Konfiguration verändert wird.
+Der Server lauscht auf allen IP-Adressen, die auf dem System konfiguriert worden sind und auf einem
+spezifischen Port.
+Falls dies ein Sicherheitsrisiko ist, muss das Konstruktorobjekt mit einem Socket des Betriebssystem
+erstellt werden, welcher vorher an eine IP-Adresse gebunden wurde.
+Alternativ kann das Betriebssystem eine Firewall einrichten, um vor falschen Zugriff zu schützen.
+Die RPCs werden an der Dateisystemwurzel angeboten, dies weicht vom Standardpfad (\emph{\/RPC2\/}) ab.
+Die Registrierung ist für die Speicherung der Methoden unter einem Namen zuständig.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Registrieren von Methoden im Logikprozess},label=hm_logic_cyc]
+xmlrpc_c::registryPtr ccu_logic::create_registry()
+{
+  xmlrpc_c::registryPtr registry_ptr(new xmlrpc_c::registry);
+
+  registry_ptr->addMethod("event", xmlrpc_c::methodPtr(new event_method(*this))
+  ...
+
+  return registry_ptr;
+}
+\end{lstlisting}
+
+Um der registrierten Methode so wenig wie möglich Kontext zu geben, delegiert sie die Arbeit an den
+Logikprozess.
+Das führt dazu, dass eine gewollte zyklische Abhängigkeit beim Erstellen der Methode entsteht.
+Quellcode \ref{hm_logic_cyc} zeigt wie die Methode zum Reagieren auf Ereignisse (\emph{event\_method})
+registriert wird und gleichzeitig beim Erstellen eine Referenz auf das Objekt des Logikprozesses erhält.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Implementierung der Wrapper-Methoden im Logikprozess},label=hm_logic_meth]
+template <class R, class M, class O, class... Args>
+R call_handler(M method, O &object, Args &&... args)
+{ 
+  try
+  {
+    return (object.*method)(std::forward<Args>(args)...);
+  }
+
+  catch (std::exception const &exception)
+  {
+    throw xmlrpc_c::fault(exception.what());
+  }
+} 
+
+deleteDevices_method::deleteDevices_method(ccu_logic &logic)
+  : logic_(logic)
+{
+  //_signature = void(string, array);
+  _help = "Gets called when devices are deleted.";
+}
+
+void deleteDevices_method::execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *resultP)
+{
+  std::string const interface_id = paramList.getString(0);
+
+  call_handler<void>(&ccu_logic::event, logic_, interface_id);
+
+  // always set result, even in void, otherwise other side gets a fault
+  *resultP = types::from_int(0);
+}
+\end{lstlisting}
+
+Im Quellcode \ref{hm_logic_meth} wird die Implementierung der Wrapper-Methode zum Löschen von Ereignissen
+gezeigt.
+Sie besitzt eine Signatur, so dass bei der Introspektion des XML-RPC-Servers aufgelistet werden kann, welche
+Parameter die Methode erhält und was sie zurück liefert.
+Leider ist es nicht möglich einen \emph{Any}-Typen in die Signatur mit einzuschließen, wodurch die Signatur
+nicht gesetzt wird und die Introspektion des Servers daher unzureichende Informationen Ergebnisse liefert.
+Die \emph{execute}-Methode wird von der Bibliothek aufgerufen, um die eigentliche Arbeit der Methode
+auszuführen.
+Um sinnvolle Fehlermeldung zurückzugeben, wird die delegierte Arbeit in einem Try-Catch-Block verrichtet.
+Dadurch werden die Fehler, die in der Verarbeitung auftreten können immer mit einer XML-RPC-Fault Antwort
+enden.
+Dies wurde gewählt, da nicht festgestellt werden konnte, ob und in welchem Fall die Bibliothek selbstständig
+Fehler aus Ausnahmen erzeugt.
+Auch wenn eine Methode, wie in diesem Fall, keinen Rückgabewert besitzt (\emph{void}), muss dieser trotzdem gesetzt
+werden, da sonst eine Fault-Antwort generiert wird.
+
+Das eigentliche Abarbeiten des Requests wird dann im Objekt des Logikprozesses verrichtet.
+Dazu ruft die Wrapper-Methode wie in Quellcode \ref{hm_logic_meth} gezeigt die entsprechende Methode des Logikobjekts
+auf und übergibt die korrekten, vorher extrahierten, Parameter.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Rumpf einer Methode mit Locking im Logikprozess},label=hm_logic_spec]
+void ccu_logic::event(std::string const &interface_id, std::string const &address,
+                      std::string const &value_key, xmlrpc_c::value const &value)
+{
+  std::lock_guard<std::mutex> lock(hm_connector::mutex());
+  event_data const event_data = { interface_id, address, value_key, value };
+
+  on_event(event_data);
+}
+\end{lstlisting}
+
+Quellcode \ref{hm_logic_spec} zeigt, dass die Methode ein Locking vornimmt.
+Dies ist notwendig, da es passieren kann, dass der AAL-Cache das Callback zeitgleich mit einem Ereignis aus
+der HomeMatic-Zentrale aufruft.
+Durch die jedoch geringe Wahrscheinlichkeit, dass dies eintrifft und die nicht vorhandenen Echtzeit-Anforderungen
+beim Abarbeiten der Ereignisse, wird ein globales Locking vorgenommen.
+Sollte sich der Prozess bei der Verarbeitung eines Ereignisses aus dem AAL-Cache befinden, können keine
+HomeMatic-Ereignisse abgearbeitet werden und umgekehrt.
+Die Methode ruft als letztes eine virtuelle Methode auf.
+Diese kann dann von vererbenden Klassen implementiert werden, um die Anwendungsspezifische Logik zu realisieren.
+Die Basis-Klasse besitzt nur Funktionalität, die von HomeMatic gefordert wird.
+
+\section{Geräteabbildung und Verknüpfungen}
+\label{imp_abb}
+
+Die Implementierung der Geräteabbildung ist zunächst relevant für den Code-Generator.
+Dieser erzeugt eine Implementierung eines Geräts, welches später mit einer dynamischen Bibliothek geladen werden kann.
+Erstellt und gespeichert werden Geräte vom Gerätemanager.
+Die Methoden zum Verarbeiten der Ereignisse werden zum einen im Logikprozess und zum anderen in der registrierten
+AAL-Cache Callback-Funktion des Gerätemanagers aufgerufen.
+Dieser Abschnitt zeigt interessante Details zur Implementierung des Generators, des Gerätemanagers und der Geräte und
+Verknüpfungen selbst.
+
+\subsection{Code-Generator}
+\label{imp_abb_gen}
+
+Der Generator ist sehr einfach gestrickt und besitzt wenig Funktionalität.
+Das Python-Programm wird mit nur einem Parameter aufgerufen, um den Name der Modellierungsdatei
+zu bilden.
+Der Name dient gleichzeitig zum Referenzieren im Connector-Code.
+Der Generator wird in 2 Teile unterteilt.
+Der Top-Down-Parser liest eine Modellierungsdatei.
+In der Modellierungsdatei werden die gewünschten Sektionen untersucht, die dann
+vom Generator in einer geeigneten Datenstruktur gespeichert werden.
+Der Generator meldet Fehler, falls Daten fehlen, die zum erfolgreichen
+Generieren einer Implementierung fehlen.
+Der 2. Teil liest die Templates und generiert an den notwendigen Stellen Code.
+Bei der Code-Generierung wurde darauf geachtet, dass die erstellte Schnittstelle
+und Implementierung den Coding-Style der restlichen Dateien befolgt und gut lesbar ist.
+
+\lstset{language={}}
+\begin{lstlisting}[frame=single,caption={Ausschnitt des Templates für die Geräte-Implementierung},label=gen_temp]
+void registration()
+{
+  using namespace hm_connector;
+
+  auto \${lower_devname}_loader = std::make_shared<devices::\${lower_devname}_loader>();
+
+  try
+  {
+\${loading}
+  }
+  [...]
+}
+\end{lstlisting}
+
+\lstset{language=Python}
+\begin{lstlisting}[frame=single,caption={Beispiel für die Code-Generierung des Generators},label=gen_code]
+loading_list = []
+for loading in data['loading_spec']:
+  loading_template = '\t\tg_device_manager->register_loader("%s", %s_loader);'
+  loading_list.append(loading_template % (loading, data['lower_devname']))
+data['loading'] = '\n'.join(loading_list)
+\end{lstlisting}
+
+Quellcode \ref{gen_code} zeigt beispielhaft die Generierung der Registrierungs-Funktion mit Verwendung
+des Templates aus Quellcode \ref{gen_temp}.Das \emph{lower\_devname} dient wie zuvor angesprochen der Namensgebung der Modellierungsdatei und dem Referenzieren
+im Code.
+In der Modellierungsdatei muss lediglich eine \emph{loading}-Sektion auftauchen, die die angebotenen Gerätetypen
+auflistet.
+In den Templates wurden einfache Platzhalter zum Einfügen von Text verwendet.
+Auf die Verwendung von komplexeren Template-Engines wie Jinja \cite{jinja} oder ähnliches wurde aufgrund der Einfachheit
+der Templates und der unnötigen Abhängigkeit verzichtet.
+
+\subsection{Geräte}
+\label{imp_abb_geräte}
+
+In diesem Abschnitt wird die erzeugte Implementierung aus dem vorherigen Abschnitt beschrieben.
+Die Geräte müssen die Ereignisse behandeln, die vom AAL-Cache oder von der HomeMatic-Zentrale an den Connector
+mitgeteilt werden.
+Sollen AAL-Cache-Ereignisse behandelt werden, muss der Connector die URIs anfordern können, bei denen das Gerät
+informiert werden möchte.
+Für die Ereignisbehandlung benötigt das Gerät Zugriff auf die WieDAS-Datenstrukturen der IDL-Datei.
+Da die Syntax der IDL-Dateien Anlehnung an C-Syntax haben, wurde eine direkte Umwandlung mit einem Texteditor
+ohne komplexe Konvertierungsprogramme vollzogen.
+Dabei wurde die Methodik von \emph{CORBA IDL to C++ Mapping} \cite{corba_cpp_map} angewandt.
+Die Eintrittsfunktion der Bibliothek (\emph{registration}) muss in einem Block deklariert werden, der mit \emph{extern "C"} eingeleitet wird.
+Damit wird sichergestellt, dass das C++-Name-Mangling abbgestellt wird.
+Dadurch kann der Gerätemanager nach dem Laden der Bibliothek das Symbol abrufen, ohne das ABI-spezifische Name-Mangling
+zu berücksichtigen.
+In der Registrierungsfunktion ruft die Bibliothek selbst wiederum die Registrierungsmethode des globalen Gerätemanagers
+auf, um den Gerätelader für einen bestimmten Gerätetypen zu registrieren.
+Wie bereits im vorherigen Abschnitt in Quellcode \ref{gen_temp} zu sehen, erstellt die Bibliothek beim Laden ein
+referenzzählendes Zeigerobjekt und übergibt dieses zusammen mit dem Gerätetyp, der durch den Gerätelader geladen werden kann,
+an den Gerätemanager.
+
+Der Konstruktor des Geräts teilt dem Basis-Gerät mit, welche Kanaltypen gespeichert werden sollen.
+Im Basis-Gerät holt sich der Konstruktor bei der HomeMatic-Zentrale die komplette Gerätebeschreibung für alle Kanäle ab.
+Dann wird geprüft ob einer der Kanaltypen mit dem geforderten Kanaltyp übereinstimmt und besorgt dann das \emph{VALUES}
+Parameter-Set für diesen Kanal von der Zentrale und speichert es ab.
+Wie bereits in Abschnitt \ref{ana_abbildung} analysiert wurde, hat die ID im WieDAS-Datenraum wenig Bedeutung im
+Connector.
+Um trotzdem einen aussagekräftigen Wert zu finden, wird der numerische Teil der Adresse (z.B. 123 bei der Adresse \emph{JEQ0095433:1})
+in der ID gespeichert.
+Da diese jedoch nur 16-Bit groß ist, wird im Falle eines Überlaufs einfach der größte Wert (65535) gespeichert.
+Weiterhin besitzt das Basis-Gerät die Möglichkeit die Adresse aus einem URI zu extrahieren (Abschnitt \ref{des_abbildung}).
+Dabei wird nur der WieDAS-Teil des URI abgetrennt, dann das HM-Präfix und der Index-Suffix aus dem Restteil gelöscht.
+Die Methode zur HomeMatic-Ereignisbehandlung im Basis-Gerät schaut zunächst in den gespeicherten \emph{VALUES} Parameter-Sets
+der Kanäle, ob diese durch das Ereignis aktualisiert werden müssen und führt die Aktualisierung durch.
+Erst dann wird die Ereignisbehandlung des spezifischen Geräts mit dem Index des aktualisierten Parameter-Sets aufgerufen.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Ausschnitt der Implementierung für die HomeMatic-Ereignisbehandlung eines Dimmers},label=ger_hm]
+void trailing_edge_dimmer::hm_event_impl(ccu_logic::event_data const &event_data,
+                                         channel_index_type channel_index)
+{
+  [...]
+  auto const paramset = channels_[channel_index].paramset();
+  double const old_level = types::to_double(paramset.get_from_map("LEVEL"));
+
+  if (event_data.value_key == "OLD_LEVEL")
+  {
+    dimmable_event = false;
+    onoff_event = true;
+    [...]
+  }
+
+  [...]
+
+  std::ostringstream temp_uri;
+  aalc_metadata metadata;
+
+  temp_uri << "/HM" << address_ << "-" << channel_index;
+
+  AALC_WID_SET_CONNID(metadata.writer, connector_id());
+  AALC_WID_SET_CLNTID(metadata.writer, 0);
+  metadata.lastModified = 0;
+
+  if (onoff_event)
+  {
+    WieDAS::OnOffOutput_dt output;
+    auto const onoffoutput_uri = std::string("/OnOffOutput") + temp_uri.str();
+    int const tag = aalc_getTag(onoffoutput_uri.c_str());
+
+    output.id = get_wiedas_id();
+    output.state = old_level == 0 ? WieDAS::on : WieDAS::off;
+
+    if (::aalc_put(tag, &metadata, sizeof metadata, &output, sizeof output))
+    {
+      throw std::runtime_error("aalc_put in trailing_edge_dimmer failed.");
+    }
+  }
+
+  [...]
+}
+\end{lstlisting}
+
+Quellcode \ref{ger_hm} zeigt, wie die WieDAS-Funktionalität \emph{OnOffOutput} vom Gerät
+in den Datenraum eingepflegt wird.
+Dazu werden die Metadaten für AAL-Cache vorbereitet und mit dem aktuellen Zeitstempel versehen.
+Dann wird die URI geformt und je nach Dimmzustand des letzten Wertes und des neuen Wertes
+der entsprechende Status eingetragen.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Ausschnitt der Implementierung für die AAL-Cache-Ereignisbehandlung eines Dimmers},label=ger_aal]
+void trailing_edge_dimmer::aalc_event_impl(std::string const &uri, int tag,
+                                           channel_index_type channel_index)
+{
+  auto const event_address = address_from_uri(uri);
+  auto const &channel = channels_[channel_index];
+  std::string const onoffoutput_uri = "/OnOffOutput/HM";
+  bool const onoff_event = uri.substr(0, onoffoutput_uri.length()) == onoffoutput_uri;
+
+  // can only be OnOffOutput or DimmableLight according to registered URIs
+  if (onoff_event)
+  {
+    WieDAS::OnOffOutput_dt onoff_output;
+
+    double const old_level = types::to_double(channels_[channel_index].paramset().get_from_map("LEVEL"));
+
+    if (aalc_getCopy(tag, &onoff_output, sizeof onoff_output, NULL, 0) < 0)
+    {
+      AALC_ERR("HM-Connector: aalc_getCopy failed.");
+      return;
+    }
+
+    if (onoff_output.state == WieDAS::off && old_level > 0)
+    {
+      interface_.setValue(channel.address(), "LEVEL", types::from_double(0));
+      [...]
+    }
+  }
+
+  [...]
+}
+\end{lstlisting}
+
+\subsection{Verknüpfungen}
+Quellcode \ref{ger_aal} zeigt im Gegensatz, wie ein AAL-Cache-Ereignis behandelt wird.
+Dazu wird in der URI geprüft, welche WieDAS-Funktionalität aktualisiert wurde.
+Dann wird der richtige Zweig abgearbeitet und zunächst das Datum aus dem WieDAS-Datenraum ausgelesen.
+Entsprechend der gespeicherten Werte aus HomeMatic-Sicht (Parameter-Sets) und den übertragenen Werten
+aus dem WieDAS-Datenraum wird über die Schnittstelle das HomeMatic-Gerät bei Bedarf aktualisiert.
+
+Geräteverknüpfungen werden anhand ihres Typs unterschieden (z.B. Ein/Aus und Dimmung für einen Dimmer).
+Die Typen werden in der Modellierung benannt und ihnen entsprechend die URIs zugewiesen.
+Beim Laden der Bibliothek für eine Verknüpfung wird dann eine Sammlung von Zeigern auf verschiedene
+Typen angefordert.
+Dadurch kann eine einzelne Bibliothek eine große Anzahl von Verknüpfungen abdecken.
+Dabei speichert das Basisobjekt der Verknüpfung lediglich die URIs der Sender, so dass beim Auftreten
+eines Ereignisses aus dem AAL-Cache geprüft werden kann, ob der Sender für eine Verknüpfung vorgesehen ist.
+Tritt ein solches Ereignis ein, wird das Tag des Senders von AAL-Cache angefordert und der abgeleiteten
+Verknüpfungsklasse mitgeteilt, welche dann die für die Verknüpfung relevante Verarbeitung durchführt.
+
+\lstset{language={}}
+\begin{lstlisting}[frame=single,caption={Ausschnitt aus der Modellierung einer Verknüpfung},label=conn_mod]
+uris:
+	onoff_dimmer: /* connect key to dimmer for on/off */
+		"/OnOffFunctionality/HMKEQ0059462-0"
+
+	regulation_dimmer: /* connect key to dimmer for regulation */
+		"/LightRegulationFunctionality/HMKEQ0059462-0"
+
+onoff_dimmer:
+	auto const receiver = "/OnOffOutput/HMJEQ0193620-0";
+	auto const receiver_tag = aalc_getTag(receiver);
+
+	if (receiver_tag == -1)
+	{
+		AALC_ERR("HM-Connector: aalc_getTag failed.");
+		return;
+	}
+
+	WieDAS::OnOffFunctionality_dt onoff_func;
+	WieDAS::OnOffOutput_dt onoff_output;
+	aalc_metadata metadata;
+
+	if (aalc_getCopy(sender_tag, &onoff_func, sizeof onoff_func, NULL, 0) < 0)
+	[...]
+
+	if (aalc_getCopy(receiver_tag, &onoff_output, sizeof onoff_output, &metadata, sizeof metadata) < 0)
+	[...]
+
+	AALC_WID_SET_CONNID(metadata.writer, connector_id());
+	AALC_WID_SET_CLNTID(metadata.writer, 0);
+	metadata.lastModified = 0;
+
+	onoff_output.state = onoff_func.command == WieDAS::on ? WieDAS::on : WieDAS::off;
+
+	std::printf("HM-Connector: Dimmer connection: state->%d\n", onoff_output.state);
+
+	if (aalc_put(receiver_tag, &metadata, sizeof metadata, &onoff_output, sizeof onoff_output) < 0)
+	[...]
+\end{lstlisting}
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Implementierung der Eintrittsfunktion eines Verknüpfungstyps},label=conn_entry]
+std::vector<std::shared_ptr<hm_connector::device_connection>> get_connections()
+{
+  std::vector<std::string> const onoff_dimmer_uris = {
+    "/OnOffFunctionality/HMKEQ0059462-0"
+  };
+
+  auto onoff_dimmer = std::make_shared<hm_connector::onoff_dimmer>(onoff_dimmer_uris);
+
+  std::vector<std::string> const regulation_dimmer_uris = {
+    "/LightRegulationFunctionality/HMKEQ0059462-0"
+  };
+
+  auto regulation_dimmer = std::make_shared<hm_connector::regulation_dimmer>(regulation_dimmer_uris);
+  return { onoff_dimmer, regulation_dimmer };
+}
+\end{lstlisting}
+
+
+Quellcode \ref{conn_entry} zeigt, wie die Implementierung für das Laden der Verknüpfungen aus der Modellierung
+in \ref{conn_mod} aussieht.
+Dabei wird nur eine Liste der URIs beim Erstellen der Verknüpfungsklasse mitgeteilt und die Liste
+der Verknüpfungen zurückgegeben.
+In der zweiten Sektion in Quellcode \ref{conn_mod} wird die Verknüpfung eines Tasters mit einem einzigen Aktor (Dimmer)
+gezeigt.
+Es wird zunächst das Tag für den Receiver-URI ermittelt und dann die Daten aus dem WieDAS-Datenraum für Sender
+und Receiver ausgelesen.
+Dann wird das Receiver-Datum modifiziert und zurück in den Cache geschrieben.
+
+\subsection{Gerätemanager}
+\label{imp_abb_gemenge}
+
+Der Gerätemanager aus Abschnitt \ref{des_gemenge} ist für das Laden der Geräte- und Verknüpfungsbibliotheken zuständig.
+Er bietet die Schnittstelle zu den Geräten für alle anderen Komponenten des Connectors (z.B. des Logikprozesses in
+der HomeMatic-Komponente).
+Er existiert als globaler Zeiger, um so die Komplexität aus dem Connector zu nehmen, die entstehen würde, wenn der Manager
+als Referenz-Attribut in den Objekten präsent wäre und in den Methoden immer als Parameter mit übergeben werden müsste.
+Der Gerätemanager ist durch seine höhere Komplexität gegenüber anderen Bestandteilen des Connectors, hat er die meisten
+Attribute.
+Es werden alle registrierten Gerätelader in einer Assoziation von Typ und Zeiger zum Lader gespeichert.
+Auch werden alle geladenen Geräte selbst in einer Assoziation von Adresse und Gerätezeiger gespeichert.
+Für beide Assoziationen wurde eine \emph{unordered\_map} aus der C++-Standardbibliothek verwendet.
+Diese wird verwendet, um den Lookup zu beschleunigen, benötigt dadurch aber etwas mehr Speicher, durch das Mitspeichern
+einer Hash-Funktion für den Schlüssel (hier: Zeichenkette).
+Der Grund für die Speicherung von Zeigern im Gegensatz zu Kopien ist, so dass eine Assoziation von Kanaladresse zu Gerät
+und eine von Gerätetyp zu Lader möglich ist.
+Würde man nur ein Gerät oder einen Lader speichern, so müsste man bei jedem eintretenden Ereignis prüfen, ob die Lader
+einen gewissen Gerätetypen laden können bzw. Geräte Kanäle mit einer bestimmten Adresse besitzen.
+Die weiteren Attribute des Gerätemanagers sind:
+\begin{itemize}
+\item Handles für geladene Bibliotheken
+\item Geräteverknüpfungen
+\item Registerierungs-Handle für den AAL-Cache
+\item Verzeichnisnamen für dynamische Bibliotheken
+\item Referenz zur HomeMatic-Schnittstelle
+\end{itemize}
+
+Die Methode zum Laden von Geräten schaut zunächst, ob das Gerät schon geladen wurde.
+Ist dies nicht der Fall wird der Gerätetyp von der HomeMatic-Schnittstelle für die entsprechende
+Adresse gelesen.
+Da der Gerätetyp oft eine Modellnummer als Suffix hat (z.B. \emph{HM-LC-Dim1T-Pl-2}) und die Gerätetypen,
+die beim Registrieren des Loaders angegeben sind, diese nicht haben (z.B. \emph{HM-LC-Dim1T-Pl}) wird nur
+dieser Teil des Gerätetyps vergleichen und bei Übereinstimmung der Gerätelader dazu aufgefordert
+das Gerät zu laden.
+Die \emph{load\_external\_libraries} Methode im Connector behandelt das Laden der externen Bibliotheken.
+Darin wird zunächst die komplette Geräte- und Verknüpfungsliste gelöscht und die Handles
+zu den Bibliotheken wieder freigegeben und anschließend entfernt.
+Dann werden die Verzeichnisse mit den Bibliotheken nach Dateien mit der Endung \emph{.so} durchsucht (die
+Endung für dynamische Bibliotheken oder ``shared objects'' in Linux) und versucht zu laden.
+Dieser Teil ist einer der wenigen, welcher Betriebssystemabhängige Funktionen benutzt.
+Darin werden dann je nach Bibliothekstyp die Funktion \emph{registration} oder \emph{get\_conncection}
+aufgerufen und dann jeweils im Loader- oder Connection-Mapping gespeichert.
+Anschließend werden die Subscriptions im AAL-Cache (also das Subscription-Set) aktualisiert.
+Um alle notwendigen Tags zu erhalten, werden alle Verknüpfungen nach den URIs für die Sender gefragt und
+die Geräte werden gefragt, welche URIs für sie registriert werden müssen.
+Das \emph{aalcache\_callback} ist dafür zuständig auf Ereignisse aus dem AAL-Cache zu reagieren.
+Die Methode ist eine globale Funktion und der übergebene Parameter ist eine Referenz auf den Gerätemanager selbst.
+Durch die Klassen-Sichtbarkeit (also die Deklaration in der Klassen) ist das Callback in der Lage
+auf private Attribute und Methoden der Klasse zuzugreifen.
+Genau wie beim Logikprozess in Abschnitt \ref{imp_hm_logic} muss im Callback ein globales Locking vollzogen werden.
+Dadurch kann während der Abarbeitung nicht mehr auf Ereignisse der HomeMatic-Zentrale reagiert werden.
+Im Callback werden alle URIs zu den übertragenen Tags besorgt und dann die Verknüpfungen
+und Geräte aufgefordert die URIs entsprechend zu verarbeiten.
+
+\section{Connector}
+\label{imp_conn}
+
+Die Implementierung des Connectors legt die zuvor beschriebenen Komponenten an und initialisiert sie.
+Dann wird der Connector in einen Idle-State geschickt und reagiert nur noch auf Ereignisse aus dem AAL-Cache
+oder von der HomeMatic-Zentrale.
+
+\lstset{language=C++}
+\begin{lstlisting}[frame=single,caption={Ausschnitt der Eintrittsfunktion des Connectors},label=conn]
+int start(int connector_id, char const *config)
+{
+  AALC_DBG("HM-Connector: Starting with ID %d.", connector_id);
+  AALC_DBG("HM-Connector: Configuration: %s", config);
+
+  [...]
+  std::uint16_t logicport = 0;
+  [...]
+
+  init_map const initializers =
+  {
+    {
+      "logicport", [&logicport](std::string const &param)
+      {
+        unsigned long port = std::stoul(param);
+
+        if (port > 65535)
+        {
+          throw std::runtime_error("invalid logicport");
+        }
+
+        logicport = static_cast<std::uint16_t>(port);
+      }
+    }
+  };
+
+  parse_configuration(config, initializers);
+  [...]
+
+  hm_connector::ccu_interface ccu_interface(server_url.str());
+  hm_connector::aalcache_ccu_logic aalcache_ccu_logic(logicport);
+  hm_connector::g_device_manager.reset(
+    new hm_connector::device_manager(
+      ccu_interface,
+      connections_directory, devices_directory));
+
+  std::thread thread(run_server, std::ref(aalcache_ccu_logic));
+
+  ccu_interface.init(logic_url.str(), hm_connector::ccu_interface_id());
+
+  hm_connector::g_device_manager->load_external_libraries();
+
+  thread.join();
+
+  return AALC_SUCCESS;
+}
+\end{lstlisting}
+
+Quellcode \ref{conn} zeigt, wie der Connector gestartet wird.
+Beim Eintritt in den Connector durch den AAL-Cache durchsucht ein Parser die Konfiguration nach relevanten
+Konfigurationsparametern.
+Diese werden dann genutzt um die HomeMatic-Schnittstelle und den Logikprozess zu erstellen, sowie
+den globalen Gerätemanager-Zeiger zu initialisieren.
+Bis zu diesem Zeitpunkt darf keine der Komponenten den Gerätemanager verwenden.
+Erst nachdem der Gerätemanager erstellt ist, wird der Logikprozess in den Idle-Zustand versetzt, so
+dass er neue Verbindungen annehmen und die Requests verarbeiten kann.
+Dann wird der HomeMatic-Schnittstelle mitgeteilt, an welchem Port der Logikprozess lauscht.
+Um direkt Ereignisse verarbeiten zu können wird nachdem der Logikprozess gestartet wurde ein
+einmaliges Laden der externen Bibliotheken veranlasst und dann auf Ereignisse gewartet.
+In der Implementierungsdatei befindet sich eine Datenstruktur, die einen Zeiger auf die Funktion enthält,
+die beim Starten aufgerufen werden soll.
+Weiterhin enthält die Datenstruktur die API-Version, gegen die programmiert wurde und einen Funktionszeiger
+zu einer Funktion die aufgerufen wird, sobald ein Tag gelöscht wird.
+Diese Funktionalität wird aber vom AAL-Cache Programm derzeit noch nicht unterstützt.
+
+\lstset{language={}}
+\begin{lstlisting}[frame=single,caption={Konfigurationseintrag des Connectors für den AAL-Cache},label=config]
+../../hm_conn/libhomematic_conn.so homematic_conn serverhost=10.0.0.23 logichost=10.0.0.21 logicport=5555 load_libraries=true dyn-connections=../../hm_conn/dyn-connections dyn-devices=../../hm_conn/dyn-devices
+\end{lstlisting}
+Quellcode \ref{config} zeigt die vom AAL-Cache verwendete Konfigurationsdatei (\emph{connectors.conf}) mit dem
+relevanten Eintrag, um den Connector beim Programmstart zu laden.
+Es muss der Aufenthaltsort der Bibliothek, sowie die Datenstruktur und die Konfigurationsparameter in der Datei
+niedergeschrieben werden.
+
+\section{Debugging}
+\label{imp_dbg}
+
+Um während der Entwicklung Programme auf ihre Funktionsweise hin zu überprüfen, wurde der Debugger gdb \cite{gdb}
+und der Speicherdebugger valgrind \cite{valgrind} benutzt.
+Um mit diesen Programmen Informationen aus dem Kompilat zu erhalten, musste das Makro \emph{NDEBUG} bei der Übersetzung
+undefiniert bleiben.
+Weiterhin mussten sämtliche Optimisierungsparameter beim Compileraufruf entfernt werden.
+Dadurch war ich in der Lage bei auftretenden Ausnahmen einen Stack-Trace des Programms zu untersuchen und somit
+auf die Fehlerquelle stoßen.
+Der Speicherdebugger, den ich bereits in privaten Projekten häufig verwendet habe, hat mich dabei unterstützt
+Fehler bei der Verwendung und Freilassung von Speicherblöcken bzw. Variablen zu finden.
+Da C++ durch das RAII-Verfahren selten Platz für solche Fehler anbietet, zeigten sich dort wenig Fehler.
+Vor der Verwendung des globalen Lockings, hatte ich ein merkwürdiges Verhalten in manchen Situationen.
+Auch ein Debugger konnte mir durch die Komplexität des Multi-Threadings nicht weiterhelfen.
+Für das einfache Debugging konnte ich einfache Ausgabe-Statements in meinen Connector einfügen oder habe das vom
+AAL-Cache bereitgestellte \emph{AALC\_DBG} Debugging-Makro verwendet.
+Bei der Entwicklung wurde kein Test-First Prinzip angewendet, da ich mir nicht zugetraut habe dieses Softwareentwicklungsprinzip
+in dem Zeitraum anzuwenden.
+Dennoch wurden die Teilkomponenten mit wenigen Modultests auf ihre Funktionalität hin und das Zusammenspiel zwischen verschiedenen
+Geräten im WieDAS-Datenraum geprüft.
 
 \section{Testläufe}
+\label{imp_test}
+
+Die Tests werden in dieser Woche in der Hochschule durchgeführt.
+Dieser Abschnitt, sowie die 2 folgenden Kapitel folgen am Wochenende.
 
 \subsection{Testumgebung}
+\label{imp_test_env}
 
-\subsection{Abgebildete Geräte}
-
-\subsection{Speicheranforderungen und Reaktionsgeschwindigkeit}
+\subsection{Funktionstest an verschiedenen Geräten in einer WieDAS-Umgebung}
+\label{imp_test_dev}
