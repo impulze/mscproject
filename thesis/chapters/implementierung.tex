@@ -99,16 +99,16 @@ Da die Operation jedoch selten benötigt wird, sind keine Optimierungen nötig.
 void Base::modify_map(char const *key, xmlrpc_c::value const &value)
 {
   auto iterator = map_.find(key);
+  std::pair<std::string, xmlrpc_c::value> const new_value = { key, value };
 
   if (iterator != map_.end())
   {
     // key already known
-    std::pair<std::string, xmlrpc_c::value> const new_value = { key, value };
-
     // erase old and insert new
     iterator = map_.erase(iterator);
-    map_.insert(iterator, new_value);
   }
+
+  map_.insert(iterator, new_value);
 }
 \end{lstlisting}
 
@@ -518,6 +518,7 @@ void trailing_edge_dimmer::aalc_event_impl(std::string const &uri, int tag,
 \end{lstlisting}
 
 \subsection{Verknüpfungen}
+\label{imp_verknüpfungen}
 Quellcode \ref{ger_aal} zeigt im Gegensatz, wie ein AAL-Cache-Ereignis behandelt wird.
 Dazu wird in der URI geprüft, welche WieDAS-Funktionalität aktualisiert wurde.
 Dann wird der richtige Zweig abgearbeitet und zunächst das Datum aus dem WieDAS-Datenraum ausgelesen.
@@ -698,14 +699,14 @@ int start(int connector_id, char const *config)
   parse_configuration(config, initializers);
   [...]
 
-  hm_connector::ccu_interface ccu_interface(server_url.str());
-  hm_connector::aalcache_ccu_logic aalcache_ccu_logic(logicport);
+  std::shared_ptr<hm_connector::ccu_interface> ccu_interface(server_url.str());
+  std::shared_ptr<hm_connector::aalcache_ccu_logic> aalcache_ccu_logic(logicport);
   hm_connector::g_device_manager.reset(
     new hm_connector::device_manager(
       ccu_interface,
       connections_directory, devices_directory));
 
-  std::thread thread(run_server, std::ref(aalcache_ccu_logic));
+  std::thread thread(run_server, aalcache_ccu_logic);
 
   ccu_interface.init(logic_url.str(), hm_connector::ccu_interface_id());
 

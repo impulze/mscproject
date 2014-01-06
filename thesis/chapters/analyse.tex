@@ -94,32 +94,32 @@ Das bedeutet unter anderem, dass
 \item Die notwendigen Informationen zur An- und Abmeldung der Geräte im Besitz des Anwenders sind
 \end{itemize}
 
-\begin{figure}[h]
-\includegraphics[scale=0.5]{images/uc}
-\caption{Anwendungsfälle}
-\label{abb_uc}
-\end{figure}
+\myfigurescaled[0.5]{h}{uc}{Anwendungsfälle}
 
-%TODO KROEGER (anwendungsfälle nicht besonders aussagekräftig, interoperabilität konkreter als beispiel [eins sensor, eins aktor], möglichst dicht an testfällen)
-\subsection{Geräte an- und abmelden}
+\subsection{Geräte bei HomeMatic-Zentrale an- und abmelden}
+\label{uc1}
 Der Anwender muss in der Lage sein die Geräte an- und abzumelden.
 Dazu wird die Anmeldungsprozedur der Gerätebeschreibung entnommen und an der HomeMatic-Zentrale
 durchgeführt.
-Der Connector muss diese An- oder Abmeldung entgegennehmen und die Verarbeitung für diese
-Geräte einstellen.
-Eine Statusmeldung kann dem Anwender darüber informieren, ob die An- bzw. Abmeldung erfolgreich
-war.
+Der Connector muss diese Anmeldung erkennen und eine interne Abbildung laden.
+Bei einer Abmeldung muss das Gerät wieder aus dem Speicher entladen bzw. gelöscht werden und
+die Verarbeitung von Verknüpfungen und Behandeln von Ereignissen einstellen.
+Eine Statusmeldung informiert den Anwender darüber, ob eine An- oder Abmeldung registriert wurde.
 
-\subsection{Gerätefunktion auslösen}
-Der Anwender kann Funktionen auf dem HomeMatic-Gerät durchführen und diese dann
+\subsection{Funktionen an HomeMatic-Geräten auslösen und im Connector erkennen}
+\label{uc2}
+Der Anwender kann Funktionen an einem HomeMatic-Gerät durchführen und diese dann
 im AAL-Cache als WieDAS-Datenobjekt wiederfinden, falls das Gerät vom Connector
 unterstützt wird.
-Dazu kann ein Connector verwendet werden, der alle gewollten URIs beobachtet und
-entsprechend ihrer Funktionalität eine einfache Ausgabe tätigt.
+Dazu kann der Connector eine Statusmeldung geben, sobald ein Ereignis von der HomeMatic-Zentrale
+geliefert wurde.
 
-\subsection{Geräte verknüpfen}
-Weiterhin will der Anwender Verknüpfungen zwischen verschiedenen HomeMatic-Geräten im
-WieDAS-Datenraum herstellen.
+\subsection{HomeMatic-Geräte mit anderen Geräten im WieDAS-Datenraum verknüpfen}
+\label{uc3}
+Weiterhin will der Anwender Verknüpfungen zwischen verschiedenen Geräten im WieDAS-Datenraum herstellen.
+Dabei sollen sowohl HomeMatic-Geräte untereinander, als auch HomeMatic-Geräte mit anderen Geräten
+verknüpft werden.
+Ein HomeMatic-Gerät kann als Sensor dienen und ein anderes Gerät im WieDAS-Datenraum als Aktor oder umgekehrt.
 Die Art und Weise, wie diese Verknüpfung erzeugt wird, ist offen.
 Der Aufwand für die Erstellung der Verknüpfung soll im überschaubaren Rahmen liegen und
 dokumentiert werden.
@@ -229,11 +229,7 @@ Man könnte sich vorstellen, dass ein Kanaltyp (z.B. \emph{Key}) oder ein Datenp
 WieDAS-Funktion verwendet werden kann.
 Jedoch würde diese 1:1 Verknüpfung keinen Sinn ergeben.
 
-\begin{figure}[h]
-\includegraphics[scale=0.45]{images/abb_taster}
-\caption{Mögliche Abbildungen eines HomeMatic-Tasters in WieDAS}
-\label{abb_taster}
-\end{figure}
+\myfigurescaled[0.45]{h}{taster}{Mögliche Abbildungen eines HomeMatic-Tasters in WieDAS}
 
 Abbildung \ref{abb_taster} zeigt 2 verschiedene Möglichkeiten einen Taster in WieDAS abzubilden.
 Ein Taster besitzt 2 Kanäle vom Kanaltyp \emph{Key} (hier: \emph{K1} und \emph{K2}).
@@ -506,3 +502,12 @@ dem Port der XML-RPC-Schnittstelle der HomeMatic-CCU mitgeteilt werden.
 Dies kann durch die Konfigurationsdatei \emph{connectors.conf}-Datei geschehen.
 Falls eine enge Kapselung der CCU an das System besteht (z.B. durch ein privates
 kleines Netzwerk) muss eine Weiterleitung eingerichtet werden.
+
+
+%TODO
+%- setzt architektur vorraus
+%- gedanken vermischt
+%- datenstrukturen und abläufe mehr trennen
+%- abläufe aus anwendungsfällen ableiten lassen
+%- designentscheidungen schwer nachzuvollziehen und nicht sichtbar
+%- kaum abbildungen

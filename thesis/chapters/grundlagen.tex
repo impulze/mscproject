@@ -91,11 +91,7 @@ Es wird bezüglich der Verwertbarkeit in Wiesbaden und Düsseldorf evaluiert.
 \subsection{Plattform}
 \label{gru_wiedas_plattform}
 
-\begin{figure}[h]
-\includegraphics[scale=0.8]{images/wiedas_plattform}
-\caption{WieDAS-Plattform}
-\label{abb_wiedas_plattform}
-\end{figure}
+\myfigurescaled[0.8]{h}{wiedas_plattform}{WieDAS-Plattform}
 
 Auf die WieDAS-Plattform (Abbildung \ref{abb_wiedas_plattform}) wird von Benutzern über Anwendungen zugegriffen.
 Diese Anwendungen liefern Mess- und Zustandsinformationen von Sensoren und steuern Aktoren.
@@ -127,48 +123,67 @@ der Software keine Relevanz besitzen.
 \subsection{Datenmodell}
 \label{gru_wiedas_daten}
 
-% TODO KROEGER (klarer trennen: geräte, ifaces, datenraum), datenraum entspricht variablenmenge, insgesamt wenig exakt und formal
 Das WieDAS-Datenmodell entspringt aus einer IDL-Datei \cite{wiedas_idl}.
-Eine IDL-Datei ist ähnlich aufgebaut wie eine Schnittstellenbeschreibung in der Programmiersprache C.
-In diesem Modell sind zum derzeitigen Zeitpunkt mehrere Sensoren, Kommandos und Funktionen hinterlegt.
-Sie sind speicherschonend aufgebaut und besitzen wenig Informationen.
-Die IDL-Datei ist mit Kommentaren versehen, wodurch man in der Lage ist, die verschiedenen Typen und Attribute
-korrekt zu interpretieren.
-Es existieren wenige primitive Datentypen, darunter z.B. eine ID, Schaltzustände oder Aufzählungen.
-Weiterhin werden gewöhnliche Aufgaben, wie das Erfassen einer Temperatur, das Schalten, oder ähnliches
-in Funktionalitäten zusammengefasst.
-Die Geräte besitzen kaum spezifische Daten, dafür jedoch aussagekräftige kleinere Daten.
+Sie wird eingeleitet mit dem Namen des Moduls, welches durch die Datei bereitgestellt wird.
+Um Geräte oder Funktionen zu deklarieren nutzt man Typen, die bereits von IDL bereitgestellt werden,
+und Typen die man aus diesen zusammensetzt.
+Typen werden mit dem Schlüsselwort \emph{typedef} umbenannt, so dass der Typname für das Modul eine geeignete
+Aussagekraft hat.
+Eine Liste mit Elementen wird durch das Schlüsselwort \emph{enum} erstellt.
+\lstset{language=IDL}
+\begin{lstlisting}[frame=single,caption={Typen in WieDAS},label=wiedasdatentypen]
+module WieDAS {
+  typedef unsigned short deviceID_t;
+  enum OnOff { off, on };
+  typedef OnOff OnOffState_t;
+  [...]
+\end{lstlisting}
+Quellcode \ref{wiedasdatentypen} zeigt einen Ausschnitt aus der WieDAS-IDL-Datei.
+In Zeile 1 wird das Modul eingeleitet.
+Zeile 3 zeigt, wie ein Typname für WieDAS umbenannt bzw. deklariert wird.
+In den Zeilen 4 und 5 wird eine Enumeration deklariert und umbenannt.
+Dieses Muster (Deklaration gefolgt von Umbenennung mit dem Suffix \emph{\_t}) findet man
+in der IDL durchgängig bei Enumerationen.
+Wie der Quellcode zeigt, ist eine IDL-Datei ähnlich aufgebaut wie eine
+Schnittstellenbeschreibung in der Programmiersprache C.
+
+Geräte in WieDAS werden mit einer Struktur, also einer Menge von Datentyp und Objektname,
+erstellt.
+Das WieDAS-Modul versucht gewöhnliche Aufgaben, die von verschiedenen Geräten unterstützt werden
+können, wie das Erfassen einer Temperatur, das Schalten eines Ausgangs oder ähnliches in
+Funktionalitäten zusammenzufassen.
+Sie sind speicherschonend aufgebaut, das heisst, dass sie wenige Objekte (Variablen) und wenig
+Zusatzinformationen über das Gerät besitzen.
 Das liegt zum Einen daran, dass WieDAS versucht, Geräte verschiedener Hersteller einzubinden und zum
-anderen daran, dass sich der Speicherverbrauch der Geräteinformationen im AAL-Cache deutlich steigt,
+anderen daran, dass der Speicherverbrauch der Geräteinformationen im Datenraum deutlich steigt,
 wenn einfache Gerätefunktionen mit mehreren Daten abgebildet werden.
-Geräte besitzen stets eine 16-Bit ID zur eindeutigen Identifizierung des Geräts im Datenraum.
-Einzelne speziellere Geräte besitzen eine eigene Struktur, welche wiederum genauso aufgebaut sein
-kann, wie eine Funktionalität oder andere Geräte.
-Manche Strukturen sind auskommentiert oder besitzen Kommentare, die besagen, dass die Strukturen
-nur vorläufig sind.
+Dabei kann es passieren, dass 2 Strukturen identisch sind und sich nur im Namen unterscheiden.
 Zum Beispiel ist die Struktur eines Wasserstandsmelders identisch mit der Datenstruktur einer
 normalen Lampe, da sie beide nur Informationen bezüglich des Einschaltzustands haben (An oder Aus).
-Sind diese Geräte komplexer, wie z.B. eine dimmbare Lampe oder eine einstellbare Steckdose, so werden
-weitere Parameter dieser Geräte mit vorher spezifizierten primitiven Datentypen oder den
-Zahlentypen aus der IDL-Spezifikation erweitert.
 
-\begin{absolutelynopagebreak}
+Im Modell sind zum derzeitigen Zeitpunkt mehrere Sensoren und Funktionen hinterlegt.
+Sie besitzen stets eine 16-Bit ID-Variable zur eindeutigen Identifizierung des Geräts im Datenraum.
+Dann folgen gerätespezifische Variablen.
+Obwohl die Typ- und Variablennamen sehr aussagekräftig sind, existieren in der IDL-Datei
+häufiger Kommentare, die dabei helfen die Variablen korrekt zu interpretieren.
+Manche Strukturen sind auskommentiert oder besitzen Kommentare, die besagen, dass die Strukturen
+nur vorläufig sind.
+In der Regel besitzen Funktionen nur eine gerätespezifische Variable.
+Bei komplexeren Funktionen, wie z.B. einer dimmbaren Lampe, besitzt die Struktur 2 Variablen.
+
 \lstset{language=IDL}
 \begin{lstlisting}[frame=single,caption={Gerätebeschreibung eines dimmbaren Lichts in WieDAS},label={devcode}]
-typedef unsigned short deviceID_t;
-enum OnOff { off, on };
-typedef OnOff OnOffState_t;
 struct DimmableLight_dt {
 	deviceID_t id;
 	octet LightIntensityState;
 	OnOffState_t state;
 };
 \end{lstlisting}
-Quellcode \ref{devcode} zeigt ein typisches Gerät.
-Es besteht aus einer ID (Zeile 5) und einen oder mehrere für die Funktion relevanten Datentyp(en) (Zeile 6 und 7).
-Falls Typen verwendet werden, die nicht in IDL spezifiziert sind, müssen diese vorher benannt werden (Zeile 1, 2 und 3).
-
-\end{absolutelynopagebreak}
+Quellcode \ref{devcode} zeigt die Struktur der dimmbaren Lampe in WieDAS.
+Es besteht aus der 16-Bit-ID (Zeile 2), einer Variablen zum Speichern der Lichtintensität (Zeile 3) und den Status
+der Lampe (Zeile 4).
+Der Typ der Variablen für die Lichtintensität (\emph{octet}) ist bereits in IDL vorhanden.
+Für den Status der Lampe, wird ein Typ verwendet, der zuvor im Modul (Quellcode \ref{wiedasdatentypen}) deklariert wurde.
 
 \subsection{AAL-Cache}
 \label{gru_aalcache}
@@ -181,7 +196,11 @@ Er ist in C++ implementiert und bietet C- und Java-Schnittstellen zur Interaktio
 
 Für jeden Cache-Eintrag speichert der AAL-Cache URIs mit dazugehörigen binären anwendungsspezifischen
 Daten.
-Die URIs dienen als Schlüssel und Identifikator für Cache-Einträge.
+Bei der Verwendung von AAL-Cache mit WieDAS sind die anwendungsspezifischen Daten die Strukturen
+aus der WieDAS-IDL (Abschnitt \ref{gru_wiedas_daten}).
+Es wird also ein Objekt der Struktur erstellt und das Objekt entsprechend gefüllt (Wert eines Sensors).
+Dieses Objekt wird dann vom AAL-Cache gespeichert und ist für ihn opak.
+Die URIs dienen als Schlüssel und Identifikator für diese Cache-Einträge.
 Aus Performancegründen sind die Einträge Maschinenworte, sogenannte Tags.
 Die Tags werden mit einer Hashing-Funktion erstellt, die eine breite Verteilung besitzt
 und gut auf verschiedenen Schlüsseln arbeiten soll \cite{aalc_hash}.
@@ -202,13 +221,8 @@ des Schreibers, 2 Zeitstempel, sowie den Energiebedarf zur Erhebung des Werts \c
 Die Zeitstempel werden bei Lese- und Schreibzugriffen aktualisiert.
 Zum Zwecke der Lesbarkeit des Datums wird weiterhin ein Datentyp-Hint hinterlegt.
 
+\myfigurescaled[0.7]{h}{aalcache}{Architektur des AAL-Cache}
 Die Abbildung \ref{abb_aalcache} zeigt, welche Komponenten in der AAL-Cache Architektur verwendet werden.
-\begin{figure}[h]
-\includegraphics[scale=0.7]{images/aalcache}
-\caption{Architektur des AAL-Cache}
-\label{abb_aalcache}
-\end{figure}
-
 Damit die herstellerspezifischen Geräte und Protokolle vom AAL-Cache verarbeitet werden können, schreiben
 die Softwareentwickler, die mit dem Cache arbeiten, Adaptermodule (im weiteren Connectoren).
 Die Connectoren sind die Verbindung zur realen Welt.
@@ -243,27 +257,42 @@ Connectoren in purem C ermöglicht werden, um z.B. den Speicherverbrauch geringe
 Im aktuellen Code-Repository \cite{aalcache_code} befinden sich bereits Connectoren für z.B. OSGi,
 Ontology-Homeautomation, DDS und sDDS.
 
-Möchte der Connector über Ereignisse zu einem URI informiert werden, so muss er
-eine Registrierung am Kern vornehmen.
-Dazu werden die gewünschten Tags an eine Registrierungsfunktion übergeben, welche
-dann wiederum ein Subscription-Set liefert.
-Dieses kann dann auch wieder zum Auflösen der Registrierungen verwendet werden.
-Bei der Registrierung wird Tags und die Anzahl der übergebenen Tags mitgeliefert.
-Wird ein registriertes Callback ausgeführt, so kann es vorkommen, dass dies in einem anderen
-Thread passiert.
+\lstset{language=C}
+\begin{lstlisting}[frame=single,caption={C-Schnittstelle von AAL-Cache},label={aalh}]
+int aalc_getTag(const char* uri);
+int aalc_getUri(int tag, char** uri);
+int aalc_put(int tag, const aalc_metadata* md, size_t md_length, const void* data, size_t data_length);
+int aalc_getCopy(int tag, void* buffer, size_t buflen, aalc_metadata* md, size_t mdsize);
+int aalc_getLock(int tag, void** data, aalc_metadata** md);
+int aalc_unlock(int tag);
+int aalc_subscribe(aalc_sset_handle* handle, int tags[], int n, int m, aalc_subscr_callback cb, void* userdata);
+int aalc_unsubscribe(aalc_sset_handle handle);
+\end{lstlisting}
 
-Um auf die Daten im Cache zuzugreifen, bietet die Schnittstelle die Funktion \emph{getCopy}
-und \emph{getLock}.
+Quellcode \ref{aalh} zeigt die verfügbaren Funktionen zur Interaktion mit dem AAL-Cache in C.
+Für das Anfordern eines Tags wird ein URI an die Funktion \emph{aalc\_getTag} gegeben.
+Möchte man zu einem Zeitpunkt den URI für ein Tag auslesen, so wird \emph{aalc\_getUri} benutzt.
+Dabei ist logischerweise zu beachten, dass das Tag vorher erstellt wurde.
+Cache-Einträge werden mit \emph{aalc\_put} eingetragen.
+Dabei wird ein Zeiger auf das Metadaten- und Datenobjekt zusammen mit der jeweiligen
+Größe in Bytes übergeben.
+Um auf die Daten im Cache zuzugreifen, bietet die Schnittstelle die Funktionen \emph{aalc\_getCopy}
+und \emph{aalc\_getLock}.
 Die erste Funktion liefert eine Kopie der Metadaten und des gespeicherten Datums.
 Sie können verändert werden und zurück in den Cache geschrieben werden.
 Die 2. Funktion gibt einen Zeiger auf das interne Datum zurück.
-Dieser kann nicht für Schreibzugriffe verwendet werden und muss mittels \emph{unlock}
+Dieser darf nicht für Schreibzugriffe verwendet werden und muss mittels \emph{aalc\_unlock}
 wieder für Schreibzugriffe freigegeben werden.
 
-\vfill
-\pagebreak
+Möchte der Connector über Ereignisse zu einem URI informiert werden, so muss er
+eine Registrierung am Kern vornehmen.
+Dazu werden die gewünschten Tags an die Registrierungsfunktion \emph{aalc\_subscribe} übergeben,
+welche dann wiederum ein Subscription-Set liefert.
+Dieses kann dann auch wieder zum Auflösen der Registrierungen verwendet werden (\emph{aalc\_unsubscribe}).
+Bei der Registrierung werden die Tags und die Anzahl der übergebenen Tags mitgeteilt.
+Wird ein registriertes Callback ausgeführt, so kann es vorkommen, dass dies in einem anderen
+Thread passiert.
 
-%TODO KROEGER (schnittstellenbeschreibung der .h?)
 Der Cache selbst kann zur Laufzeit mittels der Management-Schnittstelle konfiguriert werden.
 Funktionen, die die dynamische Verwaltung erlauben, umfassen:
 \begin{enumerate}
@@ -460,14 +489,7 @@ realisiert werden.
 Diese Programmierschnittstellen verwenden das im Abschnitt \ref{gru_xmlrpc} beschriebene XML-RPC-Protokoll.
 Die Nutzung der Schnittstelle unterscheidet dabei zwischen dem Schnittstellenprozess und dem Logikprozess.
 
-%\vfill
-%\pagebreak
-
-\begin{figure}[h!]
-\includegraphics[scale=0.8]{images/ccu_logic_iface}
-\caption{Schnittstellen- und Logikprozesse}
-\label{abb_ccu_logic_iface}
-\end{figure}
+\myfigurescaled[0.8]{h}{ccu_logic_iface}{Schnittstellen- und Logikprozesse}
 %TODO DANIEL (herr kröger hat hier [3] in der caption hintergeschrieben)
 Die Abbildung \ref{abb_ccu_logic_iface} zeigt, wo sich die Prozesse befinden.
 Ein Logikprozess kann mit mehreren Schnittstellenprozessen kommunizieren \cite[Seite 3]{homematic_xmlrpc}.

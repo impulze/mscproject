@@ -60,6 +60,6 @@ images/%.eps: images/%.png
 #converted_images: $(IMAGES_CONVERTED)
 
 clean:
-	rm -f *.backup *~ $(TARGET).aux $(TARGET).lof $(TARGET).lot $(TARGET).toc $(TARGET).dvi $(TARGET).log $(TARGET).ps $(TARGET).pdf $(TARGET).bbl $(TARGET).blg $(TARGET).out $(TARGET).bst $(TARGET).inx images/*~ images/*.eps *.bak $(TARGET).svn $(TARGET).lol $(TARGET).fot $(TARGET).idx $(TARGET).cb $(TARGET).loa $(TARGET).abk.aux $(TARGET).gls.aux
+	rm -f *.backup *~ $(TARGET).aux $(TARGET).lof $(TARGET).lot $(TARGET).toc $(TARGET).dvi $(TARGET).log $(TARGET).ps $(TARGET).pdf $(TARGET).bbl $(TARGET).blg $(TARGET).out $(TARGET).bst $(TARGET).inx images/*~ $(IMAGES_CONVERTED) *.bak $(TARGET).svn $(TARGET).lol $(TARGET).fot $(TARGET).idx $(TARGET).cb $(TARGET).loa $(TARGET).abk.aux $(TARGET).gls.aux
 
 sources: $(SOURCES)
