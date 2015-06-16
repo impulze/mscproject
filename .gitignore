@@ -1,14 +1,2 @@
-*.aux
-*.bbl
-*.blg
-*.cb
-*.dvi
-*.eps
-*.fot
-*.idx
-*.loa
-*.lof
-*.log
-*.lol
-*.lot
-*.toc
+/eclipse_workspace_luna/.metadata/
+/eclipse_workspace_luna/.recommenders/
