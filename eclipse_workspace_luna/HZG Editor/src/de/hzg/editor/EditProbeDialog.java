@@ -42,6 +42,7 @@ public class EditProbeDialog extends EditDialog<Probe> {
 						.list();
 
 					result = tempResult;
+					handleResult(result, name);
 				} catch (Exception exception) {
 					final String[] messages = { "Probes could not be loaded.", "An exception occured." };
 					final JDialog dialog = new ExceptionDialog(finalOwner, "Probes not loaded", messages, exception);
@@ -52,7 +53,9 @@ public class EditProbeDialog extends EditDialog<Probe> {
 				} finally {
 					session.close();
 				}
+			}
 
+			public void handleResult(List<Probe> result, String name) {
 				if (result.size() == 0) {
 					final String message = String.format(
 						"The probe with the name '%s' is not in the database.\n" +
@@ -67,6 +70,7 @@ public class EditProbeDialog extends EditDialog<Probe> {
 					JOptionPane.showMessageDialog(EditProbeDialog.this, message, "Duplicate probe", JOptionPane.ERROR_MESSAGE);					
 				} else {
 					probe = result.get(0);
+					Probe.initProbe(probe);
 					setVisible(false);
 					dispose();
 				}

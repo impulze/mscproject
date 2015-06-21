@@ -17,7 +17,9 @@ import javax.swing.JMenu;
 import javax.swing.JSeparator;
 
 import java.awt.event.ActionListener;
+import java.util.List;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import de.hzg.common.Configuration;
@@ -48,7 +50,7 @@ public class Editor {
 
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(100, 100, 850, 600);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar_1 = new JMenuBar();
@@ -82,7 +84,8 @@ public class Editor {
 
 				if (clear) {
 					frame.getContentPane().removeAll();
-					final CreateEditProbePanel probePanel = new CreateProbePanel(frame, sessionFactory);
+					final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory);
+					probePanel.setActionButton("Save information", probePanel.getSaveActionListener());
 					switchPanel("Create probe", probePanel);
 				}
 			}
@@ -107,7 +110,8 @@ public class Editor {
 					final Probe probe = dialog.getResult();
 
 					if (probe != null) {
-						final CreateEditProbePanel probePanel = new EditProbePanel(frame, sessionFactory);
+						final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory);
+						probePanel.setActionButton("Update information", probePanel.getUpdateActionListener());
 						probePanel.setProbe(probe);
 						switchPanel("Edit probe", probePanel);
 					}
@@ -149,6 +153,24 @@ public class Editor {
 		JMenuItem mntmAboutHZGEditor = new JMenuItem("About HZG Editor");
 		mnHelp.add(mntmAboutHZGEditor);
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
+
+		/* TODO: for development */
+		final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory);
+		probePanel.setActionButton("Update information", probePanel.getUpdateActionListener());
+		final Session session = sessionFactory.openSession();
+		try {
+			@SuppressWarnings("unchecked")
+			final List<Probe> result = (List<Probe>)session
+				.createQuery("FROM Probe WHERE name = :name")
+				.setParameter("name", "MyActiveProbe999")
+				.list();
+			final Probe probe = result.get(0);
+			Probe.initProbe(probe);
+			probePanel.setProbe(probe);
+			switchPanel("Edit probe", probePanel);
+		} finally {
+			session.close();
+		}
 	}
 
 	SessionFactory getSessionFactory() {

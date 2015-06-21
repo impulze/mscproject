@@ -2,8 +2,12 @@ package de.hzg.editor;
 
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
+import javax.swing.Icon;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -11,20 +15,29 @@ import javax.swing.JCheckBox;
 import javax.swing.border.TitledBorder;
 
 import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Window;
 
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.TableColumn;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
-import javax.swing.table.DefaultTableModel;
 
 import de.hzg.sensors.Probe;
+import de.hzg.sensors.SensorInstance;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Image;
+
+import javax.swing.ImageIcon;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 
@@ -38,15 +51,15 @@ public class CreateEditProbePanel extends CreateEditPanel {
 	private final JButton actionButton;
 	private final JTable table;
 	private final SessionFactory sessionFactory;
-	private Probe probe = new Probe();
+	private Probe probe;
 	private boolean dirty = false;
+	private final Window owner;
 
-	public CreateEditProbePanel(Window owner, String borderTitle, SessionFactory sessionFactory) {
-		super(borderTitle);
+	public CreateEditProbePanel(Window owner, SessionFactory sessionFactory) {
+		super("Probe information");
 
 		this.sessionFactory = sessionFactory;
-
-		final Window finalOwner = owner;
+		this.owner = owner;
 
 		nameTextField = new JTextField();
 		nameTextField.setColumns(20);
@@ -95,24 +108,6 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		});
 
 		actionButton = new JButton();
-		setActionButton("Save", new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				final Session session = CreateEditProbePanel.this.sessionFactory.openSession();
-
-				try {
-					session.save(probe);
-					session.flush();
-				} catch (Exception exception) {
-					final String[] messages = { "Probe could not be saved.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(finalOwner, "Probe not saved", messages, exception);
-					dialog.pack();
-					dialog.setLocationRelativeTo(finalOwner);
-					dialog.setVisible(true);
-				} finally {
-					session.close();
-				}
-			}
-		});
 
 		final GroupLayout gl_panel = new GroupLayout(getTopPanel());
 		gl_panel.setHorizontalGroup(
@@ -152,44 +147,19 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		getTopPanel().setLayout(gl_panel);
 
 		getBottomPanel().setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "Sensors", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		getBottomPanel().setLayout(new BorderLayout());
 
-		final JScrollPane scrollPane_1 = new JScrollPane();
-		getBottomPanel().add(scrollPane_1);
+		table = createTable();
 
-		table = new JTable();
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		table.setModel(new DefaultTableModel(
-			new Object[][] {
-			},
-			new String[] {
-				"Description", "Address", "Parameter1", "Parameter2", "Parameter3", "Parameter4", "Parameter5", "Parameter6"
-			}
-		) {
-			private static final long serialVersionUID = -1593462583060407344L;
-
-			final Class<?>[] columnTypes = new Class[] {
-				Object.class, Integer.class, Double.class, Double.class, Double.class, Double.class, Double.class, Double.class
-			};
-			public Class<?> getColumnClass(int columnIndex) {
-				return columnTypes[columnIndex];
-			}
-		});
-		table.getColumnModel().getColumn(0).setPreferredWidth(85);
-		table.getColumnModel().getColumn(1).setPreferredWidth(70);
-		table.getColumnModel().getColumn(2).setPreferredWidth(90);
-		table.getColumnModel().getColumn(3).setPreferredWidth(90);
-		table.getColumnModel().getColumn(4).setPreferredWidth(90);
-		table.getColumnModel().getColumn(5).setPreferredWidth(90);
-		table.getColumnModel().getColumn(6).setPreferredWidth(90);
-		table.getColumnModel().getColumn(7).setPreferredWidth(90);
-		scrollPane_1.setViewportView(table);
+		probe = new Probe();
+		probe.setSensorInstances(new ArrayList<SensorInstance>());
+		setProbe(probe);
 	}
 
 	void setProbe(Probe probe) {
 		this.probe = probe;
 		nameTextField.setText(probe.getName());
 		deviceTextField.setText(probe.getDevice());
+		updateSensors(probe);
 	}
 
 	public boolean isDirty() {
@@ -204,7 +174,7 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		return dirty;
 	}
 
-	protected void setActionButton(String text, ActionListener actionListener) {
+	public void setActionButton(String text, ActionListener actionListener) {
 		actionButton.setText(text);
 
 		for (final ActionListener registeredActionListener: actionButton.getActionListeners()) {
@@ -222,7 +192,177 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		return probe;
 	}
 
-	protected void updateSensors() {
+	protected void updateSensors(Probe probe) {
+		assert(probe != null);
+
+		final Session session = sessionFactory.openSession();
+		final List<String> descriptionNames;
+
+		try {
+			@SuppressWarnings("unchecked")
+			final List<String> tempResult = (List<String>)session
+				.createQuery("SELECT description.name FROM SensorDescription description")
+				.list();
+			descriptionNames = tempResult;
+		} catch (Exception exception) {
+			final String[] messages = { "Description names could not be fetched.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Description names not fetched", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+			return;
+		} finally {
+			session.close();
+		}
+
+		final SensorInstanceTableModel tableModel = (SensorInstanceTableModel)table.getModel();
+		final TableColumn descriptionColumn = table.getColumnModel().getColumn(0);
+
+		descriptionColumn.setCellEditor(new DescriptionNamesCellEditor(descriptionNames));
+
+		tableModel.setSensorInstances(probe.getSensorInstances());
 	}
+
+	private JTable createTable() {
+		final GridBagLayout layout = new GridBagLayout();
+		final GridBagConstraints constraints = new GridBagConstraints();
+
+		final JPanel tableLabel1 = makeTableLabel("Use right click to add/remove senors.");
+		final JPanel tableLabel2 = makeTableLabel("Use left click(s) to change sensor values.");
+		final JPanel tableLabelIcon1 = makeTableIcon(UIManager.getIcon("OptionPane.informationIcon"));
+		final JPanel tableLabelIcon2 = makeTableIcon(UIManager.getIcon("OptionPane.informationIcon"));
+
+		final JScrollPane scrollPane = new JScrollPane();
+		final SensorInstanceTableModel tableModel = new SensorInstanceTableModel();
+		final JTable table = new JTable();
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		table.setModel(tableModel);
+		table.setRowHeight(25);
+		table.getColumnModel().getColumn(0).setPreferredWidth(85);
+		table.getColumnModel().getColumn(1).setPreferredWidth(70);
+		for (int i = 2;  i < 8; i++) {
+			table.getColumnModel().getColumn(i).setPreferredWidth(90);
+			table.getColumnModel().getColumn(i).setCellRenderer(new ParameterTableCellRenderer());
+		}
+		scrollPane.setViewportView(table);
+
+		getBottomPanel().setLayout(layout);
+
+		constraints.fill = GridBagConstraints.BOTH;
+
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.weightx = 0;
+		constraints.weighty = 0;
+		constraints.gridwidth = 1;
+		constraints.gridheight = 1;
+		layout.setConstraints(tableLabelIcon1, constraints);
+		getBottomPanel().add(tableLabelIcon1);
+
+		constraints.gridx = 1;
+		constraints.gridy = 0;
+		constraints.weightx = 1;
+		constraints.weighty = 0;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.gridheight = 1;
+		layout.setConstraints(tableLabel1, constraints);
+		getBottomPanel().add(tableLabel1);
+
+		constraints.gridx = 0;
+		constraints.gridy = 1;
+		constraints.weightx = 0;
+		constraints.weighty = 0;
+		constraints.gridwidth = 1;
+		constraints.gridheight = 1;
+		layout.setConstraints(tableLabelIcon2, constraints);
+		getBottomPanel().add(tableLabelIcon2);
+
+		constraints.gridx = 1;
+		constraints.gridy = 1;
+		constraints.weightx = 1;
+		constraints.weighty = 0;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.gridheight = 1;
+		layout.setConstraints(tableLabel2, constraints);
+		getBottomPanel().add(tableLabel2);
+
+		constraints.gridx = 0;
+		constraints.gridy = 2;
+		constraints.weightx = 1;
+		constraints.weighty = 1;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.gridheight = GridBagConstraints.REMAINDER;
+		layout.setConstraints(scrollPane, constraints);
+		getBottomPanel().add(scrollPane);
+
+		return table;
+	}
+
+	private JPanel makeTableLabel(String string) {
+		final JLabel tableLabel = new JLabel(string);
+		final JPanel tableLabelPanel = new JPanel();
+
+		tableLabelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tableLabelPanel.add(tableLabel);
+		return tableLabelPanel;
+	}
+
+	private JPanel makeTableIcon(Icon icon) {
+		final double scale = 0.5;
+		final int newWidth = (int)(scale * icon.getIconWidth());
+		final int newHeight= (int)(scale * icon.getIconWidth());
+		final Image image = ((ImageIcon)icon).getImage();
+		final Image newImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+		final Icon newIcon = new ImageIcon(newImage);
+		final JLabel tableIconLabel = new JLabel(newIcon);
+		final JPanel tableIconLabelPanel = new JPanel();
+
+		tableIconLabelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		tableIconLabelPanel.add(tableIconLabel);
+
+		return tableIconLabelPanel;
+	}
+
+	protected ActionListener getSaveActionListener() {
+		return new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				final Session session = getSessionFactory().openSession();
+
+				try {
+					session.save(getProbe());
+					session.flush();
+					JOptionPane.showMessageDialog(owner, "Probe successfully saved.", "Probe saved", JOptionPane.INFORMATION_MESSAGE);
+				} catch (Exception exception) {
+					final String[] messages = { "Probe could not be saved.", "An exception occured." };
+					final JDialog dialog = new ExceptionDialog(owner, "Probe not saved", messages, exception);
+					dialog.pack();
+					dialog.setLocationRelativeTo(owner);
+					dialog.setVisible(true);
+				} finally {
+					session.close();
+				}
+			}
+		};
+	}
+
+	protected ActionListener getUpdateActionListener() {
+		return new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				final Session session = getSessionFactory().openSession();
+				try {
+					session.update(getProbe());
+					session.flush();
+					JOptionPane.showMessageDialog(owner, "Probe successfully edited.", "Probe edited", JOptionPane.INFORMATION_MESSAGE);
+				} catch (Exception exception) {
+					final String[] messages = { "Probe could not be updated.", "An exception occured." };
+					final JDialog dialog = new ExceptionDialog(owner, "Probe not updated", messages, exception);
+					dialog.pack();
+					dialog.setLocationRelativeTo(owner);
+					dialog.setVisible(true);
+				} finally {
+					session.close();
+				}
+			}
+		};
 	}
 }
