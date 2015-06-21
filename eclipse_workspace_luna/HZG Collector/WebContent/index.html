@@ -26,7 +26,8 @@ var ajaxCall = function() {
 		}
 
 		log = $("#log");
-		log.append(msg);
+		txt = document.createTextNode(msg);
+		log.append(txt);
 
 		if (autoScroll) {
 			log.scrollTop(log.prop("scrollHeight"));
