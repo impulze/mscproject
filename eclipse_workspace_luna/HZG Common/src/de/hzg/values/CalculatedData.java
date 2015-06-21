@@ -10,6 +10,9 @@ public class CalculatedData {
 	private Date date = new Date();
 	private Double value;
 
+	public CalculatedData() {
+	}
+
 	public CalculatedData(SensorInstance sensorInstance, Double value) {
 		this.sensorInstance = sensorInstance;
 		this.value = value;

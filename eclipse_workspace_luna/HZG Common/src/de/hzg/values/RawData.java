@@ -10,6 +10,9 @@ public class RawData {
 	private Date date = new Date();
 	private Integer value;
 
+	public RawData() {
+	}
+
 	public RawData(SensorInstance sensorInstance, Integer value) {
 		this.sensorInstance = sensorInstance;
 		this.value = value;
