@@ -3,7 +3,7 @@
           "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
           "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-	<class name="de.hzg.sensors.Probe" table="probes">
+	<class name="de.hzg.sensors.SensorDescription" table="sensor_descriptions">
 		<id name="id" column="id">
 			<generator class="native" />
 		</id>
@@ -12,13 +12,8 @@
 			<column name="name" length="255" not-null="true" />
 		</property>
 
-		<property name="device">
-			<column name="device" length="255" not-null="true" />
+		<property name="className">
+			<column name="className" length="255" not-null="true" />
 		</property>
-
-		<bag name="sensorInstances" table="sensor_instances">
-			<key column="probe_id" not-null="true" />
-			<one-to-many class="de.hzg.sensors.SensorInstance" />
-		</bag>
 	</class>
 </hibernate-mapping>

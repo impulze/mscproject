@@ -1,4 +1,4 @@
-package de.hzg.sensors;
+package de.hzg.commons;
 
 import java.util.logging.Logger;
 

@@ -33,6 +33,7 @@ public class CollectorListener implements ServletContextListener {
 		final Formatter formatter = new SimpleFormatter();
 		final WebLogHandler webLogHandler = new WebLogHandler(webLogStream, formatter);
 		final ServletContext servletContext = event.getServletContext();
+		final ClassLoader classLoader = servletContext.getClassLoader();
 
 		webLogHandler.setLevel(Level.ALL);
 		rootLogger.addHandler(webLogHandler);
@@ -41,7 +42,7 @@ public class CollectorListener implements ServletContextListener {
 		logger = Logger.getLogger(CollectorListener.class.getName());
 
 		try {
-			collector = new Collector();
+			collector = new Collector(classLoader);
 		} catch (Exception exception) {
 			logger.severe("Error creating collector instance.");
 			final String stackTrace = ExceptionUtil.stackTraceToString(exception);

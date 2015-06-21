@@ -20,5 +20,7 @@
 		</property>
 
 		<mapping resource="de/hzg/sensors/Probe.hbm.xml" />
+		<mapping resource="de/hzg/sensors/SensorDescription.hbm.xml" />
+		<mapping resource="de/hzg/sensors/SensorInstance.hbm.xml" />
 	</session-factory>
 </hibernate-configuration>

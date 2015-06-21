@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
-import de.hzg.sensors.HibernateUtil;
+import de.hzg.commons.HibernateUtil;
 
 public class ProbeDatabase {
 	private static final Logger logger = Logger.getLogger(ProbeDatabase.class.getName());
@@ -19,9 +19,6 @@ public class ProbeDatabase {
 		@SuppressWarnings("unchecked")
 		final List<Probe> activeProbes = query.list();
 
-		for (final Probe probe: activeProbes) {
-			System.out.println("Active probe: " + probe.getName());
-		}
 		return activeProbes;
 	}
 }

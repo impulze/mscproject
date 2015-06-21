@@ -1,12 +1,12 @@
 package de.hzg.sensors;
 
-//import java.util.List;
+import java.util.List;
 
 public class Probe {
 	private Long id;
 	private String name;
 	private String device;
-	//private final List<Sensor> sensors;
+	private List<SensorInstance> sensorInstances;
 
 	public Long getId() {
 		return id;
@@ -30,5 +30,13 @@ public class Probe {
 
 	public void setDevice(String device) {
 		this.device = device;
+	}
+
+	public List<SensorInstance> getSensorInstances() {
+		return sensorInstances;
+	}
+
+	public void setSensorInstances(List<SensorInstance> sensorInstances) {
+		this.sensorInstances = sensorInstances;
 	}
 }
