@@ -17,6 +17,7 @@
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-dbcp.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina-ant.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-i18n-es.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/RXTXcomm.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/jasper.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/jasper-el.jar"/>
@@ -27,6 +28,7 @@
         <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina-ha.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/jsp-api.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina-tribes.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/postgresql-jdbc4.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-i18n-ja.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/annotations-api.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat7-websocket.jar"/>
