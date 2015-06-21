@@ -3,6 +3,7 @@
 	<name>HZG Collector</name>
 	<comment></comment>
 	<projects>
+		<project>HZG SensorModule</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

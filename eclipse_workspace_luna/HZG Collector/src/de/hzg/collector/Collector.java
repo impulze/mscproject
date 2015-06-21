@@ -1,6 +1,5 @@
 package de.hzg.collector;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.hzg.sensors.BaseSensor;
@@ -11,10 +10,11 @@ public class Collector implements Runnable {
 	@Override
 	public void run() {
 		try {
-			while (true) {
-				BaseSensor baseSensor = new BaseSensor();
-				logger.log(Level.INFO, "Hi");
+			logger.finest("entered run() loop");
+			BaseSensor baseSensor = new BaseSensor();
 
+			while (true) {
+				baseSensor.logAnother();
 				Thread.sleep(1000);
 			}
 		} catch (InterruptedException exception) {

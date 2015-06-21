@@ -32,7 +32,9 @@
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat7-websocket.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-coyote.jar"/>
     </path>
-    <path id="Web App Libraries.libraryclasspath"/>
+    <path id="Web App Libraries.libraryclasspath">
+        <pathelement location="../../../../../HZG SensorModule"/>
+    </path>
     <path id="EAR Libraries.libraryclasspath"/>
     <path id="HZG SensorModule.classpath">
         <pathelement location="${HZG SensorModule.location}/bin"/>
