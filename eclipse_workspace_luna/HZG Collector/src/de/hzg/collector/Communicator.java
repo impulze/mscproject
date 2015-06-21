@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
 
-import de.hzg.commons.ExceptionUtil;
+import de.hzg.common.ExceptionUtil;
 
 public class Communicator {
 	private static final Logger logger = Logger.getLogger(Communicator.class.getName());

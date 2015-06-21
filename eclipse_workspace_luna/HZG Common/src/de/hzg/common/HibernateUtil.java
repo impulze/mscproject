@@ -1,4 +1,4 @@
-package de.hzg.commons;
+package de.hzg.common;
 
 import java.util.HashMap;
 import java.util.Map;

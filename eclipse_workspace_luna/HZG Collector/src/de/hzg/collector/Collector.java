@@ -9,7 +9,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.commons.HibernateUtil;
+import de.hzg.common.HibernateUtil;
 import de.hzg.sensors.Probe;
 
 public class Collector implements Runnable {

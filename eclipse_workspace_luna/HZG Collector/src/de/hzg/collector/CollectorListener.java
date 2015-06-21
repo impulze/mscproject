@@ -10,7 +10,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import de.hzg.commons.ExceptionUtil;
+import de.hzg.common.ExceptionUtil;
 
 @WebListener
 public class CollectorListener implements ServletContextListener {

@@ -3,9 +3,9 @@
               Any modifications will be overwritten.
               To include a user specific buildfile here, simply create one in the same
               directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. --><project basedir="." default="build" name="HZG Collector">
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="HZG Common">
     <property environment="env"/>
-    <property name="HZG Common.location" value="../HZG Common"/>
+    <property name="HZG Collector.location" value="../HZG Collector"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.7"/>
     <property name="source" value="1.7"/>
@@ -34,10 +34,6 @@
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat7-websocket.jar"/>
         <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-coyote.jar"/>
     </path>
-    <path id="Web App Libraries.libraryclasspath">
-        <pathelement location="../../../../../HZG Common"/>
-    </path>
-    <path id="EAR Libraries.libraryclasspath"/>
     <path id="hibernate4.userclasspath">
         <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/antlr-2.7.7.jar"/>
         <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/dom4j-1.6.1.jar"/>
@@ -51,41 +47,33 @@
         <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/jboss-transaction-api_1.2_spec-1.0.0.Final.jar"/>
     </path>
     <path id="HZG Common.classpath">
-        <pathelement location="${HZG Common.location}/bin"/>
+        <pathelement location="bin"/>
         <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
         <path refid="hibernate4.userclasspath"/>
     </path>
-    <path id="HZG Collector.classpath">
-        <pathelement location="build/classes"/>
-        <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
-        <path refid="Web App Libraries.libraryclasspath"/>
-        <path refid="EAR Libraries.libraryclasspath"/>
-        <path refid="HZG Common.classpath"/>
-    </path>
     <target name="init">
-        <mkdir dir="build/classes"/>
-        <copy includeemptydirs="false" todir="build/classes">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
     </target>
     <target name="clean">
-        <delete dir="build/classes"/>
+        <delete dir="bin"/>
     </target>
-    <target depends="clean" name="cleanall">
-        <ant antfile="build.xml" dir="${HZG Common.location}" inheritAll="false" target="clean"/>
-    </target>
+    <target depends="clean" name="cleanall"/>
     <target depends="build-subprojects,build-project" name="build"/>
-    <target name="build-subprojects">
-        <ant antfile="build.xml" dir="${HZG Common.location}" inheritAll="false" target="build-project"/>
-    </target>
+    <target name="build-subprojects"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="build/classes" includeantruntime="false" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
             <src path="src"/>
-            <classpath refid="HZG Collector.classpath"/>
+            <classpath refid="HZG Common.classpath"/>
         </javac>
     </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
+        <ant antfile="build.xml" dir="${HZG Collector.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build.xml" dir="${HZG Collector.location}" inheritAll="false" target="build"/>
+    </target>
 </project>

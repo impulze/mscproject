@@ -1,4 +1,4 @@
-package de.hzg.commons;
+package de.hzg.common;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

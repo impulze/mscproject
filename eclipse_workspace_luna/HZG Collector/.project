@@ -3,7 +3,6 @@
 	<name>HZG Collector</name>
 	<comment></comment>
 	<projects>
-		<project>HZG Commons</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import de.hzg.commons.ExceptionUtil;
+import de.hzg.common.ExceptionUtil;
 import de.hzg.sensors.Probe;
 import de.hzg.sensors.Sensor;
 import de.hzg.sensors.SensorDescription;
