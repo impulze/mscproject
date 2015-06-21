@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+		<script type="text/javascript">
+var currentIndex = 0;
+var previousFailed = false;
+var autoScroll = false;
+var changeAutoScroll = function() {
+	if (autoScroll) {
+		$("#autoScrollLink").text("enable automatic scrolling");
+		autoScroll = false;
+	} else {
+		$("#autoScrollLink").text("disable automatic scrolling");
+		autoScroll = true;
+	}
+};
+var ajaxCall = function() {
+	$.ajax({
+		type: "GET",
+		url: "log",
+		data: ""
+	}).done(function(msg) {
+		if (previousFailed) {
+			previousFailed = false;
+		}
+
+		log = $("#log");
+		log.append(msg);
+
+		if (autoScroll) {
+			log.scrollTop(log.prop("scrollHeight"));
+		}
+	}).fail(function(xmlHttpRequest, statusText, errorThrown) {
+		if (!previousFailed) {
+			log = $("#log");
+			log.append("AJAX request failed\n");
+			log.append("  XML HTTP request: " + JSON.stringify(xmlHttpRequest) + "\n");
+			log.append("  status text: " + statusText + "\n");
+			log.append("  error thrown: " + errorThrown + "\n");
+			previousFailed = true;
+		}
+	}).always(function() {
+		setTimeout(ajaxCall, 1000);
+	})
+}
+
+ajaxCall();
+		</script>
+		<meta charset="UTF-8">
+		<title>HZG Collector</title>
+	</head>
+	<body>
+		<p>
+			<textarea rows="30" cols="150" id="log"></textarea>
+		</p>
+		<p>
+			<a id="autoScrollLink" href="javascript:changeAutoScroll();">enable automatic scrolling</a>
+		</p>
+	</body>
+</html>
