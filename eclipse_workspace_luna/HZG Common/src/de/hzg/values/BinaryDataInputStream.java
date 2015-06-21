@@ -1,4 +1,4 @@
-package de.hzg.collector;
+package de.hzg.values;
 
 import java.io.BufferedInputStream;
 import java.io.EOFException;
@@ -7,14 +7,14 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-public class RawDataInputStream extends BufferedInputStream {
+public class BinaryDataInputStream extends BufferedInputStream {
 	private byte[] currentBuffer = new byte[4096];
 	private final byte[] currentSlice = new byte[3];
 	private int stored = 0;
 	private int currentPosition = 0;
-	private static final Logger logger = Logger.getLogger(RawDataInputStream.class.getName());
+	private static final Logger logger = Logger.getLogger(BinaryDataInputStream.class.getName());
 
-	public RawDataInputStream(InputStream inputStream) {
+	public BinaryDataInputStream(InputStream inputStream) {
 		super(inputStream);
 	}
 
@@ -28,7 +28,7 @@ public class RawDataInputStream extends BufferedInputStream {
 		return sliceFormat;
 	}
 
-	private RawData createRawData() {
+	private BinaryData createBinaryData() {
 		int value = 0;
 
 		value |= ((currentSlice[0] & 0xFE) >> 1) << 0;
@@ -37,10 +37,10 @@ public class RawDataInputStream extends BufferedInputStream {
 
 		final int address = (currentSlice[2] & 0xF8) >> 3;
 
-		return new RawData(address, value);
+		return new BinaryData(address, value);
 	}
 
-	public RawData readRawData() throws IOException {
+	public BinaryData readBinaryData() throws IOException {
 		// while not enough bytes were read yet to form a slice
 		while (currentPosition + 3 > stored) {
 			final int left = currentBuffer.length - stored;
@@ -71,9 +71,9 @@ public class RawDataInputStream extends BufferedInputStream {
 				// those 3 bytes are valid data, go to possible new one
 				currentPosition += 3;
 
-				return createRawData();
+				return createBinaryData();
 			} else {
-				logger.info("RawData bytestream is not yet aligned, waiting for next iteration.");
+				logger.info("BinaryData bytestream is not yet aligned, waiting for next iteration.");
 				// maybe the valid data starts with the next byte
 				currentPosition += 1;
 			}
@@ -81,7 +81,7 @@ public class RawDataInputStream extends BufferedInputStream {
 
 		/*
 		 * There are no 3 bytes left in the current buffer and
-		 * now RawData was returned yet.
+		 * now BinaryData was returned yet.
 		 */
 		return null;
 	}

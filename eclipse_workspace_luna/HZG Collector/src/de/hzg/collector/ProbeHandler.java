@@ -14,12 +14,14 @@ import de.hzg.sensors.Probe;
 import de.hzg.sensors.Sensor;
 import de.hzg.sensors.SensorDescription;
 import de.hzg.sensors.SensorInstance;
+import de.hzg.values.BinaryData;
+import de.hzg.values.BinaryDataInputStream;
 
 public class ProbeHandler implements Runnable {
 	private static final Logger logger = Logger.getLogger(ProbeHandler.class.getName());
 	private final Probe probe;
 	private final Communicator communicator;
-	private final RawDataInputStream rawDataInputStream;
+	private final BinaryDataInputStream binaryDataInputStream;
 	private boolean shutdown = false;
 	private boolean finished = false;
 	private final Map<Integer, Sensor> sensors = new HashMap<Integer, Sensor>();
@@ -37,7 +39,7 @@ public class ProbeHandler implements Runnable {
 
 		try {
 			final InputStream inputStream = communicator.getInputStream();
-			rawDataInputStream = new RawDataInputStream(inputStream);
+			binaryDataInputStream = new BinaryDataInputStream(inputStream);
 		// TODO: this is for development only now
 		} catch (Throwable exception) {
 			communicator.end();
@@ -99,8 +101,8 @@ public class ProbeHandler implements Runnable {
 		}
 	}
 
-	private void handleRawData(RawData rawData) {
-		final int address = rawData.getAddress();
+	private void handleBinaryData(BinaryData binaryData) {
+		final int address = binaryData.getAddress();
 		final Sensor sensor = sensors.get(address);
 
 		if (sensor == null) {
@@ -112,7 +114,7 @@ public class ProbeHandler implements Runnable {
 			return;
 		}
 
-		final double calibratedValue = sensor.calibrate(rawData.getValue());
+		final double calibratedValue = sensor.calibrate(binaryData.getValue());
 
 		System.out.println("calibrated data with sensor '" + sensor.getSensorDescription().getName() + "': " + calibratedValue);
 	}
@@ -128,10 +130,10 @@ public class ProbeHandler implements Runnable {
 
 			try {
 				if (run) {
-					final RawData rawData = rawDataInputStream.readRawData();
+					final BinaryData binaryData = binaryDataInputStream.readBinaryData();
 
-					if (rawData != null) {
-						handleRawData(rawData);
+					if (binaryData != null) {
+						handleBinaryData(binaryData);
 					}
 				} else {
 					break;

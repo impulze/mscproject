@@ -1,11 +1,11 @@
-package de.hzg.collector;
+package de.hzg.values;
 
-public class RawData {
+public class BinaryData {
 	private final int address;
 	private final int value;
 	private final long millisUTC = System.currentTimeMillis();
 
-	public RawData(int address, int value) {
+	public BinaryData(int address, int value) {
 		this.address = address;
 		this.value = value;
 	}
