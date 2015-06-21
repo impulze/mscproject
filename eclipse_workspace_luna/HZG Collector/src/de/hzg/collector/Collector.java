@@ -17,12 +17,11 @@ public class Collector implements Runnable {
 	private List<Thread> probeHandlerThreads = new ArrayList<Thread>();
 	private List<ProbeHandler> probeHandlers = new ArrayList<ProbeHandler>();
 
-	public Collector(ClassLoader classLoader) {
-		final SessionFactory sessionFactory = HibernateUtil.getSessionFactory("/de/hzg/common/hibernate.cfg.xml");
+	public Collector(HibernateUtil hibernateUtil, ClassLoader classLoader) {
+		final SessionFactory sessionFactory = hibernateUtil.getSessionFactory();
 		final Session session = sessionFactory.openSession();
 		final String queryString = "FROM Probe WHERE active = true";
 		final Query query = session.createQuery(queryString);
-
 		@SuppressWarnings("unchecked")
 		final List<Probe> activeProbes = query.list();
 
@@ -32,7 +31,7 @@ public class Collector implements Runnable {
 			logger.info("Starting handler for active probe: " + activeProbe.getName());
 
 			try {
-				probeHandler = new ProbeHandler(activeProbe, classLoader);
+				probeHandler = new ProbeHandler(hibernateUtil, activeProbe, classLoader);
 			} catch (ProbeHandlerSetupException exception) {
 				logger.severe("Error creating ProbeHandler instance for '" + activeProbe.getName() + "'");
 				continue;
@@ -41,6 +40,8 @@ public class Collector implements Runnable {
 			probeHandlers.add(probeHandler);
 			probeHandlerThreads.add(new Thread(probeHandler));
 		}
+
+		session.close();
 	}
 
 	@Override

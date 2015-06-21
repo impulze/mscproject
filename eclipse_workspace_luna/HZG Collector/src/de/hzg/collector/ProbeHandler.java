@@ -32,12 +32,12 @@ public class ProbeHandler implements Runnable {
 	private boolean finished = false;
 	private final Map<Integer, Sensor> sensors = new HashMap<Integer, Sensor>();
 	private Set<Integer> missingSensors = new HashSet<Integer>();
-	private final Session session;
+	private final SessionFactory sessionFactory;
+	private Session session;
 
-	public ProbeHandler(Probe probe, ClassLoader classLoader) throws ProbeHandlerSetupException {
+	public ProbeHandler(HibernateUtil hibernateUtil, Probe probe, ClassLoader classLoader) throws ProbeHandlerSetupException {
 		this.probe = probe;
-		final SessionFactory sessionFactory = HibernateUtil.getSessionFactory("/de/hzg/common/hibernate.cfg.xml");
-		session = sessionFactory.openSession();
+		sessionFactory = hibernateUtil.getSessionFactory();
 
 		try {
 			this.communicator = new Communicator();
@@ -93,12 +93,15 @@ public class ProbeHandler implements Runnable {
 	@Override
 	public void run() {
 		logger.info("Handling probe: " + probe.getName());
+		session = sessionFactory.openSession();
 
 		try {
 			doRun();
 		} catch (InterruptedException exception) {
 			logger.info("ProbeHandler was interruped.");
 		} finally {
+			session.close();
+
 			// TODO: for development only
 			if (communicator != null) {
 				communicator.end();
