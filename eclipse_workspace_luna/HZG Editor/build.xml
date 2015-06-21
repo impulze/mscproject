@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="HZG Editor">
+    <property environment="env"/>
+    <property name="HZG Common.location" value="../HZG Common"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
+    <path id="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath">
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/servlet-api.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/el-api.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/ecj-4.4.2.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-i18n-fr.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-dbcp.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina-ant.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-i18n-es.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/RXTXcomm.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/jasper.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/jasper-el.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-api.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/websocket-api.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-jdbc.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-util.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina-ha.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/jsp-api.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/catalina-tribes.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/postgresql-jdbc4.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-i18n-ja.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/annotations-api.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat7-websocket.jar"/>
+        <pathelement location="../../../apache-tomcat-7.0.62/lib/tomcat-coyote.jar"/>
+    </path>
+    <path id="hibernate4.userclasspath">
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/antlr-2.7.7.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/dom4j-1.6.1.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/hibernate-commons-annotations-4.0.5.Final.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/hibernate-core-4.3.10.Final.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/hibernate-jpa-2.1-api-1.0.0.Final.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/jandex-1.1.0.Final.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/javassist-3.18.1-GA.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/jboss-logging-3.1.3.GA.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/jboss-logging-annotations-1.2.0.Beta1.jar"/>
+        <pathelement location="../../../hibernate-release-4.3.10.Final/lib/required/jboss-transaction-api_1.2_spec-1.0.0.Final.jar"/>
+    </path>
+    <path id="HZG Common.classpath">
+        <pathelement location="${HZG Common.location}/bin"/>
+        <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
+        <path refid="hibernate4.userclasspath"/>
+    </path>
+    <path id="HZG Editor.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="forms-1.3.0.jar"/>
+        <path refid="HZG Common.classpath"/>
+        <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
+        <pathelement location="../../../../../usr/share/java/tomcat-juli.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall">
+        <ant antfile="build.xml" dir="${HZG Common.location}" inheritAll="false" target="clean"/>
+    </target>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects">
+        <ant antfile="build.xml" dir="${HZG Common.location}" inheritAll="false" target="build-project"/>
+    </target>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="HZG Editor.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target name="Editor">
+        <java classname="de.hzg.editor.Editor" failonerror="true" fork="yes">
+            <classpath refid="HZG Editor.classpath"/>
+        </java>
+    </target>
+    <target name="EditDialog">
+        <java classname="de.hzg.editor.EditDialog" failonerror="true" fork="yes">
+            <classpath refid="HZG Editor.classpath"/>
+        </java>
+    </target>
+</project>
