@@ -1,5 +1,7 @@
 package de.hzg.commons;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.hibernate.SessionFactory;
@@ -9,35 +11,28 @@ import org.hibernate.service.ServiceRegistry;
 
 public class HibernateUtil {
 	private static final Logger logger = Logger.getLogger(HibernateUtil.class.getName());
-	private static HibernateUtil hibernateUtil;
-	private final SessionFactory sessionFactory;
-	private final ServiceRegistry serviceRegistry;
+	private static final Map<String, SessionFactory> sessionFactories = new HashMap<String, SessionFactory>();
 
-	private HibernateUtil() {
+	public static SessionFactory getSessionFactory(String configurationFile) {
+		SessionFactory sessionFactory = sessionFactories.get(configurationFile);
+
+		if (sessionFactory != null) {
+			return sessionFactory;
+		}
+
 		try {
-			// Create the SessionFactory from hibernate.cfg.xml
 			final Configuration configuration = new Configuration();
-			configuration.configure("/de/hzg/sensors/hibernate.cfg.xml");
+			configuration.configure(configurationFile);
 			final StandardServiceRegistryBuilder serviceRegistryBuilder = new StandardServiceRegistryBuilder();
 			serviceRegistryBuilder.applySettings(configuration.getProperties());
-			serviceRegistry = serviceRegistryBuilder.build();
+			final ServiceRegistry serviceRegistry = serviceRegistryBuilder.build();
 			sessionFactory = configuration.buildSessionFactory(serviceRegistry);
 		} catch (Throwable exception) {
-			// Make sure you log the exception, as it might be swallowed
 			logger.severe("Creating Hibernate SessionFactory failed.");
 			throw exception;
 		}
-	}
 
-	public static HibernateUtil getInstance() {
-		if (hibernateUtil == null) {
-			hibernateUtil = new HibernateUtil();
-		}
-
-		return hibernateUtil;
-	}
-
-	public SessionFactory getSessionFactory() {
+		sessionFactories.put(configurationFile, sessionFactory);
 		return sessionFactory;
 	}
 }

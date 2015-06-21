@@ -5,8 +5,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+
+import de.hzg.commons.HibernateUtil;
 import de.hzg.sensors.Probe;
-import de.hzg.sensors.ProbeDatabase;
 
 public class Collector implements Runnable {
 	private static final Logger logger = Logger.getLogger(Collector.class.getName());
@@ -14,8 +18,13 @@ public class Collector implements Runnable {
 	private List<ProbeHandler> probeHandlers = new ArrayList<ProbeHandler>();
 
 	public Collector(ClassLoader classLoader) {
-		final ProbeDatabase probeDatabase = new ProbeDatabase();
-		final List<Probe> activeProbes = probeDatabase.getActiveProbes();
+		final SessionFactory sessionFactory = HibernateUtil.getSessionFactory("/de/hzg/sensors/hibernate.cfg.xml");
+		final Session session = sessionFactory.openSession();
+		final String queryString = "FROM Probe WHERE active = true";
+		final Query query = session.createQuery(queryString);
+
+		@SuppressWarnings("unchecked")
+		final List<Probe> activeProbes = query.list();
 
 		for (final Probe activeProbe: activeProbes) {
 			final ProbeHandler probeHandler;
