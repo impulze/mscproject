@@ -9,13 +9,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+
 import de.hzg.common.ExceptionUtil;
+import de.hzg.common.HibernateUtil;
 import de.hzg.sensors.Probe;
 import de.hzg.sensors.Sensor;
 import de.hzg.sensors.SensorDescription;
 import de.hzg.sensors.SensorInstance;
 import de.hzg.values.BinaryData;
 import de.hzg.values.BinaryDataInputStream;
+import de.hzg.values.CalculatedData;
+import de.hzg.values.RawData;
 
 public class ProbeHandler implements Runnable {
 	private static final Logger logger = Logger.getLogger(ProbeHandler.class.getName());
@@ -26,9 +32,12 @@ public class ProbeHandler implements Runnable {
 	private boolean finished = false;
 	private final Map<Integer, Sensor> sensors = new HashMap<Integer, Sensor>();
 	private Set<Integer> missingSensors = new HashSet<Integer>();
+	private final Session session;
 
 	public ProbeHandler(Probe probe, ClassLoader classLoader) throws ProbeHandlerSetupException {
 		this.probe = probe;
+		final SessionFactory sessionFactory = HibernateUtil.getSessionFactory("/de/hzg/common/hibernate.cfg.xml");
+		session = sessionFactory.openSession();
 
 		try {
 			this.communicator = new Communicator();
@@ -114,9 +123,17 @@ public class ProbeHandler implements Runnable {
 			return;
 		}
 
-		final double calibratedValue = sensor.calibrate(binaryData.getValue());
+		final SensorInstance sensorInstance = sensor.getSensorInstance();
+		final int rawValue = binaryData.getValue();
+		final double calculatedValue = sensor.calibrate(rawValue);
 
-		System.out.println("calibrated data with sensor '" + sensor.getSensorDescription().getName() + "': " + calibratedValue);
+		//System.out.println("calibrated data with sensor '" + sensor.getSensorDescription().getName() + "': " + calibratedValue);
+		final RawData rawData = new RawData(sensorInstance, rawValue);
+		final CalculatedData calculatedData = new CalculatedData(sensorInstance, calculatedValue);
+
+		session.save(rawData);
+		session.save(calculatedData);
+		session.flush();
 	}
 
 	private void doRun() throws InterruptedException {

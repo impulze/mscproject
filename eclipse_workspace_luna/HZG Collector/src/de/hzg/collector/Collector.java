@@ -18,7 +18,7 @@ public class Collector implements Runnable {
 	private List<ProbeHandler> probeHandlers = new ArrayList<ProbeHandler>();
 
 	public Collector(ClassLoader classLoader) {
-		final SessionFactory sessionFactory = HibernateUtil.getSessionFactory("/de/hzg/sensors/hibernate.cfg.xml");
+		final SessionFactory sessionFactory = HibernateUtil.getSessionFactory("/de/hzg/common/hibernate.cfg.xml");
 		final Session session = sessionFactory.openSession();
 		final String queryString = "FROM Probe WHERE active = true";
 		final Query query = session.createQuery(queryString);
