@@ -10,6 +10,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import de.hzg.commons.ExceptionUtil;
 import de.hzg.sensors.Probe;
 import de.hzg.sensors.ProbeDatabase;
 
@@ -24,13 +25,18 @@ public class Collector implements Runnable {
 	public Collector() throws DataSourceSetupException, CommunicatorSetupException {
 		communicator = new Communicator();
 
-		final InputStream inputStream = communicator.getInputStream();
-		rawDataInputStream = new RawDataInputStream(inputStream);
+		try {
+			final InputStream inputStream = communicator.getInputStream();
+			rawDataInputStream = new RawDataInputStream(inputStream);
 
-		final DataSource dataSource = setupDataSource();
-		probeDatabase = new ProbeDatabase(dataSource);
-		final List<Probe> activeProbes = probeDatabase.getActiveProbes();
-		activeProbes.size();
+			// final DataSource dataSource = setupDataSource();
+			probeDatabase = new ProbeDatabase();
+			final List<Probe> activeProbes = probeDatabase.getActiveProbes();
+			activeProbes.size();
+		} catch (Throwable exception) {
+			communicator.end();
+			throw exception;
+		}
 	}
 
 	private static DataSource setupDataSource() throws DataSourceSetupException {
@@ -53,7 +59,6 @@ public class Collector implements Runnable {
 			return (DataSource)context.lookup("jdbc/LocalProbeDB");
 		} catch (NamingException exception) {
 			logger.severe("Unable to create naming context while setting up datasource.");
-			logger.severe(exception.toString());
 			throw new DataSourceSetupException();
 		}
 	}
@@ -95,7 +100,8 @@ public class Collector implements Runnable {
 				}
 			} catch (IOException exception) {
 				logger.severe("Unable to read raw data from seral port.");
-				logger.severe(exception.toString());
+				final String stackTrace = ExceptionUtil.stackTraceToString(exception);
+				logger.severe(stackTrace);
 			}
 		}
 	}

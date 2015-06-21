@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
 
+import de.hzg.commons.ExceptionUtil;
+
 public class Communicator {
 	private static final Logger logger = Logger.getLogger(Communicator.class.getName());
 	private final InputStream inputStream;
@@ -23,7 +25,6 @@ public class Communicator {
 			identifier = CommPortIdentifier.getPortIdentifier(portName);
 		} catch (NoSuchPortException exception) {
 			logger.severe("Unable to find serial port at '" + portName + "'.");
-			logger.severe(exception.toString());
 			throw new CommunicatorSetupException();
 		}
 
@@ -31,7 +32,6 @@ public class Communicator {
 			commPort = identifier.open(getClass().getName(), timeout);
 		} catch (PortInUseException exception) {
 			logger.severe("Serial port at '" + portName + "' already in use.");
-			logger.severe(exception.toString());
 			throw new CommunicatorSetupException();
 		}
 
@@ -45,7 +45,6 @@ public class Communicator {
 		} catch (IOException exception) {
 			commPort.close();
 			logger.severe("Unable to obtain input stream for serial port at '" + portName + "'.");
-			logger.severe(exception.toString());
 			throw new CommunicatorSetupException();
 		}
 	}
@@ -62,7 +61,8 @@ public class Communicator {
 				inputStream.close();
 			} catch (IOException exception) {
 				logger.severe("Error closing input stream for serial port at '" + commPort.getName() + "'");
-				logger.severe(exception.toString());
+				final String stackTrace = ExceptionUtil.stackTraceToString(exception);
+				logger.severe(stackTrace);
 			}
 		}
 

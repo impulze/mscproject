@@ -3,7 +3,7 @@
 	<name>HZG Collector</name>
 	<comment></comment>
 	<projects>
-		<project>HZG SensorModule</project>
+		<project>HZG Commons</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

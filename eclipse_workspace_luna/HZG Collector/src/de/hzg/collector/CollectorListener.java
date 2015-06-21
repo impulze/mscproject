@@ -10,6 +10,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import de.hzg.commons.ExceptionUtil;
+
 @WebListener
 public class CollectorListener implements ServletContextListener {
 	private Thread workThread;
@@ -42,7 +44,8 @@ public class CollectorListener implements ServletContextListener {
 			collector = new Collector();
 		} catch (Exception exception) {
 			logger.severe("Error creating collector instance.");
-			logger.severe(exception.toString());
+			final String stackTrace = ExceptionUtil.stackTraceToString(exception);
+			logger.severe(stackTrace);
 			removeWebLogHandler(event.getServletContext());
 			return;
 		}
