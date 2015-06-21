@@ -3,12 +3,12 @@ package de.hzg.sensors;
 public class SensorInstance {
 	private Long id;
 	private Integer address;
-	private Double calibration1;
-	private Double calibration2;
-	private Double calibration3;
-	private Double calibration4;
-	private Double calibration5;
-	private Double calibration6;
+	private Double parameter1;
+	private Double parameter2;
+	private Double parameter3;
+	private Double parameter4;
+	private Double parameter5;
+	private Double parameter6;
 	private SensorDescription description;
 
 	public Long getId() {
@@ -27,52 +27,52 @@ public class SensorInstance {
 		this.address = address;
 	}
 
-	public Double getCalibration1() {
-		return calibration1;
+	public Double getParameter1() {
+		return parameter1;
 	}
 
-	public void setCalibration1(Double calibration1) {
-		this.calibration1 = calibration1;
+	public void setParameter1(Double parameter1) {
+		this.parameter1 = parameter1;
 	}
 
-	public Double getCalibration2() {
-		return calibration2;
+	public Double getParameter2() {
+		return parameter2;
 	}
 
-	public void setCalibration2(Double calibration2) {
-		this.calibration2 = calibration2;
+	public void setParameter2(Double parameter2) {
+		this.parameter2 = parameter2;
 	}
 
-	public Double getCalibration3() {
-		return calibration3;
+	public Double getParameter3() {
+		return parameter3;
 	}
 
-	public void setCalibration3(Double calibration3) {
-		this.calibration3 = calibration3;
+	public void setParameter3(Double parameter3) {
+		this.parameter3 = parameter3;
 	}
 
-	public Double getCalibration4() {
-		return calibration4;
+	public Double getParameter4() {
+		return parameter4;
 	}
 
-	public void setCalibration4(Double calibration4) {
-		this.calibration4 = calibration4;
+	public void setParameter4(Double parameter4) {
+		this.parameter4 = parameter4;
 	}
 
-	public Double getCalibration5() {
-		return calibration5;
+	public Double getParameter5() {
+		return parameter5;
 	}
 
-	public void setCalibration5(Double calibration5) {
-		this.calibration5 = calibration5;
+	public void setParameter5(Double parameter5) {
+		this.parameter5 = parameter5;
 	}
 
-	public Double getCalibration6() {
-		return calibration6;
+	public Double getParameter6() {
+		return parameter6;
 	}
 
-	public void setCalibration6(Double calibration6) {
-		this.calibration6 = calibration6;
+	public void setParameter6(Double parameter6) {
+		this.parameter6 = parameter6;
 	}
 
 	public SensorDescription getDescription() {
@@ -83,12 +83,12 @@ public class SensorInstance {
 		this.description = description;
 	}
 
-	public void getCalibrationParameters(double[] calibrationParameters) {
-		calibrationParameters[0] = getCalibration1();
-		calibrationParameters[1] = getCalibration2();
-		calibrationParameters[2] = getCalibration3();
-		calibrationParameters[3] = getCalibration4();
-		calibrationParameters[4] = getCalibration5();
-		calibrationParameters[5] = getCalibration6();
+	public void getParameters(double[] parameters) {
+		parameters[0] = getParameter1();
+		parameters[1] = getParameter2();
+		parameters[2] = getParameter3();
+		parameters[3] = getParameter4();
+		parameters[4] = getParameter5();
+		parameters[5] = getParameter6();
 	}
 }

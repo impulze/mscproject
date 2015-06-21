@@ -6,7 +6,7 @@ public abstract class BaseSensor implements Sensor {
 	//private static final Logger logger = Logger.getLogger(BaseSensor.class.getName());
 	private SensorInstance sensorInstance;
 	private SensorDescription sensorDescription;
-	protected double[] calibration = new double[6];
+	protected double[] parameters = new double[6];
 
 	public SensorInstance getSensorInstance() {
 		return sensorInstance;
@@ -25,6 +25,6 @@ public abstract class BaseSensor implements Sensor {
 	}
 
 	public void updateCalibrationParameters() {
-		sensorInstance.getCalibrationParameters(calibration);
+		sensorInstance.getParameters(parameters);
 	}
 }

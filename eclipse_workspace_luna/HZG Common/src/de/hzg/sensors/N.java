@@ -3,11 +3,11 @@ package de.hzg.sensors;
 public class N extends BaseSensor {
 	@Override
 	public double calibrate(double rawValue) {
-            return (((((calibration[5]
-                    * rawValue + calibration[4])
-                    * rawValue + calibration[3])
-                    * rawValue + calibration[2])
-                    * rawValue + calibration[1])
-                    * rawValue + calibration[0]);
+            return (((((parameters[5]
+                    * rawValue + parameters[4])
+                    * rawValue + parameters[3])
+                    * rawValue + parameters[2])
+                    * rawValue + parameters[1])
+                    * rawValue + parameters[0]);
 	}
 }
