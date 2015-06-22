@@ -58,7 +58,7 @@ public class ProbeHandler implements Runnable {
 		final List<SensorInstance> sensorInstances = probe.getSensorInstances();
 
 		for (final SensorInstance sensorInstance: sensorInstances) {
-			final SensorDescription sensorDescription = sensorInstance.getDescription();
+			final SensorDescription sensorDescription = sensorInstance.getSensorDescription();
 
 			// class name for the calculations
 			final String className = sensorDescription.getClassName();
