@@ -2,62 +2,52 @@ package de.hzg.editor;
 
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.UIManager;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.JCheckBox;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Window;
 
 import javax.swing.border.LineBorder;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
 
-import de.hzg.sensors.Probe;
 import de.hzg.sensors.SensorDescription;
-import de.hzg.sensors.SensorInstance;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.Image;
-
-import javax.swing.ImageIcon;
-
-import java.util.ArrayList;
-import java.util.Comparator;
 
 import javax.swing.JButton;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-public class CreateEditProbePanel extends CreateEditPanel {
-	private static final long serialVersionUID = 5644942285449679689L;
+public class CreateEditSensorPanel extends CreateEditPanel {
+	private static final long serialVersionUID = 4302743064914251776L;
 	private final JTextField nameTextField;
-	private final JTextField deviceTextField;
-	private final JCheckBox chckbxActive;
+	private final JTextField classNameTextField;
+	private final JTextField unitTextField;
 	private final JButton actionButton;
-	private final JTable table;
+	private final JTextArea metadataTextArea;
 	private final SessionFactory sessionFactory;
-	private Probe probe;
+	private SensorDescription sensorDescription;
 	private boolean dirty = false;
 	private final Window owner;
 
-	public CreateEditProbePanel(Window owner, SessionFactory sessionFactory) {
-		super("Probe information");
+	public CreateEditSensorPanel(Window owner, SessionFactory sessionFactory) {
+		super("Sensor metadata");
 
 		this.sessionFactory = sessionFactory;
 		this.owner = owner;
@@ -68,13 +58,17 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		final JLabel lblName = new JLabel("Name:");
 		lblName.setLabelFor(nameTextField);
 
-		deviceTextField = new JTextField();
-		deviceTextField.setColumns(10);
+		classNameTextField = new JTextField();
+		classNameTextField.setColumns(30);
 
-		final JLabel lblDevice = new JLabel("Device:");
-		lblDevice.setLabelFor(deviceTextField);
+		final JLabel lblClassName = new JLabel("Name of Java Class:");
+		lblName.setLabelFor(classNameTextField);
 
-		chckbxActive = new JCheckBox("active");
+		unitTextField = new JTextField();
+		unitTextField.setColumns(10);
+
+		final JLabel lblUnit = new JLabel("Unit:");
+		lblName.setLabelFor(unitTextField);
 
 		actionButton = new JButton();
 
@@ -87,12 +81,13 @@ public class CreateEditProbePanel extends CreateEditPanel {
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
 								.addComponent(lblName)
-								.addComponent(lblDevice))
+								.addComponent(lblClassName)
+								.addComponent(lblUnit))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-								.addComponent(deviceTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(chckbxActive)))
+								.addComponent(classNameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(unitTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
 						.addComponent(actionButton))
 					.addContainerGap(251, Short.MAX_VALUE))
 		);
@@ -105,43 +100,45 @@ public class CreateEditProbePanel extends CreateEditPanel {
 						.addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblDevice)
-						.addComponent(deviceTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(lblClassName)
+						.addComponent(classNameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblUnit)
+						.addComponent(unitTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addGap(8)
-					.addComponent(chckbxActive)
 					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addComponent(actionButton)
 					.addContainerGap())
 		);
 		getTopPanel().setLayout(gl_panel);
 
-		getBottomPanel().setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "Sensors", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		getBottomPanel().setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "Metadata", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
-		table = createTable(getBottomPanel());
+		metadataTextArea = createTextArea(getBottomPanel());
 
-		probe = new Probe();
-		probe.setSensorInstances(new ArrayList<SensorInstance>());
-		setProbe(probe);
+		sensorDescription = new SensorDescription();
+		setSensorDescription(sensorDescription);
 	}
 
-	void setProbe(Probe probe) {
-		this.probe = probe;
-		nameTextField.setText(probe.getName());
-		deviceTextField.setText(probe.getDevice());
-		chckbxActive.setSelected(probe.getActive());
-		updateSensors(probe);
+	void setSensorDescription(SensorDescription sensorDescription) {
+		this.sensorDescription = sensorDescription;
+		nameTextField.setText(sensorDescription.getName());
+		classNameTextField.setText(sensorDescription.getClassName());
+		unitTextField.setText(sensorDescription.getUnit());
+		updateMetadata(sensorDescription);
 	}
 
 	public boolean isDirty() {
-		if (!nameTextField.getText().equals(probe.getName())) {
+		if (!nameTextField.getText().equals(sensorDescription.getName())) {
 			return true;
 		}
 
-		if (!deviceTextField.getText().equals(probe.getDevice())) {
+		if (!classNameTextField.getText().equals(sensorDescription.getClassName())) {
 			return true;
 		}
 
-		if (chckbxActive.isSelected() != probe.getActive()) {
+		if (!unitTextField.getText().equals(sensorDescription.getUnit())) {
 			return true;
 		}
 
@@ -162,22 +159,17 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		return sessionFactory;
 	}
 
-	protected Probe getProbe() {
-		return probe;
+	protected SensorDescription getSensorDescription() {
+		return sensorDescription;
 	}
 
-	protected void updateSensors(Probe probe) {
-		assert(probe != null);
+	protected void updateMetadata(SensorDescription sensorDescription) {
+		assert(sensorDescription != null);
 
-		final SensorInstanceTableModel tableModel = (SensorInstanceTableModel)table.getModel();
-		final TableColumn sensorDescriptionColumn = table.getColumnModel().getColumn(0);
-
-		sensorDescriptionColumn.setCellEditor(new DescriptionCellEditor(probe));
-
-		tableModel.setSensorInstances(probe.getSensorInstances());
+		metadataTextArea.setText("Some metadata to edit here.");
 	}
 
-	private JTable createTable(JPanel panelToAddTo) {
+	private JTextArea createTextArea(JPanel panelToAddTo) {
 		final GridBagLayout layout = new GridBagLayout();
 		final GridBagConstraints constraints = new GridBagConstraints();
 
@@ -189,32 +181,9 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		final JPanel gridLabelIcon3 = makeGridIcon(UIManager.getIcon("OptionPane.informationIcon"));
 
 		final JScrollPane scrollPane = new JScrollPane();
-		final SensorInstanceTableModel tableModel = new SensorInstanceTableModel(owner, sessionFactory);
-		final JTable table = new JTable();
+		final JTextArea textArea = new JTextArea();
 
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		table.setModel(tableModel);
-		table.setRowHeight(25);
-		table.getColumnModel().getColumn(0).setPreferredWidth(85);
-		table.getColumnModel().getColumn(0).setCellRenderer(new DescriptionCellRenderer());
-		table.getColumnModel().getColumn(1).setPreferredWidth(70);
-
-		for (int i = 2;  i < 8; i++) {
-			table.getColumnModel().getColumn(i).setPreferredWidth(90);
-			table.getColumnModel().getColumn(i).setCellRenderer(new ParameterTableCellRenderer());
-		}
-
-		table.setAutoCreateRowSorter(true);
-		final TableRowSorter<TableModel> rowSorter = new TableRowSorter<TableModel>(tableModel);
-		table.setRowSorter(rowSorter);
-
-		rowSorter.setComparator(0, new Comparator<SensorDescription>() {
-			public int compare(SensorDescription sensorDescription1, SensorDescription sensorDescription2) {
-				return sensorDescription1.getName().compareTo(sensorDescription2.getName());
-			}
-		});
-
-		scrollPane.setViewportView(table);
+		scrollPane.setViewportView(textArea);
 
 		panelToAddTo.setLayout(layout);
 
@@ -283,7 +252,7 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		layout.setConstraints(scrollPane, constraints);
 		panelToAddTo.add(scrollPane);
 
-		return table;
+		return textArea;
 	}
 
 	private JPanel makeGridLabel(String string) {
@@ -317,15 +286,15 @@ public class CreateEditProbePanel extends CreateEditPanel {
 				final Session session = getSessionFactory().openSession();
 
 				try {
-					updateProbeInformation();
-					session.save(getProbe());
+					updateSensorDescriptionInformation();
+					session.save(getSensorDescription());
 					session.flush();
 					dirty = false;
-					JOptionPane.showMessageDialog(owner, "Probe successfully saved.", "Probe saved", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(owner, "Sensor description successfully saved.", "Probe saved", JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception exception) {
 					dirty = true;
-					final String[] messages = { "Probe could not be saved.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(owner, "Probe not saved", messages, exception);
+					final String[] messages = { "Sensor description could not be saved.", "An exception occured." };
+					final JDialog dialog = new ExceptionDialog(owner, "Sensor description not saved", messages, exception);
 					dialog.pack();
 					dialog.setLocationRelativeTo(owner);
 					dialog.setVisible(true);
@@ -341,15 +310,15 @@ public class CreateEditProbePanel extends CreateEditPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				final Session session = getSessionFactory().openSession();
 				try {
-					updateProbeInformation();
-					session.update(getProbe());
+					updateSensorDescriptionInformation();
+					session.update(getSensorDescription());
 					session.flush();
 					dirty = false;
-					JOptionPane.showMessageDialog(owner, "Probe successfully edited.", "Probe edited", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(owner, "Sensor description successfully edited.", "Probe edited", JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception exception) {
 					dirty = true;
-					final String[] messages = { "Probe could not be updated.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(owner, "Probe not updated", messages, exception);
+					final String[] messages = { "Sensor description could not be updated.", "An exception occured." };
+					final JDialog dialog = new ExceptionDialog(owner, "Sensor description not updated", messages, exception);
 					dialog.pack();
 					dialog.setLocationRelativeTo(owner);
 					dialog.setVisible(true);
@@ -360,10 +329,10 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		};
 	}
 
-	private void updateProbeInformation() {
-		getProbe().setName(nameTextField.getText());
-		getProbe().setDevice(deviceTextField.getText());
-		getProbe().setActive(chckbxActive.isSelected());
+	private void updateSensorDescriptionInformation() {
+		getSensorDescription().setName(nameTextField.getText());
+		getSensorDescription().setClassName(classNameTextField.getText());
+		getSensorDescription().setUnit(unitTextField.getText());
 		dirty = true;
 	}
 }
