@@ -25,6 +25,7 @@ import org.hibernate.SessionFactory;
 import de.hzg.common.Configuration;
 import de.hzg.common.HibernateUtil;
 import de.hzg.sensors.Probe;
+import de.hzg.sensors.SensorDescription;
 
 public class Editor {
 	private JFrame frame;
@@ -157,10 +158,18 @@ public class Editor {
 				}
 
 				if (clear) {
-					frame.getContentPane().removeAll();
-					final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory);
-					sensorPanel.setActionButton("Update information",sensorPanel.getSaveActionListener());
-					switchPanel("Edit sensor", sensorPanel);
+					final EditSensorDialog dialog = new EditSensorDialog(frame, sessionFactory);
+					dialog.pack();
+					dialog.setLocationRelativeTo(frame);
+					dialog.setVisible(true);
+					final SensorDescription sensorDescription = dialog.getResult();
+
+					if (sensorDescription != null) {
+						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory);
+						sensorPanel.setActionButton("Update information", sensorPanel.getUpdateActionListener());
+						sensorPanel.setSensorDescription(sensorDescription);
+						switchPanel("Edit sensor", sensorPanel);
+					}
 				}
 			}
 		});

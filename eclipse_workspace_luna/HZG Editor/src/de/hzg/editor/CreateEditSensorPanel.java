@@ -173,9 +173,9 @@ public class CreateEditSensorPanel extends CreateEditPanel {
 		final GridBagLayout layout = new GridBagLayout();
 		final GridBagConstraints constraints = new GridBagConstraints();
 
-		final JPanel gridLabel1 = makeGridLabel("Use right click to add/remove senors.");
-		final JPanel gridLabel2 = makeGridLabel("Use left click(s) to change sensor values.");
-		final JPanel gridLabel3 = makeGridLabel("Click column header to sort ascending/descending");
+		final JPanel gridLabel1 = makeGridLabel("Do this.");
+		final JPanel gridLabel2 = makeGridLabel("Do that.");
+		final JPanel gridLabel3 = makeGridLabel("Do everything.");
 		final JPanel gridLabelIcon1 = makeGridIcon(UIManager.getIcon("OptionPane.informationIcon"));
 		final JPanel gridLabelIcon2 = makeGridIcon(UIManager.getIcon("OptionPane.informationIcon"));
 		final JPanel gridLabelIcon3 = makeGridIcon(UIManager.getIcon("OptionPane.informationIcon"));
@@ -290,11 +290,11 @@ public class CreateEditSensorPanel extends CreateEditPanel {
 					session.save(getSensorDescription());
 					session.flush();
 					dirty = false;
-					JOptionPane.showMessageDialog(owner, "Sensor description successfully saved.", "Probe saved", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(owner, "Sensor successfully saved.", "Probe saved", JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception exception) {
 					dirty = true;
-					final String[] messages = { "Sensor description could not be saved.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(owner, "Sensor description not saved", messages, exception);
+					final String[] messages = { "Sensor could not be saved.", "An exception occured." };
+					final JDialog dialog = new ExceptionDialog(owner, "Sensor not saved", messages, exception);
 					dialog.pack();
 					dialog.setLocationRelativeTo(owner);
 					dialog.setVisible(true);
@@ -314,11 +314,11 @@ public class CreateEditSensorPanel extends CreateEditPanel {
 					session.update(getSensorDescription());
 					session.flush();
 					dirty = false;
-					JOptionPane.showMessageDialog(owner, "Sensor description successfully edited.", "Probe edited", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(owner, "Sensor successfully edited.", "Probe edited", JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception exception) {
 					dirty = true;
-					final String[] messages = { "Sensor description could not be updated.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(owner, "Sensor description not updated", messages, exception);
+					final String[] messages = { "Sensor could not be updated.", "An exception occured." };
+					final JDialog dialog = new ExceptionDialog(owner, "Sensor not updated", messages, exception);
 					dialog.pack();
 					dialog.setLocationRelativeTo(owner);
 					dialog.setVisible(true);

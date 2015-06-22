@@ -44,8 +44,8 @@ public class EditProbeDialog extends EditDialog<Probe> {
 					result = tempResult;
 					handleResult(result, name);
 				} catch (Exception exception) {
-					final String[] messages = { "Probes could not be loaded.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(finalOwner, "Probes not loaded", messages, exception);
+					final String[] messages = { "Probe could not be loaded.", "An exception occured." };
+					final JDialog dialog = new ExceptionDialog(finalOwner, "Probe not loaded", messages, exception);
 					dialog.pack();
 					dialog.setLocationRelativeTo(finalOwner);
 					dialog.setVisible(true);

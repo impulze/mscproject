@@ -183,7 +183,7 @@ public class CreateEditProbePanel extends CreateEditPanel {
 
 		final JPanel gridLabel1 = makeGridLabel("Use right click to add/remove senors.");
 		final JPanel gridLabel2 = makeGridLabel("Use left click(s) to change sensor values.");
-		final JPanel gridLabel3 = makeGridLabel("Click column header to sort ascending/descending");
+		final JPanel gridLabel3 = makeGridLabel("Click column header to sort ascending/descending.");
 		final JPanel gridLabelIcon1 = makeGridIcon(UIManager.getIcon("OptionPane.informationIcon"));
 		final JPanel gridLabelIcon2 = makeGridIcon(UIManager.getIcon("OptionPane.informationIcon"));
 		final JPanel gridLabelIcon3 = makeGridIcon(UIManager.getIcon("OptionPane.informationIcon"));

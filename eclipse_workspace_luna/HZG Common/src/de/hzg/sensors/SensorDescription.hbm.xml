@@ -17,5 +17,9 @@
 		<property name="className">
 			<column name="className" length="255" not-null="true" />
 		</property>
+
+		<property name="unit">
+			<column name="unit" length="20" not-null="true" />
+		</property>
 	</class>
 </hibernate-mapping>
