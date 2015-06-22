@@ -235,6 +235,8 @@ public class Editor {
 	private boolean isDirty() {
 		if (currentComponent instanceof CreateEditProbePanel) {
 			return ((CreateEditProbePanel)currentComponent).isDirty();
+		} else if (currentComponent instanceof CreateEditSensorPanel) {
+			return ((CreateEditSensorPanel)currentComponent).isDirty();
 		}
 
 		return false;
