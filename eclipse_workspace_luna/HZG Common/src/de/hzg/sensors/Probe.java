@@ -8,6 +8,7 @@ public class Probe {
 	private Long id;
 	private String name;
 	private String device;
+	private boolean active;
 	private List<SensorInstance> sensorInstances;
 
 	public Long getId() {
@@ -32,6 +33,14 @@ public class Probe {
 
 	public void setDevice(String device) {
 		this.device = device;
+	}
+
+	public boolean getActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 	public List<SensorInstance> getSensorInstances() {

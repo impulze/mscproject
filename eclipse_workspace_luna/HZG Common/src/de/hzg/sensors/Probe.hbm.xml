@@ -10,6 +10,10 @@
 			</generator>
 		</id>
 
+		<property name="active">
+			<column name="active" not-null="true" />
+		</property>
+
 		<property name="name">
 			<column name="name" length="255" not-null="true" />
 		</property>

@@ -20,7 +20,7 @@ public class EditProbeDialog extends EditDialog<Probe> {
 	private final SessionFactory sessionFactory;
 
 	public EditProbeDialog(Window owner, SessionFactory sessionFactory) {
-		super(owner, "Edit probe", "Probe name");
+		super(owner, "Select probe to edit", "Probe name");
 		getNameTextField().setColumns(20);
 
 		this.sessionFactory = sessionFactory;
