@@ -21,7 +21,7 @@
 		<property name="parameter5" column="parameter5" not-null="true" />
 		<property name="parameter6" column="parameter6" not-null="true" />
 
-		<many-to-one name="description" class="de.hzg.sensors.SensorDescription">
+		<many-to-one name="sensorDescription" class="de.hzg.sensors.SensorDescription">
 			<column name="sensor_description_id" />
 		</many-to-one>
 	</class>

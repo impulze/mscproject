@@ -170,9 +170,9 @@ public class CreateEditProbePanel extends CreateEditPanel {
 		assert(probe != null);
 
 		final SensorInstanceTableModel tableModel = (SensorInstanceTableModel)table.getModel();
-		final TableColumn descriptionColumn = table.getColumnModel().getColumn(0);
+		final TableColumn sensorDescriptionColumn = table.getColumnModel().getColumn(0);
 
-		descriptionColumn.setCellEditor(new DescriptionCellEditor(probe));
+		sensorDescriptionColumn.setCellEditor(new DescriptionCellEditor(probe));
 
 		tableModel.setSensorInstances(probe.getSensorInstances());
 	}

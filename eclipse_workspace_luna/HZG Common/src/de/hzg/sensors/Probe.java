@@ -55,7 +55,7 @@ public class Probe {
 		Hibernate.initialize(probe.getSensorInstances());
 
 		for (final SensorInstance sensorInstance: probe.getSensorInstances()) {
-			Hibernate.initialize(sensorInstance.getDescription());
+			Hibernate.initialize(sensorInstance.getSensorDescription());
 		}
 	}
 }

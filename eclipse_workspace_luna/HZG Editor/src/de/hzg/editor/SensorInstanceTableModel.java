@@ -52,7 +52,7 @@ public class SensorInstanceTableModel extends AbstractTableModel {
 		final SensorInstance sensorInstance = sensorInstances.get(row);
 
 		switch (column) {
-			case 0: return sensorInstance.getDescription();
+			case 0: return sensorInstance.getSensorDescription();
 			case 1: return sensorInstance.getAddress();
 			case 2: return sensorInstance.getParameter1();
 			case 3: return sensorInstance.getParameter2();
@@ -71,7 +71,7 @@ public class SensorInstanceTableModel extends AbstractTableModel {
 		final Session session = sessionFactory.openSession();
 
 		switch (column) {
-			case 0: sensorInstance.setDescription((SensorDescription)value); break;
+			case 0: sensorInstance.setSensorDescription((SensorDescription)value); break;
 			case 1: sensorInstance.setAddress((Integer)value); break;
 			case 2: sensorInstance.setParameter1((Double)value); break;
 			case 3: sensorInstance.setParameter2((Double)value); break;

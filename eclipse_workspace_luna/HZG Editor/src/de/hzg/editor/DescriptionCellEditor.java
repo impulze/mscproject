@@ -25,7 +25,7 @@ public class DescriptionCellEditor extends AbstractCellEditor implements ActionL
 		final List<SensorDescription> sensorDescriptions = new ArrayList<SensorDescription>(sensorInstances.size());
 
 		for (final SensorInstance sensorInstance: sensorInstances) {
-			sensorDescriptions.add(sensorInstance.getDescription());
+			sensorDescriptions.add(sensorInstance.getSensorDescription());
 		}
 
 		this.sensorDescriptions = sensorDescriptions;
