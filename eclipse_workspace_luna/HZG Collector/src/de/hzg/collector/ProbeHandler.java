@@ -40,7 +40,7 @@ public class ProbeHandler implements Runnable {
 		sessionFactory = hibernateUtil.getSessionFactory();
 
 		try {
-			this.communicator = new Communicator();
+			this.communicator = new Communicator(probe.getDevice());
 		} catch (CommunicatorSetupException exception) {
 			logger.severe("Cannot setup communicator for probe handler with probe '" + probe.getName() + "'");
 			throw new ProbeHandlerSetupException();

@@ -16,8 +16,7 @@ public class Communicator {
 	private final InputStream inputStream;
 	private final CommPort commPort;
 
-	public Communicator() throws CommunicatorSetupException {
-		final String portName = "/dev/ttyS999";
+	public Communicator(String portName) throws CommunicatorSetupException {
 		final CommPortIdentifier identifier;
 		final int timeout = 2000;
 
