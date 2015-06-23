@@ -68,6 +68,11 @@ public class Editor {
 		mnDatabase.add(separator_0);
 
 		JMenuItem mntmExit = new JMenuItem("Exit");
+		mntmExit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
 		mnDatabase.add(mntmExit);
 
 		JMenu mnProbe = new JMenu("Edit");
@@ -121,8 +126,8 @@ public class Editor {
 		});
 		mnProbe.add(mntmEditProbe);
 
-		JMenuItem mntmLlistProbes = new JMenuItem("List probes");
-		mntmLlistProbes.addActionListener(new ActionListener() {
+		JMenuItem mntmListProbes = new JMenuItem("List probes");
+		mntmListProbes.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				boolean clear = true;
 
@@ -139,7 +144,7 @@ public class Editor {
 				}
 			}
 		});
-		mnProbe.add(mntmLlistProbes);
+		mnProbe.add(mntmListProbes);
 
 		JSeparator separator_1 = new JSeparator();
 		mnProbe.add(separator_1);
