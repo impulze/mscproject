@@ -6,7 +6,9 @@ import java.awt.Window;
 import java.util.List;
 
 import javax.swing.JDialog;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.UIManager;
@@ -147,5 +149,16 @@ public class ListSensorsPanel extends ListPanel {
 		} finally {
 			session.close();
 		}
+	}
+
+	private void createPopupMenu() {
+		final JPopupMenu popupMenu = new JPopupMenu();
+		final JMenuItem mntmAddSensor = new JMenuItem("Add sensor");
+		final JMenuItem mntmRemoveSensor = new JMenuItem("Remove sensor");
+		final JMenuItem mntmEditSensor = new JMenuItem("Edit sensor");
+
+		popupMenu.add(mntmAddSensor);
+		popupMenu.add(mntmRemoveSensor);
+		popupMenu.add(mntmEditSensor);
 	}
 }
