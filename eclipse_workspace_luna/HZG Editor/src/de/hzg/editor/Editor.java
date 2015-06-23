@@ -122,6 +122,23 @@ public class Editor {
 		mnProbe.add(mntmEditProbe);
 
 		JMenuItem mntmLlistProbes = new JMenuItem("List probes");
+		mntmLlistProbes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				boolean clear = true;
+
+				if (isDirty()) {
+					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
+					clear = confirm == JOptionPane.YES_OPTION;
+				}
+
+				if (clear) {
+					frame.getContentPane().removeAll();
+					final ListPanel listPanel = new ListPanel("List of probes", frame, sessionFactory);
+					listPanel.setActionButton("Update list", listPanel.getUpdateActionListener());
+					switchPanel("List probes", listPanel);
+				}
+			}
+		});
 		mnProbe.add(mntmLlistProbes);
 
 		JSeparator separator_1 = new JSeparator();
@@ -176,6 +193,23 @@ public class Editor {
 		mnProbe.add(mntmEditSensor);
 
 		JMenuItem mntmListSensors = new JMenuItem("List sensors");
+		mntmListSensors.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				boolean clear = true;
+
+				if (isDirty()) {
+					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
+					clear = confirm == JOptionPane.YES_OPTION;
+				}
+
+				if (clear) {
+					frame.getContentPane().removeAll();
+					final ListPanel listPanel = new ListPanel("List of sensors", frame, sessionFactory);
+					listPanel.setActionButton("Update list", listPanel.getUpdateActionListener());
+					switchPanel("List sensors", listPanel);
+				}
+			}
+		});
 		mnProbe.add(mntmListSensors);
 
 		JSeparator separator_2 = new JSeparator();
