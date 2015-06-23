@@ -345,7 +345,7 @@ public class CreateEditProbePanel extends CreateEditPanel {
 					session.update(getProbe());
 					session.flush();
 					dirty = false;
-					JOptionPane.showMessageDialog(owner, "Probe successfully edited.", "Probe edited", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(owner, "Probe successfully updated.", "Probe updated", JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception exception) {
 					dirty = true;
 					final String[] messages = { "Probe could not be updated.", "An exception occured." };

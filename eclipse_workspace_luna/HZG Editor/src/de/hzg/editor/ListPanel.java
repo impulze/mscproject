@@ -1,7 +1,10 @@
 package de.hzg.editor;
 
 import javax.swing.GroupLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.border.TitledBorder;
@@ -10,17 +13,18 @@ import java.awt.Color;
 
 import javax.swing.border.LineBorder;
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.BorderLayout;
+import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ListPanel extends JPanel {
+public abstract class ListPanel extends JPanel {
 	private static final long serialVersionUID = -6652800387557722375L;
 	private final JPanel topPanel;
 	private final JPanel bottomPanel;
@@ -35,6 +39,7 @@ public class ListPanel extends JPanel {
 		this.sessionFactory = sessionFactory;
 
 		actionButton = new JButton();
+		setActionButton("Update list", getUpdateActionListener());
 
 		final JPanel wholePanel = new JPanel();
 		final GridBagLayout wholePanelLayout = new GridBagLayout();
@@ -82,7 +87,6 @@ public class ListPanel extends JPanel {
 		getTopPanel().setLayout(gl_panel);
 
 		getBottomPanel().setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "List data", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-
 	}
 
 	protected JPanel getTopPanel() {
@@ -104,15 +108,46 @@ public class ListPanel extends JPanel {
 		actionButton.addActionListener(actionListener);
 	}
 
+	protected Window getOwner() {
+		return owner;
+	}
+
 	protected SessionFactory getSessionFactory() {
 		return sessionFactory;
+	}
+
+	protected JPanel makeGridLabel(String string) {
+		final JLabel gridLabel = new JLabel(string);
+		final JPanel gridLabelPanel = new JPanel();
+
+		gridLabelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		gridLabelPanel.add(gridLabel);
+		return gridLabelPanel;
+	}
+
+	protected JPanel makeGridIcon(Icon icon) {
+		final double scale = 0.5;
+		final int newWidth = (int)(scale * icon.getIconWidth());
+		final int newHeight= (int)(scale * icon.getIconWidth());
+		final Image image = ((ImageIcon)icon).getImage();
+		final Image newImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+		final Icon newIcon = new ImageIcon(newImage);
+		final JLabel gridIconLabel = new JLabel(newIcon);
+		final JPanel gridIconLabelPanel = new JPanel();
+
+		gridIconLabelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		gridIconLabelPanel.add(gridIconLabel);
+
+		return gridIconLabelPanel;
 	}
 
 	protected ActionListener getUpdateActionListener() {
 		return new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				final Session session = getSessionFactory().openSession();
+				getList();
 			}
 		};
 	}
+
+	protected abstract void getList();
 }

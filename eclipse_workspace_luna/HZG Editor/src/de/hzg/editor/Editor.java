@@ -138,8 +138,7 @@ public class Editor {
 
 				if (clear) {
 					frame.getContentPane().removeAll();
-					final ListPanel listPanel = new ListPanel("List of probes", frame, sessionFactory);
-					listPanel.setActionButton("Update list", listPanel.getUpdateActionListener());
+					final ListPanel listPanel = new ListProbesPanel(frame, sessionFactory);
 					switchPanel("List probes", listPanel);
 				}
 			}
@@ -209,8 +208,7 @@ public class Editor {
 
 				if (clear) {
 					frame.getContentPane().removeAll();
-					final ListPanel listPanel = new ListPanel("List of sensors", frame, sessionFactory);
-					listPanel.setActionButton("Update list", listPanel.getUpdateActionListener());
+					final ListPanel listPanel = new ListSensorsPanel(frame, sessionFactory);
 					switchPanel("List sensors", listPanel);
 				}
 			}
