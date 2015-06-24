@@ -2,7 +2,9 @@ package de.hzg.editor;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.Window;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.JDialog;
@@ -21,6 +23,9 @@ import de.hzg.sensors.SensorDescription;
 public class ListSensorsPanel extends ListPanel {
 	private static final long serialVersionUID = -2140811495389781461L;
 	private final JTable table;
+	private final JPopupMenu popupMenu = createPopupMenu();
+	private final JPopupMenu popupMenuFull = createPopupMenuFull();
+	private int currentRowForPopup = -1;
 
 	public ListSensorsPanel(Window owner, SessionFactory sessionFactory) {
 		super("List of sensors", owner, sessionFactory);
@@ -43,7 +48,28 @@ public class ListSensorsPanel extends ListPanel {
 
 		final JScrollPane scrollPane = new JScrollPane();
 		final SensorDescriptionTableModel tableModel = new SensorDescriptionTableModel(getOwner(), getSessionFactory());
-		final JTable table = new JTable();
+		final JTable table = new JTable() {
+			private static final long serialVersionUID = -5110261553380650086L;
+
+			@Override
+			public JPopupMenu getComponentPopupMenu() {
+				if (currentRowForPopup >= 0) {
+					return popupMenuFull;
+				} else {
+					return popupMenu;
+				}
+			}
+
+			@Override
+			public Point getPopupLocation(MouseEvent arg0) {
+				final JTable sourceTable = (JTable)arg0.getSource();
+				final int row = sourceTable.rowAtPoint(arg0.getPoint());
+
+				currentRowForPopup = row;
+
+				return super.getPopupLocation(arg0);
+			}
+		};
 
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.setModel(tableModel);
@@ -51,6 +77,8 @@ public class ListSensorsPanel extends ListPanel {
 		table.getColumnModel().getColumn(0).setPreferredWidth(60);
 		table.getColumnModel().getColumn(1).setPreferredWidth(200);
 		table.getColumnModel().getColumn(2).setPreferredWidth(100);
+
+		//table.setComponentPopupMenu(popupMenu);
 
 		table.setAutoCreateRowSorter(true);
 
@@ -151,14 +179,23 @@ public class ListSensorsPanel extends ListPanel {
 		}
 	}
 
-	private void createPopupMenu() {
+	private static JPopupMenu createPopupMenu() {
 		final JPopupMenu popupMenu = new JPopupMenu();
 		final JMenuItem mntmAddSensor = new JMenuItem("Add sensor");
+
+		popupMenu.add(mntmAddSensor);
+
+		return popupMenu;
+	}
+
+	private static JPopupMenu createPopupMenuFull() {
+		final JPopupMenu popupMenu = createPopupMenu();
 		final JMenuItem mntmRemoveSensor = new JMenuItem("Remove sensor");
 		final JMenuItem mntmEditSensor = new JMenuItem("Edit sensor");
 
-		popupMenu.add(mntmAddSensor);
 		popupMenu.add(mntmRemoveSensor);
 		popupMenu.add(mntmEditSensor);
+
+		return popupMenu;
 	}
 }
