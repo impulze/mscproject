@@ -133,12 +133,20 @@ public class CreateEditProbePanel extends CreateEditPanel {
 	}
 
 	public boolean isDirty() {
-		if (!nameTextField.getText().equals(probe.getName())) {
-			return true;
+		{
+			final String cmpString = probe.getName() == null ? "" : probe.getName();
+
+			if (!nameTextField.getText().equals(cmpString)) {
+				return true;
+			}
 		}
 
-		if (!deviceTextField.getText().equals(probe.getDevice())) {
-			return true;
+		{
+			final String cmpString = probe.getDevice() == null ? "" : probe.getDevice();
+
+			if (!deviceTextField.getText().equals(cmpString)) {
+				return true;
+			}
 		}
 
 		if (chckbxActive.isSelected() != probe.getActive()) {
@@ -361,8 +369,14 @@ public class CreateEditProbePanel extends CreateEditPanel {
 	}
 
 	private void updateProbeInformation() {
-		getProbe().setName(nameTextField.getText());
-		getProbe().setDevice(deviceTextField.getText());
+		if (nameTextField.getText().length() != 0) {
+			getProbe().setName(nameTextField.getText());
+		}
+
+		if (deviceTextField.getText().length() != 0) {
+			getProbe().setDevice(deviceTextField.getText());
+		}
+
 		getProbe().setActive(chckbxActive.isSelected());
 		dirty = true;
 	}

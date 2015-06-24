@@ -130,16 +130,28 @@ public class CreateEditSensorPanel extends CreateEditPanel {
 	}
 
 	public boolean isDirty() {
-		if (!nameTextField.getText().equals(sensorDescription.getName())) {
-			return true;
+		{
+			final String cmpString = sensorDescription.getName() == null ? "" : sensorDescription.getName();
+
+			if (!nameTextField.getText().equals(cmpString)) {
+				return true;
+			}
 		}
 
-		if (!classNameTextField.getText().equals(sensorDescription.getClassName())) {
-			return true;
+		{
+			final String cmpString = sensorDescription.getClassName() == null ? "" : sensorDescription.getClassName();
+
+			if (!classNameTextField.getText().equals(cmpString)) {
+				return true;
+			}
 		}
 
-		if (!unitTextField.getText().equals(sensorDescription.getUnit())) {
-			return true;
+		{
+			final String cmpString = sensorDescription.getUnit() == null ? "" : sensorDescription.getUnit();
+
+			if (!unitTextField.getText().equals(cmpString)) {
+				return true;
+			}
 		}
 
 		return dirty;
@@ -330,9 +342,18 @@ public class CreateEditSensorPanel extends CreateEditPanel {
 	}
 
 	private void updateSensorDescriptionInformation() {
-		getSensorDescription().setName(nameTextField.getText());
-		getSensorDescription().setClassName(classNameTextField.getText());
-		getSensorDescription().setUnit(unitTextField.getText());
+		if (nameTextField.getText() != null) {
+			getSensorDescription().setName(nameTextField.getText());
+		}
+
+		if (classNameTextField.getText() != null) {
+			getSensorDescription().setName(classNameTextField.getText());
+		}
+
+		if (unitTextField.getText() != null) {
+			getSensorDescription().setUnit(unitTextField.getText());
+		}
+
 		dirty = true;
 	}
 }
