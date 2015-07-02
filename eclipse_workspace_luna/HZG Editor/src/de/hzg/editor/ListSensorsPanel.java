@@ -12,7 +12,7 @@ import javax.swing.JTable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.sensors.SensorDescription;
+import de.hzg.measurement.SensorDescription;
 
 public class ListSensorsPanel extends SplitPanel implements DataProvider {
 	private static final long serialVersionUID = -2140811495389781461L;
@@ -34,7 +34,7 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 		createForm();
 
 		setDataProvider(this);
-		provide();
+		provide("Refresh list");
 	}
 
 	private void createForm() {
@@ -90,7 +90,7 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 		table.getColumnModel().getColumn(2).setPreferredWidth(100);
 	}
 
-	public void provide() {
+	public boolean provide(String title) {
 		final Session session = sessionFactory.openSession();
 
 		try {
@@ -103,6 +103,7 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 
 			tableModel.setSensorDescriptions(result);
 			tableModel.fireTableDataChanged();
+			return true;
 		} catch (Exception exception) {
 			final String[] messages = { "Sensors could not be loaded.", "An exception occured." };
 			final JDialog dialog = new ExceptionDialog(owner, "Sensors not loaded", messages, exception);
@@ -112,5 +113,7 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 		} finally {
 			session.close();
 		}
+
+		return false;
 	}
 }

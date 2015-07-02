@@ -15,6 +15,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -23,15 +24,14 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.sensors.SensorDescription;
+import de.hzg.measurement.SensorDescription;
 
-public class CreateEditSensorPanel extends SplitPanel {
+public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 	private static final long serialVersionUID = 4302743064914251776L;
 	private final JTextField nameTextField;
 	private final JComboBox<String> classNameComboBox;
 	private final JTextField unitTextField;
 	private final JTextArea metadataTextArea;
-	private boolean dirty = false;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
 	private SensorDescription sensorDescription;
@@ -80,7 +80,16 @@ public class CreateEditSensorPanel extends SplitPanel {
 			session.close();
 		}
 
+		setDataProvider(this);
 		sensorDescriptionToFormAndMetadata();
+	}
+
+	public static SensorDescription createNewSensorDescription() {
+		final SensorDescription sensorDescription = new SensorDescription();
+
+		sensorDescription.setMetadata(getMetadataTemplate());
+
+		return sensorDescription;
 	}
 
 	private void createForm() {
@@ -162,7 +171,7 @@ public class CreateEditSensorPanel extends SplitPanel {
 	private void setupMetadataTextArea() {
 	}
 
-	protected static String getMetadataTemplate() {
+	private static String getMetadataTemplate() {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 "<sml:PhysicalComponent gml:id=\"MY_SENSOR\" xmlns:sml=\"http://www.opengis.net/sensorml/2.0\"\n" +
 " xmlns:swe=\"http://www.opengis.net/swe/2.0\"\n" +
@@ -201,40 +210,45 @@ public class CreateEditSensorPanel extends SplitPanel {
 "</sml:PhysicalComponent>";
 	}
 
-	protected void sensorDescriptionToFormAndMetadata() {
+	private void sensorDescriptionToFormAndMetadata() {
 		nameTextField.setText(sensorDescription.getName());
 		classNameComboBox.setSelectedItem(sensorDescription.getClassName());
 		unitTextField.setText(sensorDescription.getUnit());
 		metadataTextArea.setText(sensorDescription.getMetadata());
 	}
 
-	protected void formToSensorDescription() {
-		if (nameTextField.getText().length() != 0) {
+	private void formToSensorDescription() {
+		if (nameTextField.getText().length() == 0) {
+			sensorDescription.setName(null);
+		} else {
 			sensorDescription.setName(nameTextField.getText());
 		}
 
 		final String selectedClassName = (String)classNameComboBox.getSelectedItem();
 
-		if (selectedClassName != null && selectedClassName.length() != 0) {
+		if (selectedClassName == null) {
+			sensorDescription.setClassName(null);
+		} else {
+			assert(selectedClassName.length() != 0);
 			sensorDescription.setClassName(selectedClassName);
 		}
 
-		if (unitTextField.getText().length() != 0) {
+		if (unitTextField.getText().length() == 0) {
+			sensorDescription.setUnit(null);
+		} else {
 			sensorDescription.setUnit(unitTextField.getText());
 		}
-
-		dirty = true;
 	}
 
-	protected void metadataToSensorDescription() {
-		if (metadataTextArea.getText().length() != 0) {
+	private void metadataToSensorDescription() {
+		if (metadataTextArea.getText().length() == 0) {
+			sensorDescription.setMetadata(null);
+		} else {
 			sensorDescription.setMetadata(metadataTextArea.getText());
 		}
-
-		dirty = true;
 	}
 
-	protected boolean isDirty() {
+	public boolean isDirty() {
 		{
 			final String cmpString = sensorDescription.getName() == null ? "" : sensorDescription.getName();
 
@@ -246,7 +260,7 @@ public class CreateEditSensorPanel extends SplitPanel {
 		{
 			final String cmpString = sensorDescription.getClassName() == null ? "" : sensorDescription.getClassName();
 
-			if (classNameComboBox.getSelectedItem() != null && classNameComboBox.getSelectedItem().equals(cmpString)) {
+			if (classNameComboBox.getSelectedItem() != null && !classNameComboBox.getSelectedItem().equals(cmpString)) {
 				return true;
 			}
 		}
@@ -267,22 +281,39 @@ public class CreateEditSensorPanel extends SplitPanel {
 			}
 		}
 
-		return dirty;
+		return super.isDirty();
 	}
 
-	protected Window getOwner() {
-		return owner;
-	}
+	public boolean provide(String title) {
+		final Session session = sessionFactory.openSession();
 
-	protected SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
+		try {
+			if (title.equals("Save information")) {
+				formToSensorDescription();
+			} else {
+				metadataToSensorDescription();
+			}
 
-	protected SensorDescription getSensorDescription() {
-		return sensorDescription;
-	}
+			if (!getSaved()) {
+				session.save(sensorDescription);
+				session.flush();
+			} else {
+				session.update(sensorDescription);
+				session.flush();
+			}
 
-	protected void setDirty(boolean dirty) {
-		this.dirty = dirty;
+			JOptionPane.showMessageDialog(owner, "Sensor successfully saved.", "Sensor saved", JOptionPane.INFORMATION_MESSAGE);
+			return true;
+		} catch (Exception exception) {
+			final String[] messages = { "Sensor could not be saved", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor not saved", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		} finally {
+			session.close();
+		}
+
+		return false;
 	}
 }

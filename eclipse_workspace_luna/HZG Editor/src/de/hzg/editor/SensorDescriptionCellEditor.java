@@ -10,7 +10,7 @@ import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 
-import de.hzg.sensors.SensorDescription;
+import de.hzg.measurement.SensorDescription;
 
 public class SensorDescriptionCellEditor extends AbstractCellEditor implements ActionListener, TableCellEditor {
 	private static final long serialVersionUID = -1596419497648007649L;

@@ -1,5 +1,5 @@
 package de.hzg.editor;
 
 public interface DataProvider {
-	void provide();
+	boolean provide(String title);
 }

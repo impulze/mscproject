@@ -12,7 +12,7 @@ import javax.swing.JTextField;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.sensors.Probe;
+import de.hzg.measurement.Probe;
 
 public class EditProbeDialog extends EditDialog<Probe> {
 	private static final long serialVersionUID = -4236878158400999625L;

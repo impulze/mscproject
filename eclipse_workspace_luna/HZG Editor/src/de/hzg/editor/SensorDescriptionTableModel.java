@@ -3,7 +3,7 @@ package de.hzg.editor;
 import java.awt.Window;
 import java.util.List;
 
-import de.hzg.sensors.SensorDescription;
+import de.hzg.measurement.SensorDescription;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;

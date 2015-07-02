@@ -1,33 +1,27 @@
 package de.hzg.editor;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.JFrame;
-
-import java.awt.BorderLayout;
-
-import javax.swing.JDialog;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-
-import java.awt.event.ActionEvent;
-
-import javax.swing.JMenu;
 import javax.swing.JSeparator;
-
-import java.awt.event.ActionListener;
-import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import de.hzg.common.Configuration;
-import de.hzg.common.ConfigurationNotFound;
 import de.hzg.common.HibernateUtil;
-import de.hzg.sensors.Probe;
-import de.hzg.sensors.SensorDescription;
+import de.hzg.common.SensorClassesConfiguration;
+import de.hzg.measurement.Probe;
+import de.hzg.measurement.SensorDescription;
 
 public class Editor {
 	private JFrame frame;
@@ -39,10 +33,11 @@ public class Editor {
 			public void run() {
 				try {
 					final Configuration configuration = new Configuration();
+					final SensorClassesConfiguration sensorClassesConfiguration = configuration.getSensorClassesConfiguration();
 					final HibernateUtil hibernateUtil = new HibernateUtil(configuration);
 					final Editor editor = new Editor();
 					editor.sessionFactory = hibernateUtil.getSessionFactory();
-					editor.initialize(configuration);
+					editor.initialize(sensorClassesConfiguration);
 					editor.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -51,8 +46,8 @@ public class Editor {
 		});
 	}
 
-	private void initialize(Configuration configuration) {
-		final Configuration usedConfiguration = configuration;
+	private void initialize(SensorClassesConfiguration sensorClassesConfiguration) {
+		final SensorClassesConfiguration usedSensorClassesConfiguration = sensorClassesConfiguration;
 
 		frame = new JFrame();
 		frame.setBounds(100, 100, 850, 600);
@@ -85,16 +80,20 @@ public class Editor {
 		JMenuItem mntmCreateProbe = new JMenuItem("Create probe");
 		mntmCreateProbe.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				boolean clear = true;
+				if (isDirtyCheck()) {
+					final Probe newProbe = CreateEditProbePanel.createNewProbe();
+					final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, newProbe);
 
-				if (isDirty()) {
-					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
-					clear = confirm == JOptionPane.YES_OPTION;
-				}
-
-				if (clear) {
-					final CreateEditProbePanel probePanel = new CreateProbePanel(frame, sessionFactory);
+					probePanel.setTitle("Create probe");
+					probePanel.showBottom(false);
 					switchPanel("Create probe", probePanel);
+
+					probePanel.setSavedHandler(new SavedHandler() {
+						@Override
+						public void onSave() {
+							setupEditProbePanel(probePanel);
+						}
+					});
 				}
 			}
 		});
@@ -103,14 +102,7 @@ public class Editor {
 		JMenuItem mntmEditProbe = new JMenuItem("Edit probe");
 		mntmEditProbe.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				boolean clear = true;
-
-				if (isDirty()) {
-					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
-					clear = confirm == JOptionPane.YES_OPTION;
-				}
-
-				if (clear) {
+				if (isDirtyCheck()) {
 					final EditProbeDialog dialog = new EditProbeDialog(frame, sessionFactory);
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
@@ -118,8 +110,8 @@ public class Editor {
 					final Probe probe = dialog.getResult();
 
 					if (probe != null) {
-						final CreateEditProbePanel probePanel = new EditProbePanel(frame, sessionFactory, probe);
-						switchPanel("Edit probe", probePanel);
+						final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, probe);
+						setupEditProbePanel(probePanel);
 					}
 				}
 			}
@@ -129,14 +121,7 @@ public class Editor {
 		JMenuItem mntmListProbes = new JMenuItem("List probes");
 		mntmListProbes.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				boolean clear = true;
-
-				if (isDirty()) {
-					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
-					clear = confirm == JOptionPane.YES_OPTION;
-				}
-
-				if (clear) {
+				if (isDirtyCheck()) {
 					final ListProbesPanel listProbesPanel = new ListProbesPanel(frame, sessionFactory);
 					switchPanel("List probes", listProbesPanel);
 				}
@@ -150,16 +135,20 @@ public class Editor {
 		JMenuItem mntmCreateSensor = new JMenuItem("Create sensor");
 		mntmCreateSensor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				boolean clear = true;
+				if (isDirtyCheck()) {
+					final SensorDescription newSensorDescription= CreateEditSensorPanel.createNewSensorDescription();
+					final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, newSensorDescription);
 
-				if (isDirty()) {
-					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
-					clear = confirm == JOptionPane.YES_OPTION;
-				}
-
-				if (clear) {
-					final CreateEditSensorPanel sensorPanel = new CreateSensorPanel(frame, sessionFactory);
+					sensorPanel.setTitle("Create sensor");
+					sensorPanel.showBottom(false);
 					switchPanel("Create sensor", sensorPanel);
+
+					sensorPanel.setSavedHandler(new SavedHandler() {
+						@Override
+						public void onSave() {
+							setupEditSensorPanel(sensorPanel);
+						}
+					});
 				}
 			}
 		});
@@ -168,14 +157,7 @@ public class Editor {
 		JMenuItem mntmEditSensor = new JMenuItem("Edit sensor");
 		mntmEditSensor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				boolean clear = true;
-
-				if (isDirty()) {
-					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
-					clear = confirm == JOptionPane.YES_OPTION;
-				}
-
-				if (clear) {
+				if (isDirtyCheck()) {
 					final EditSensorDialog dialog = new EditSensorDialog(frame, sessionFactory);
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
@@ -183,8 +165,8 @@ public class Editor {
 					final SensorDescription sensorDescription = dialog.getResult();
 
 					if (sensorDescription != null) {
-						final CreateEditSensorPanel sensorPanel = new EditSensorPanel(frame, sessionFactory, sensorDescription);
-						switchPanel("Edit sensor", sensorPanel);
+						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
+						setupEditSensorPanel(sensorPanel);
 					}
 				}
 			}
@@ -194,14 +176,7 @@ public class Editor {
 		JMenuItem mntmListSensors = new JMenuItem("List sensors");
 		mntmListSensors.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				boolean clear = true;
-
-				if (isDirty()) {
-					final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Create new form", JOptionPane.YES_NO_OPTION);
-					clear = confirm == JOptionPane.YES_OPTION;
-				}
-
-				if (clear) {
+				if (isDirtyCheck()) {
 					final ListSensorsPanel listSensorsPanel = new ListSensorsPanel(frame, sessionFactory);
 					switchPanel("List sensors", listSensorsPanel);
 				}
@@ -211,6 +186,61 @@ public class Editor {
 
 		JSeparator separator_2 = new JSeparator();
 		mnProbe.add(separator_2);
+
+		JMenuItem mntmCreateSensorClass = new JMenuItem("Create sensor class");
+		mntmCreateSensorClass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					final SensorJavaClass newSensorJavaClass = CreateEditSensorJavaClassPanel.createNewSensorJavaClass(usedSensorClassesConfiguration);
+					final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, usedSensorClassesConfiguration, newSensorJavaClass);
+
+					sensorJavaClassPanel.setTitle("Create sensor class");
+					sensorJavaClassPanel.showBottom(false);
+					switchPanel("Create sensor class", sensorJavaClassPanel);
+
+					sensorJavaClassPanel.setSavedHandler(new SavedHandler() {
+						@Override
+						public void onSave() {
+							setupEditSensorJavaClassPanel(sensorJavaClassPanel);
+						}
+					});
+				}
+			}
+		});
+		mnProbe.add(mntmCreateSensorClass);
+
+		JMenuItem mntmEditSensorClass = new JMenuItem("Edit sensor class");
+		mntmEditSensorClass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					final EditSensorJavaClassDialog dialog = new EditSensorJavaClassDialog(frame, usedSensorClassesConfiguration);
+					dialog.pack();
+					dialog.setLocationRelativeTo(frame);
+					dialog.setVisible(true);
+					final SensorJavaClass sensorJavaClass = dialog.getResult();
+
+					if (sensorJavaClass != null) {
+						final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, usedSensorClassesConfiguration, sensorJavaClass);
+						setupEditSensorJavaClassPanel(sensorJavaClassPanel);
+					}
+				}
+			}
+		});
+		mnProbe.add(mntmEditSensorClass);
+
+		JMenuItem mntmListSensorClasses = new JMenuItem("List sensor classes");
+		mntmListSensorClasses.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					final ListSensorJavaClassesPanel listSensorClassesPanel = new ListSensorJavaClassesPanel(frame, sessionFactory, usedSensorClassesConfiguration);
+					switchPanel("List sensor classes", listSensorClassesPanel);
+				}
+			}
+		});
+		mnProbe.add(mntmListSensorClasses);
+
+		JSeparator separator_3 = new JSeparator();
+		mnProbe.add(separator_3);
 
 		JMenuItem mntmListRawValues = new JMenuItem("List raw values");
 		mnProbe.add(mntmListRawValues);
@@ -224,8 +254,8 @@ public class Editor {
 		JMenuItem mntmHandbook = new JMenuItem("Handbook");
 		mnHelp.add(mntmHandbook);
 
-		JSeparator separator_3 = new JSeparator();
-		mnHelp.add(separator_3);
+		JSeparator separator_4 = new JSeparator();
+		mnHelp.add(separator_4);
 
 		JMenuItem mntmAboutHZGEditor = new JMenuItem("About HZG Editor");
 		mnHelp.add(mntmAboutHZGEditor);
@@ -233,21 +263,6 @@ public class Editor {
 
 		/* TODO: for development */
 		final Session session = sessionFactory.openSession();
-		/*
-		try {
-			@SuppressWarnings("unchecked")
-			final List<Probe> result = (List<Probe>)session
-				.createQuery("FROM Probe WHERE name = :name")
-				.setParameter("name", "MyActiveProbe999")
-				.list();
-			final Probe probe = result.get(0);
-			Probe.initProbe(probe);
-			final CreateEditProbePanel probePanel = new EditProbePanel(frame, sessionFactory, probe);
-			switchPanel("Edit probe", probePanel);
-		} finally {
-			session.close();
-		}
-		*/
 		try {
 			@SuppressWarnings("unchecked")
 			final List<SensorDescription> result = (List<SensorDescription>)session
@@ -255,8 +270,8 @@ public class Editor {
 				.setParameter("name", "Vbatt")
 				.list();
 			final SensorDescription sensorDescription = result.get(0);
-			final CreateEditSensorPanel sensorPanel = new EditSensorPanel(frame, sessionFactory, sensorDescription);
-			switchPanel("Edit sensor", sensorPanel);
+			final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
+			setupEditSensorPanel(sensorPanel);
 		} finally {
 			session.close();
 		}
@@ -280,8 +295,43 @@ public class Editor {
 			return ((CreateEditProbePanel)currentComponent).isDirty();
 		} else if (currentComponent instanceof CreateEditSensorPanel) {
 			return ((CreateEditSensorPanel)currentComponent).isDirty();
+		} else if (currentComponent instanceof CreateEditSensorJavaClassPanel) {
+			return ((CreateEditSensorJavaClassPanel)currentComponent).isDirty();
 		}
 
 		return false;
+	}
+
+	private boolean isDirtyCheck() {
+		boolean clear = true;
+
+		if (isDirty()) {
+			final int confirm = JOptionPane.showConfirmDialog(frame, "This will erase all of your input so far.", "Discard changes?", JOptionPane.YES_NO_OPTION);
+			clear = confirm == JOptionPane.YES_OPTION;
+		}
+
+		return clear;
+	}
+
+	private void setupEditProbePanel(CreateEditProbePanel probePanel) {
+		probePanel.setSaved(true);
+		probePanel.setTitle("Edit probe");
+		probePanel.showBottom(true);
+		switchPanel("Edit probe", probePanel);
+	}
+
+	private void setupEditSensorPanel(CreateEditSensorPanel sensorPanel) {
+		sensorPanel.setSaved(true);
+		sensorPanel.setTitle("Edit sensor");
+		sensorPanel.showBottom(true);
+		switchPanel("Edit sensor", sensorPanel);
+	}
+
+	private void setupEditSensorJavaClassPanel(CreateEditSensorJavaClassPanel sensorJavaClassPanel) {
+		// In terms of sensorJavaClassPanel being saved basically means it's on the filesystem
+		sensorJavaClassPanel.setSaved(true);
+		sensorJavaClassPanel.setTitle("Edit sensor class");
+		sensorJavaClassPanel.showBottom(true);
+		switchPanel("Edit sensor class", sensorJavaClassPanel);
 	}
 }

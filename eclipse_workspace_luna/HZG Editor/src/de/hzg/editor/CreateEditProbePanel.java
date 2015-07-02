@@ -1,6 +1,7 @@
 package de.hzg.editor;
 
 import java.awt.Window;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -22,16 +24,16 @@ import javax.swing.table.TableRowSorter;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.sensors.Probe;
-import de.hzg.sensors.SensorDescription;
+import de.hzg.measurement.Probe;
+import de.hzg.measurement.SensorDescription;
+import de.hzg.measurement.SensorInstance;
 
-public class CreateEditProbePanel extends SplitPanel {
+public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 	private static final long serialVersionUID = 5644942285449679689L;
 	private final JTextField nameTextField;
 	private final JTextField deviceTextField;
 	private final JCheckBox chckbxActive;
 	private final JTable table;
-	private boolean dirty = false;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
 	private final Probe probe;
@@ -57,7 +59,16 @@ public class CreateEditProbePanel extends SplitPanel {
 		getBottomPanel().add(dataCreator.createPanel(table));
 		createForm();
 
+		setDataProvider(this);
 		probeToFormAndSensorInstances();
+	}
+
+	public static Probe createNewProbe() {
+		final Probe probe = new Probe();
+
+		probe.setSensorInstances(new ArrayList<SensorInstance>());
+
+		return probe;
 	}
 
 	private void createForm() {
@@ -182,20 +193,23 @@ public class CreateEditProbePanel extends SplitPanel {
 		tableModel.setSensorInstances(probe.getSensorInstances());
 	}
 
-	protected void formToProbe() {
-		if (nameTextField.getText().length() != 0) {
+	private void formToProbe() {
+		if (nameTextField.getText().length() == 0) {
+			probe.setName(null);
+		} else {
 			probe.setName(nameTextField.getText());
 		}
 
-		if (deviceTextField.getText().length() != 0) {
+		if (deviceTextField.getText().length() == 0) {
+			probe.setDevice(null);
+		} else {
 			probe.setDevice(deviceTextField.getText());
 		}
 
 		probe.setActive(chckbxActive.isSelected());
-		dirty = true;
 	}
 
-	protected boolean isDirty() {
+	public boolean isDirty() {
 		{
 			final String cmpString = probe.getName() == null ? "" : probe.getName();
 
@@ -216,22 +230,35 @@ public class CreateEditProbePanel extends SplitPanel {
 			return true;
 		}
 
-		return dirty;
+		return super.isDirty();
 	}
 
-	protected Window getOwner() {
-		return owner;
-	}
+	public boolean provide(String title) {
+		final Session session = sessionFactory.openSession();
 
-	protected SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
+		try {
+			formToProbe();
 
-	protected Probe getProbe() {
-		return probe;
-	}
+			if (!getSaved()) {
+				session.save(probe);
+				session.flush();
+			} else {
+				session.update(probe);
+				session.flush();
+			}
 
-	protected void setDirty(boolean dirty) {
-		this.dirty = dirty;
+			JOptionPane.showMessageDialog(owner, "Probe successfully saved.", "Probe saved", JOptionPane.INFORMATION_MESSAGE);
+			return true;
+		} catch (Exception exception) {
+			final String[] messages = { "Probe could not be saved.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Probe not saved", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		} finally {
+			session.close();
+		}
+
+		return false;
 	}
 }
