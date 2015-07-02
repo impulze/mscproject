@@ -51,10 +51,10 @@ public class Probe {
 		this.sensorInstances = sensorInstances;
 	}
 
-	public static void initProbe(Probe probe) {
-		Hibernate.initialize(probe.getSensorInstances());
+	public void initProbe() {
+		Hibernate.initialize(getSensorInstances());
 
-		for (final SensorInstance sensorInstance: probe.getSensorInstances()) {
+		for (final SensorInstance sensorInstance: getSensorInstances()) {
 			Hibernate.initialize(sensorInstance.getSensorDescription());
 		}
 	}

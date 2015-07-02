@@ -130,7 +130,7 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 				.list();
 
 			for (final Probe probe: result) {
-				Probe.initProbe(probe);
+				probe.initProbe();
 			}
 
 			final ProbeTableModel tableModel = (ProbeTableModel)table.getModel();;
@@ -154,11 +154,12 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 	void removeProbe(ProbeTableModel tableModel, int row) {
 		final List<Probe> probes = tableModel.getProbes();
 		final Probe probe = probes.get(row);
+		final boolean deleted = CreateEditProbePanel.removeProbe(probe, owner, sessionFactory);
 
-		CreateEditProbePanel.removeProbe(probe, owner, sessionFactory);
-
-		probes.remove(row);
-		tableModel.fireTableDataChanged();
+		if (deleted) {
+			probes.remove(row);
+			tableModel.fireTableDataChanged();
+		}
 	}
 
 	void setAddListener(AddListener addListener) {

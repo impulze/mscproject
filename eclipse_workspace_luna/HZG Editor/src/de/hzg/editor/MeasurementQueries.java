@@ -68,6 +68,11 @@ public class MeasurementQueries {
 			final List<SensorDescription> tempResult = (List<SensorDescription>)session
 				.createQuery("FROM SensorDescription")
 				.list();
+
+			for (final SensorDescription sensorDescription: tempResult) {
+				sensorDescription.initSensorDescription();
+			}
+
 			result = tempResult;
 		} catch (Exception exception) {
 			final String[] messages = { "Sensor descriptions could not be loaded.", "An exception occured." };

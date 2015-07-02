@@ -25,5 +25,10 @@
 		<property name="metadata">
 			<column name="metadata" not-null="true" />
 		</property>
+
+		<bag name="sensorInstances" table="sensor_instances">
+			<key column="sensor_description_id" not-null="true" />
+			<one-to-many class="de.hzg.measurement.SensorInstance" />
+		</bag>
 	</class>
 </hibernate-mapping>

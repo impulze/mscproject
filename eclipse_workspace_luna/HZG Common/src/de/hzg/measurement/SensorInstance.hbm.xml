@@ -21,8 +21,12 @@
 		<property name="parameter5" column="parameter5" />
 		<property name="parameter6" column="parameter6" />
 
-		<many-to-one name="sensorDescription" class="de.hzg.measurement.SensorDescription">
-			<column name="sensor_description_id" />
+		<many-to-one name="probe" class="de.hzg.measurement.Probe" update="false" insert="false">
+			<column name="probe_id" not-null="true" />
+		</many-to-one>
+
+		<many-to-one name="sensorDescription" class="de.hzg.measurement.SensorDescription" update="false" insert="false">
+			<column name="sensor_description_id" not-null="true" />
 		</many-to-one>
 	</class>
 </hibernate-mapping>

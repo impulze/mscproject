@@ -23,10 +23,12 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 import de.hzg.measurement.SensorDescription;
+import de.hzg.measurement.SensorInstance;
 
-public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
+public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 	private static final long serialVersionUID = 4302743064914251776L;
 	private final JTextField nameTextField;
 	private final JComboBox<String> classNameComboBox;
@@ -35,6 +37,10 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 	private final Window owner;
 	private final SessionFactory sessionFactory;
 	private SensorDescription sensorDescription;
+	private RemoveListener removeListener;
+	private SequentialGroup horizontalButtonGroup;
+	private ParallelGroup verticalButtonGroup;
+	private boolean editFunctionsShown = false;
 
 	public CreateEditSensorPanel(Window owner, SessionFactory sessionFactory, SensorDescription sensorDescription) {
 		this.owner = owner;
@@ -105,14 +111,17 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 			.addGroup(labelsLayout)
 			.addPreferredGap(ComponentPlacement.RELATED)
 			.addGroup(inputsLayout);
+		horizontalButtonGroup = topPanelLayout.createSequentialGroup()
+			.addComponent(actionButton);
 		final ParallelGroup labelsWithInputsAndButtonLayout = topPanelLayout.createParallelGroup(Alignment.LEADING)
 			.addGroup(labelsWithInputsLayout)
-			.addComponent(actionButton);
+			.addGroup(horizontalButtonGroup);
 		final SequentialGroup horizontalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(labelsWithInputsAndButtonLayout)
 			.addContainerGap(251, Short.MAX_VALUE);
 
+		verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(actionButton);
 		final SequentialGroup verticalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblName).addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
@@ -122,7 +131,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblUnit).addComponent(unitTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 			.addGap(8)
 			.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-			.addComponent(actionButton)
+			.addGroup(verticalButtonGroup)
 			.addContainerGap();
 
 		topPanelLayout.setHorizontalGroup(horizontalLayoutWithGaps);
@@ -304,5 +313,69 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 		}
 
 		return false;
+	}
+
+	static boolean removeSensorDescription(SensorDescription sensorDescription, Window owner, SessionFactory sessionFactory) {
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor and all sensor instances for this sensor.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+
+		if (confirm != JOptionPane.YES_OPTION) {
+			return false;
+		}
+
+		final Session session = sessionFactory.openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+			for (final SensorInstance sensorInstance: sensorDescription.getSensorInstances()) {
+				session.delete(sensorInstance);
+			}
+			session.delete(sensorDescription);
+			session.flush();
+			transaction.commit();
+		} catch (Exception exception) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+
+			final String[] messages = { "Sensor could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor could not be deleted", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+			return false;
+		} finally {
+			session.close();
+		}
+
+		return true;
+	}
+
+	void showEditFunctions() {
+		if (editFunctionsShown) {
+			return;
+		}
+
+		final JButton removeButton = new JButton("Remove sensor");
+
+		removeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				removeSensorDescription(sensorDescription, owner, sessionFactory);
+
+				if (removeListener != null) {
+					removeListener.onRemove();
+				}
+			}
+		});
+		horizontalButtonGroup
+			.addPreferredGap(ComponentPlacement.RELATED)
+			.addComponent(removeButton);
+		verticalButtonGroup.addComponent(removeButton);
+		showBottom(true);
+		editFunctionsShown = true;
+	}
+
+	void setRemoveListener(RemoveListener removeListener) {
+		this.removeListener = removeListener;
 	}
 }

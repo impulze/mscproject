@@ -9,8 +9,8 @@ public class SensorInstance {
 	private Double parameter4;
 	private Double parameter5;
 	private Double parameter6;
-	private SensorDescription sensorDescription;
 	private Probe probe;
+	private SensorDescription sensorDescription;
 
 	public Long getId() {
 		return id;
@@ -76,20 +76,20 @@ public class SensorInstance {
 		this.parameter6 = parameter6;
 	}
 
-	public SensorDescription getSensorDescription() {
-		return sensorDescription;
-	}
-
-	public void setSensorDescription(SensorDescription sensorDescription) {
-		this.sensorDescription = sensorDescription;
-	}
-
 	public Probe getProbe() {
 		return probe;
 	}
 
 	public void setProbe(Probe probe) {
 		this.probe = probe;
+	}
+
+	public SensorDescription getSensorDescription() {
+		return sensorDescription;
+	}
+
+	public void setSensorDescription(SensorDescription sensorDescription) {
+		this.sensorDescription = sensorDescription;
 	}
 
 	public void getParameters(double[] parameters) {

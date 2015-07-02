@@ -78,7 +78,7 @@ public class EditProbeDialog extends EditDialog<Probe> {
 					JOptionPane.showMessageDialog(EditProbeDialog.this, message, "Duplicate probe", JOptionPane.ERROR_MESSAGE);					
 				} else {
 					probe = result.get(0);
-					Probe.initProbe(probe);
+					probe.initProbe();
 					setVisible(false);
 					dispose();
 				}

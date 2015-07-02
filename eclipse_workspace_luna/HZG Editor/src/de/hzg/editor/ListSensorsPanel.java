@@ -1,12 +1,15 @@
 package de.hzg.editor;
 
+import java.awt.FlowLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 
 import org.hibernate.Session;
@@ -14,11 +17,13 @@ import org.hibernate.SessionFactory;
 
 import de.hzg.measurement.SensorDescription;
 
-public class ListSensorsPanel extends SplitPanel implements DataProvider {
+public class ListSensorsPanel extends SplitPanel implements DataProvider, AddListener {
 	private static final long serialVersionUID = -2140811495389781461L;
 	private final JTable table;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
+	private AddListener addListener;
+	private EditListener<SensorDescription> editListener;
 
 	public ListSensorsPanel(Window owner, SessionFactory sessionFactory) {
 		this.owner = owner;
@@ -59,21 +64,46 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 	}
 
 	private JTable createTable(DataCreator dataCreator) {
+		final Adder adder = new Adder();
+		final JPanel addSensorPanel = new JPanel();
+
+		addSensorPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		adder.addToPanel(addSensorPanel, "Add sensor", this);
+
+		dataCreator.addPanel(addSensorPanel);
+
 		dataCreator.addInformationMessage("Use right click to add/edit/remove sensors.");
-		// TODO: allow this?!
-		//dataCreator.addInformationMessage("Use double left click to change sensor values.";
+		dataCreator.addInformationMessage("Use double left click to change sensor values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
 		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
-		final String addString = String.format("Add %s", "probe");
-		final String editString = String.format("Edit %s", "probe");
-		final String removeString = String.format("Remove %s", "probe");
+		final String addString = String.format("Add %s", "sensor");
+		final String editString = String.format("Edit %s", "sensor");
+		final String removeString = String.format("Remove %s", "sensor");
 
-		noCellPopupMenu.addItem(addString, null);
-		cellPopupMenu.addItem(addString, null);
-		cellPopupMenu.addItem(editString, null);
-		cellPopupMenu.addItem(removeString, null);
+		final TablePopupMenu.ActionListener addActionListener = new TablePopupMenu.ActionListener() {
+			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				onAdd();
+			}
+		};
+
+		noCellPopupMenu.addItem(addString, addActionListener);
+		cellPopupMenu.addItem(addString, addActionListener);
+		cellPopupMenu.addItem(editString, new TablePopupMenu.ActionListener() {
+			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				final SensorDescriptionTableModel tableModel = (SensorDescriptionTableModel)table.getModel();
+				final SensorDescription sensorDescription = tableModel.getSensorDescriptions().get(row);
+
+				onEdit(sensorDescription);
+			}
+		});
+		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
+			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				final SensorDescriptionTableModel tableModel = (SensorDescriptionTableModel)table.getModel();
+				removeSensorDescription(tableModel, row);
+			}
+		});
 
 		dataCreator.setCellPopupMenu(cellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
@@ -99,6 +129,10 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 				.createQuery("FROM SensorDescription")
 				.list();
 
+			for (final SensorDescription sensorDescription: result) {
+				sensorDescription.initSensorDescription();
+			}
+
 			final SensorDescriptionTableModel tableModel = (SensorDescriptionTableModel)table.getModel();;
 
 			tableModel.setSensorDescriptions(result);
@@ -115,5 +149,36 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 		}
 
 		return false;
+	}
+
+	void removeSensorDescription(SensorDescriptionTableModel tableModel, int row) {
+		final List<SensorDescription> sensorDescriptions = tableModel.getSensorDescriptions();
+		final SensorDescription sensorDescription = sensorDescriptions.get(row);
+		final boolean deleted = CreateEditSensorPanel.removeSensorDescription(sensorDescription, owner, sessionFactory);
+
+		if (deleted) {
+			sensorDescriptions.remove(row);
+			tableModel.fireTableDataChanged();
+		}
+	}
+
+	void setAddListener(AddListener addListener) {
+		this.addListener = addListener;
+	}
+
+	public void onAdd() {
+		if (addListener != null) {
+			addListener.onAdd();
+		}
+	}
+
+	void setEditListener(EditListener<SensorDescription> editListener) {
+		this.editListener = editListener;
+	}
+
+	public void onEdit(SensorDescription sensorDescription) {
+		if (editListener != null) {
+			editListener.onEdit(sensorDescription);
+		}
 	}
 }

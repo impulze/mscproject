@@ -316,7 +316,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider, Ad
 	}
 
 	static boolean removeProbe(Probe probe, Window owner, SessionFactory sessionFactory) {
-		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the probe.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the probe and all sensor instances for this probe.", "Are you sure?", JOptionPane.YES_NO_OPTION);
 
 		if (confirm != JOptionPane.YES_OPTION) {
 			return false;

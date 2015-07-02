@@ -152,8 +152,7 @@ public class Editor {
 		mntmListSensors.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final ListSensorsPanel listSensorsPanel = new ListSensorsPanel(frame, sessionFactory);
-					switchPanel("List sensors", listSensorsPanel);
+					setupListSensorsPanel();
 				}
 			}
 		});
@@ -340,8 +339,30 @@ public class Editor {
 	private void setupEditSensorPanel(CreateEditSensorPanel sensorPanel) {
 		sensorPanel.setSaved(true);
 		sensorPanel.setTitle("Edit sensor");
-		sensorPanel.showBottom(true);
+		sensorPanel.showEditFunctions();
+		sensorPanel.setRemoveListener(new RemoveListener() {
+			public void onRemove() {
+				setupListSensorsPanel();
+			}
+		});
 		switchPanel("Edit sensor", sensorPanel);
+	}
+
+	private void setupListSensorsPanel() {
+		final ListSensorsPanel listSensorsPanel = new ListSensorsPanel(frame, sessionFactory);
+		listSensorsPanel.setAddListener(new AddListener() {
+			public void onAdd() {
+				setupCreateSensorPanel();
+			}
+		});
+		listSensorsPanel.setEditListener(new EditListener<SensorDescription>() {
+			public void onEdit(SensorDescription sensorDescription) {
+				final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
+				setupEditSensorPanel(sensorPanel);
+			}
+		});
+
+		switchPanel("List sensors", listSensorsPanel);
 	}
 
 	private void setupCreateSensorClassPanel(SensorClassesConfiguration sensorClassesConfiguration) {

@@ -76,6 +76,7 @@ public class EditSensorDialog extends EditDialog<SensorDescription> {
 					JOptionPane.showMessageDialog(EditSensorDialog.this, message, "Duplicate sensor", JOptionPane.ERROR_MESSAGE);					
 				} else {
 					sensorDescription = result.get(0);
+					sensorDescription.initSensorDescription();
 					setVisible(false);
 					dispose();
 				}
