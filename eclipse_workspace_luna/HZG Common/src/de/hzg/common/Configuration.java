@@ -53,6 +53,12 @@ public class Configuration {
 		if (databaseList != null) {
 			parseDatabases(databaseList);
 		}
+
+		final NodeList sensorClassesList = root.getElementsByTagName("sensor_classes");
+
+		if (sensorClassesList != null) {
+			parseSensorClasses(sensorClassesList);
+		}
 	}
 
 	public DatabaseConfiguration getDatabaseConfiguration(String id) throws ConfigurationNotFound {
@@ -87,6 +93,31 @@ public class Configuration {
 		}
 	}
 
+	public SensorClassesConfiguration getSensorClassesConfiguration() throws ConfigurationNotFound {
+		@SuppressWarnings("unchecked")
+		final List<SensorClassesConfiguration> sensorClassesConfigurations = (List<SensorClassesConfiguration>)map.get("sensor_classes");
+
+		if (sensorClassesConfigurations != null) {
+			return sensorClassesConfigurations.get(0);
+		}
+
+		throw new ConfigurationNotFound(String.format("Sensor classes configuration not found."));
+	}
+
+	private void parseSensorClasses(NodeList nodeList) {
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			final Element element = (Element)nodeList.item(i);
+			final SensorClassesConfiguration sensorClassesConfiguration = new SensorClassesConfiguration();
+
+			final String homeDirectory = System.getProperty("user.home");
+			final String sourceDirectory = getTextValue(element, "source_directory");
+			sensorClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
+			sensorClassesConfiguration.setPackage(getTextValue(element, "package"));
+
+			addObject("sensor_classes", sensorClassesConfiguration);
+		}
+	}
+
 	static private String getTextValue(Element element, String tagName) {
 		final NodeList nodeList = element.getElementsByTagName(tagName);
 
@@ -108,7 +139,7 @@ public class Configuration {
 
 		if (currentEntries == null) {
 			currentEntries = new ArrayList<Object>(); 
-			map.put("database", currentEntries);
+			map.put(name, currentEntries);
 		}
 
 		currentEntries.add(object);
