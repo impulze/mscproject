@@ -1,4 +1,4 @@
-package de.hzg.sensors;
+package de.hzg.measurement;
 
 public interface Sensor {
 	SensorInstance getSensorInstance();

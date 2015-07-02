@@ -11,8 +11,8 @@
 		<mapping resource="de/hzg/values/RawData.hbm.xml" />
 		<mapping resource="de/hzg/values/CalculatedData.hbm.xml" />
 
-		<mapping resource="de/hzg/sensors/Probe.hbm.xml" />
-		<mapping resource="de/hzg/sensors/SensorDescription.hbm.xml" />
-		<mapping resource="de/hzg/sensors/SensorInstance.hbm.xml" />
+		<mapping resource="de/hzg/measurement/Probe.hbm.xml" />
+		<mapping resource="de/hzg/measurement/SensorDescription.hbm.xml" />
+		<mapping resource="de/hzg/measurement/SensorInstance.hbm.xml" />
 	</session-factory>
 </hibernate-configuration>

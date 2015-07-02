@@ -18,7 +18,7 @@
 			<column name="timestamp" not-null="true" />
 		</property>
 
-		<many-to-one name="sensorInstance" class="de.hzg.sensors.SensorInstance">
+		<many-to-one name="sensorInstance" class="de.hzg.measurement.SensorInstance">
 			<column name="sensor_instance_id" />
 		</many-to-one>
 	</class>

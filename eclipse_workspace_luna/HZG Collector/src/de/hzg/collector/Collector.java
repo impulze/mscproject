@@ -10,7 +10,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import de.hzg.common.HibernateUtil;
-import de.hzg.sensors.Probe;
+import de.hzg.measurement.Probe;
 
 public class Collector implements Runnable {
 	private static final Logger logger = Logger.getLogger(Collector.class.getName());

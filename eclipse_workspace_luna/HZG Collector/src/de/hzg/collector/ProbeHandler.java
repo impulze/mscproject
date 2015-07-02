@@ -14,10 +14,10 @@ import org.hibernate.SessionFactory;
 
 import de.hzg.common.ExceptionUtil;
 import de.hzg.common.HibernateUtil;
-import de.hzg.sensors.Probe;
-import de.hzg.sensors.Sensor;
-import de.hzg.sensors.SensorDescription;
-import de.hzg.sensors.SensorInstance;
+import de.hzg.measurement.Probe;
+import de.hzg.measurement.Sensor;
+import de.hzg.measurement.SensorDescription;
+import de.hzg.measurement.SensorInstance;
 import de.hzg.values.BinaryData;
 import de.hzg.values.BinaryDataInputStream;
 import de.hzg.values.CalculatedData;

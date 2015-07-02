@@ -1,4 +1,4 @@
-package de.hzg.sensors;
+package de.hzg.measurement;
 
 public class SensorDescription {
 	private Long id;

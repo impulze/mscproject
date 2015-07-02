@@ -2,7 +2,7 @@ package de.hzg.values;
 
 import java.util.Date;
 
-import de.hzg.sensors.SensorInstance;
+import de.hzg.measurement.SensorInstance;
 
 public class CalculatedData {
 	private Long id;
