@@ -3,6 +3,7 @@ package de.hzg.editor;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -14,11 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JDialog;
-import javax.tools.DiagnosticCollector;
+import javax.swing.SwingUtilities;
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
+import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import de.hzg.common.SensorClassesConfiguration;
@@ -27,10 +27,9 @@ public class SensorJavaClass {
 	private String name;
 	private String nameLoaded;
 	private String text;
-	private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-	private static final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-	private static final JavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
 	private final SensorClassesConfiguration sensorClassesConfiguration;
+	private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+	private static final StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
 	SensorJavaClass(SensorClassesConfiguration sensorClassesConfiguration) {
 		this.sensorClassesConfiguration = sensorClassesConfiguration;
@@ -135,8 +134,55 @@ public class SensorJavaClass {
 		Files.delete(Paths.get(inputPath));
 	}
 
-	public void compile() {
-		final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+	public static boolean compileTasks(Window owner, SensorClassesConfiguration sensorClassesConfiguration, String... names) {
+		final CompileOutputDialog dialog = new CompileOutputDialog(owner);
+		final StringBuilder writerStringBuilder = new StringBuilder();
+		final Writer writer = new Writer() {
+			@Override
+			public void close() throws IOException {
+			}
+
+			@Override
+			public void flush() throws IOException {
+			}
+
+			@Override
+			public void write(char[] charBuffer, int offset, int length) throws IOException {
+				for (int i = offset; i < offset + length; i++) {
+					final char c = charBuffer[i];
+
+					if (c == '\n') {
+						final String message = writerStringBuilder.toString();
+						writerStringBuilder.setLength(0);
+
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								dialog.append(message);
+							}
+						});
+					} else {
+						writerStringBuilder.append(c);
+					}
+				}
+			}
+		};
+
+		final String[] inputPaths = new String[names.length];
+
+		for (int i = 0; i < names.length; i++) {
+			inputPaths[i] = getInputPath(sensorClassesConfiguration, names[i]);
+		}
+
+		final CompilerSwingWorker worker = new CompilerSwingWorker(owner, dialog, writer, inputPaths, fileManager, compiler);
+
+		worker.execute();
+
+		dialog.pack();
+		dialog.setLocationRelativeTo(owner);
+		dialog.setVisible(true);
+
+		return worker.result();
 	}
 
 	private static String getInputPath(SensorClassesConfiguration sensorClassesConfiguration, String name) {

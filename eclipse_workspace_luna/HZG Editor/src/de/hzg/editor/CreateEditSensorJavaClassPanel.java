@@ -31,7 +31,6 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	private final Window owner;
 	private final SensorClassesConfiguration sensorClassesConfiguration;
 	private final SensorJavaClass sensorJavaClass;
-	private boolean inputSaved = false;
 
 	public CreateEditSensorJavaClassPanel(Window owner, SensorClassesConfiguration sensorClassesConfiguration, SensorJavaClass sensorJavaClass) {
 		this.owner = owner;
@@ -119,14 +118,14 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		compileButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (!inputSaved) {
+				if (isDirty()) {
 					final String message = String.format(
 							"The class it not yet saved.\n" +
 							"Do that before clicking compile.");
 					JOptionPane.showMessageDialog(owner, message, "Unsaved class", JOptionPane.ERROR_MESSAGE);
 
 				} else {
-					sensorJavaClass.compile();
+					SensorJavaClass.compileTasks(owner, sensorClassesConfiguration, sensorJavaClass.getName(), "P");
 				}
 			}
 		});
@@ -281,6 +280,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 
 	private void setClassFilter() {
 		try {
+			// TODO: seems hackish, always check template to see if this are the right numbers
 			final int editBeginOffset = classTextArea.getLineStartOffset(5);
 			final int editEndOffset = classTextArea.getText().length() - 2;
 			final DocumentFilter lineFilter = new ClassFilter(classTextArea, editBeginOffset, editEndOffset);
