@@ -1,11 +1,19 @@
 package de.hzg.editor;
 
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.JDialog;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
@@ -81,6 +89,35 @@ public class SensorJavaClass {
 		}
 	}
 
+	public static List<String> listNames(SensorClassesConfiguration sensorClassesConfiguration, Window owner) {
+		final String sourceDirectory = sensorClassesConfiguration.getSourceDirectory();
+		final String packageDirectory = sensorClassesConfiguration.getPackage().replace('.', File.separatorChar);
+		final String walkDirectory = sourceDirectory + File.separatorChar + packageDirectory + File.separatorChar;
+		final List<String> sensorClassNames = new ArrayList<String>();
+
+		try {
+			Files.walkFileTree(Paths.get(walkDirectory), new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) {
+					final String name = path.getFileName().toString();
+
+					if (name.endsWith(Kind.SOURCE.extension)) {
+						sensorClassNames.add(name.substring(0, name.length() - Kind.SOURCE.extension.length()));
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException exception) {
+			final String[] messages = { "Sensor classes cannot be determined.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor classes cannot be determined", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		}
+
+		return sensorClassNames;
+	}
 	private static String load(SensorClassesConfiguration sensorClassesConfiguration, String name) throws IOException {
 		final String inputPath = getInputPath(sensorClassesConfiguration, name);
 		final byte[] rawText = Files.readAllBytes(Paths.get(inputPath));

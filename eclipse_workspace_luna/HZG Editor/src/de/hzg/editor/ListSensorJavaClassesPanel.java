@@ -1,13 +1,12 @@
 package de.hzg.editor;
 
 import java.awt.Window;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
 import javax.swing.JTable;
-
-import org.hibernate.SessionFactory;
 
 import de.hzg.common.SensorClassesConfiguration;
 
@@ -15,12 +14,10 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 	private static final long serialVersionUID = -6614179124616055688L;
 	private final JTable table;
 	private final Window owner;
-	private final SessionFactory sessionFactory;
 	private final SensorClassesConfiguration sensorClassesConfiguration;
 
-	public ListSensorJavaClassesPanel(Window owner, SessionFactory sessionFactory, SensorClassesConfiguration sensorClassesConfiguration) {
+	public ListSensorJavaClassesPanel(Window owner,SensorClassesConfiguration sensorClassesConfiguration) {
 		this.owner = owner;
-		this.sessionFactory = sessionFactory;
 		this.sensorClassesConfiguration = sensorClassesConfiguration;
 
 		final DataCreator dataCreator = new DataCreator();
@@ -79,41 +76,22 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 	}
 
 	void setupTable(JTable table) {
-		/* TODO
-		final SensorDescriptionTableModel tableModel = new SensorDescriptionTableModel(owner, sessionFactory);
+		final SensorClassTableModel tableModel = new SensorClassTableModel();
 
 		table.setModel(tableModel);
-		table.getColumnModel().getColumn(0).setPreferredWidth(60);
-		table.getColumnModel().getColumn(1).setPreferredWidth(200);
-		table.getColumnModel().getColumn(2).setPreferredWidth(100);
-		*/
+		table.getColumnModel().getColumn(0).setPreferredWidth(100);
 	}
 
 	public boolean provide(String title) {
-		/* TODO
-		final Session session = sessionFactory.openSession();
+		final SensorClassTableModel tableModel = (SensorClassTableModel)table.getModel();
 
-		try {
-			@SuppressWarnings("unchecked")
-			final List<SensorDescription> result = (List<SensorDescription>)session
-				.createQuery("FROM SensorDescription")
-				.list();
+		if (title.equals("Refresh list")) {
+			final List<String> sensorClassNames = SensorJavaClass.listNames(sensorClassesConfiguration, owner);
 
-			final SensorDescriptionTableModel tableModel = (SensorDescriptionTableModel)table.getModel();;
-
-			tableModel.setSensorDescriptions(result);
+			tableModel.setSensorClassNames(sensorClassNames);
 			tableModel.fireTableDataChanged();
 			return true;
-		} catch (Exception exception) {
-			final String[] messages = { "Sensors could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensors not loaded", messages, exception);
-			dialog.pack();
-			dialog.setLocationRelativeTo(owner);
-			dialog.setVisible(true);
-		} finally {
-			session.close();
 		}
-		*/
 
 		return false;
 	}

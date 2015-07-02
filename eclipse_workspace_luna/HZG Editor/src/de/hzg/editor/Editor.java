@@ -232,7 +232,7 @@ public class Editor {
 		mntmListSensorClasses.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final ListSensorJavaClassesPanel listSensorClassesPanel = new ListSensorJavaClassesPanel(frame, sessionFactory, usedSensorClassesConfiguration);
+					final ListSensorJavaClassesPanel listSensorClassesPanel = new ListSensorJavaClassesPanel(frame, usedSensorClassesConfiguration);
 					switchPanel("List sensor classes", listSensorClassesPanel);
 				}
 			}
