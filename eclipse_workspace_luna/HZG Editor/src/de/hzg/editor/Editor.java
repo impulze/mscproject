@@ -218,7 +218,17 @@ public class Editor {
 		mnHelp.add(separator_4);
 
 		JMenuItem mntmAboutHZGEditor = new JMenuItem("About HZG Editor");
+		mntmAboutHZGEditor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				final AboutDialog aboutDialog = new AboutDialog(frame);
+
+				aboutDialog.pack();
+				aboutDialog.setLocationRelativeTo(frame);
+				aboutDialog.setVisible(true);
+			}
+		});
 		mnHelp.add(mntmAboutHZGEditor);
+
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
 		/* TODO: for development */
