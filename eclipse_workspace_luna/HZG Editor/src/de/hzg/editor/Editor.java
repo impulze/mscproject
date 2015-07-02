@@ -27,17 +27,18 @@ public class Editor {
 	private JFrame frame;
 	private SessionFactory sessionFactory;
 	private Component currentComponent = null;
+	private static SensorClassesConfiguration sensorClassesConfiguration;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					final Configuration configuration = new Configuration();
-					final SensorClassesConfiguration sensorClassesConfiguration = configuration.getSensorClassesConfiguration();
+					sensorClassesConfiguration = configuration.getSensorClassesConfiguration();
 					final HibernateUtil hibernateUtil = new HibernateUtil(configuration);
 					final Editor editor = new Editor();
 					editor.sessionFactory = hibernateUtil.getSessionFactory();
-					editor.initialize(sensorClassesConfiguration);
+					editor.initialize();
 					editor.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -46,9 +47,7 @@ public class Editor {
 		});
 	}
 
-	private void initialize(SensorClassesConfiguration sensorClassesConfiguration) {
-		final SensorClassesConfiguration usedSensorClassesConfiguration = sensorClassesConfiguration;
-
+	private void initialize() {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 850, 600);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -140,7 +139,7 @@ public class Editor {
 					final SensorDescription sensorDescription = dialog.getResult();
 
 					if (sensorDescription != null) {
-						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
+						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, sensorDescription);
 						setupEditSensorPanel(sensorPanel);
 					}
 				}
@@ -165,7 +164,7 @@ public class Editor {
 		mntmCreateSensorClass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					setupCreateSensorClassPanel(usedSensorClassesConfiguration);
+					setupCreateSensorJavaClassPanel();
 				}
 			}
 		});
@@ -175,14 +174,14 @@ public class Editor {
 		mntmEditSensorClass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final EditSensorJavaClassDialog dialog = new EditSensorJavaClassDialog(frame, usedSensorClassesConfiguration);
+					final EditSensorJavaClassDialog dialog = new EditSensorJavaClassDialog(frame, sensorClassesConfiguration);
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
 					dialog.setVisible(true);
 					final SensorJavaClass sensorJavaClass = dialog.getResult();
 
 					if (sensorJavaClass != null) {
-						final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, usedSensorClassesConfiguration, sensorJavaClass);
+						final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sessionFactory, sensorClassesConfiguration, sensorJavaClass);
 						setupEditSensorJavaClassPanel(sensorJavaClassPanel);
 					}
 				}
@@ -194,8 +193,7 @@ public class Editor {
 		mntmListSensorClasses.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final ListSensorJavaClassesPanel listSensorClassesPanel = new ListSensorJavaClassesPanel(frame, usedSensorClassesConfiguration);
-					switchPanel("List sensor classes", listSensorClassesPanel);
+					setupListSensorJavaClassesPanel();
 				}
 			}
 		});
@@ -232,7 +230,7 @@ public class Editor {
 				.setParameter("name", "Vbatt")
 				.list();
 			final SensorDescription sensorDescription = result.get(0);
-			final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
+			final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, sensorDescription);
 			setupEditSensorPanel(sensorPanel);
 		} finally {
 			session.close();
@@ -280,7 +278,6 @@ public class Editor {
 		final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, newProbe);
 
 		probePanel.setTitle("Create probe");
-		probePanel.showBottom(false);
 		switchPanel("Create probe", probePanel);
 
 		probePanel.setSavedHandler(new SavedHandler() {
@@ -322,10 +319,9 @@ public class Editor {
 
 	private void setupCreateSensorPanel() {
 		final SensorDescription newSensorDescription= CreateEditSensorPanel.createNewSensorDescription();
-		final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, newSensorDescription);
+		final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, newSensorDescription);
 
 		sensorPanel.setTitle("Create sensor");
-		sensorPanel.showBottom(false);
 		switchPanel("Create sensor", sensorPanel);
 
 		sensorPanel.setSavedHandler(new SavedHandler() {
@@ -357,7 +353,7 @@ public class Editor {
 		});
 		listSensorsPanel.setEditListener(new EditListener<SensorDescription>() {
 			public void onEdit(SensorDescription sensorDescription) {
-				final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
+				final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, sensorDescription);
 				setupEditSensorPanel(sensorPanel);
 			}
 		});
@@ -365,12 +361,11 @@ public class Editor {
 		switchPanel("List sensors", listSensorsPanel);
 	}
 
-	private void setupCreateSensorClassPanel(SensorClassesConfiguration sensorClassesConfiguration) {
+	private void setupCreateSensorJavaClassPanel() {
 		final SensorJavaClass newSensorJavaClass = CreateEditSensorJavaClassPanel.createNewSensorJavaClass(sensorClassesConfiguration);
-		final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sensorClassesConfiguration, newSensorJavaClass);
+		final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sessionFactory, sensorClassesConfiguration, newSensorJavaClass);
 
 		sensorJavaClassPanel.setTitle("Create sensor class");
-		sensorJavaClassPanel.showBottom(false);
 		switchPanel("Create sensor class", sensorJavaClassPanel);
 
 		sensorJavaClassPanel.setSavedHandler(new SavedHandler() {
@@ -385,7 +380,29 @@ public class Editor {
 		// In terms of sensorJavaClassPanel being saved basically means it's on the filesystem
 		sensorJavaClassPanel.setSaved(true);
 		sensorJavaClassPanel.setTitle("Edit sensor class");
-		sensorJavaClassPanel.showBottom(true);
+		sensorJavaClassPanel.showEditFunctions();
+		sensorJavaClassPanel.setRemoveListener(new RemoveListener() {
+			public void onRemove() {
+				setupListSensorJavaClassesPanel();
+			}
+		});
 		switchPanel("Edit sensor class", sensorJavaClassPanel);
+	}
+
+	private void setupListSensorJavaClassesPanel() {
+		final ListSensorJavaClassesPanel listSensorClassesPanel = new ListSensorJavaClassesPanel(frame, sessionFactory, sensorClassesConfiguration);
+		listSensorClassesPanel.setAddListener(new AddListener() {
+			public void onAdd() {
+				setupCreateSensorJavaClassPanel();
+			}
+		});
+		listSensorClassesPanel.setEditListener(new EditListener<SensorJavaClass>() {
+			public void onEdit(SensorJavaClass sensorJavaClass) {
+				final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sessionFactory, sensorClassesConfiguration, sensorJavaClass);
+				setupEditSensorJavaClassPanel(sensorJavaClassPanel);
+			}
+		});
+
+		switchPanel("List sensor classes", listSensorClassesPanel);
 	}
 }

@@ -113,7 +113,8 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider, Ad
 			.addGroup(labelsWithInputsAndButtonLayout)
 			.addContainerGap(251, Short.MAX_VALUE);
 
-		verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(actionButton);
+		verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE)
+			.addComponent(actionButton);
 		final SequentialGroup verticalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblName).addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))

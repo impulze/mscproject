@@ -199,4 +199,33 @@ public class SensorJavaClass {
 	public static String getTemplate() {
 		return "";
 	}
+
+	public static SensorJavaClass loadByName(SensorClassesConfiguration sensorClassesConfiguration, Window owner, String name) {
+
+		final SensorJavaClass sensorJavaClass = new SensorJavaClass(sensorClassesConfiguration);
+
+		try {
+			sensorJavaClass.setName(name);
+		} catch (InvalidIdentifierException exception) {
+			final String[] messages = { "Sensor class has an invalid identifier.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor class has an invalid identifier", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+			return null;
+		}
+
+		try {
+			sensorJavaClass.load();
+		} catch (IOException exception) {
+			final String[] messages = { "Sensor class could not be loaded.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor class not loaded", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+			return null;
+		}
+
+		return sensorJavaClass;
+	}
 }

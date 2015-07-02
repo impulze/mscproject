@@ -5,6 +5,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +25,13 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
 import de.hzg.common.SensorClassesConfiguration;
+import de.hzg.measurement.SensorDescription;
+import de.hzg.measurement.SensorInstance;
 
 public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataProvider {
 	private static final long serialVersionUID = 4736407909177124580L;
@@ -34,9 +41,15 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	private final SensorClassesConfiguration sensorClassesConfiguration;
 	private final SensorJavaClass sensorJavaClass;
 	private boolean inputSaved = false;
+	private RemoveListener removeListener;
+	private SequentialGroup horizontalButtonGroup;
+	private ParallelGroup verticalButtonGroup;
+	private boolean editFunctionsShown = false;
+	private SessionFactory sessionFactory;
 
-	public CreateEditSensorJavaClassPanel(Window owner, SensorClassesConfiguration sensorClassesConfiguration, SensorJavaClass sensorJavaClass) {
+	public CreateEditSensorJavaClassPanel(Window owner, SessionFactory sessionFactory, SensorClassesConfiguration sensorClassesConfiguration, SensorJavaClass sensorJavaClass) {
 		this.owner = owner;
+		this.sessionFactory = sessionFactory;
 		this.sensorClassesConfiguration = sensorClassesConfiguration;
 		this.sensorJavaClass = sensorJavaClass;
 
@@ -88,20 +101,24 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 			.addGroup(labelsLayout)
 			.addPreferredGap(ComponentPlacement.RELATED)
 			.addGroup(inputsLayout);
+		horizontalButtonGroup = topPanelLayout.createSequentialGroup()
+			.addComponent(actionButton);
 		final ParallelGroup labelsWithInputsAndButtonLayout = topPanelLayout.createParallelGroup(Alignment.LEADING)
 			.addGroup(labelsWithInputsLayout)
-			.addComponent(actionButton);
+			.addGroup(horizontalButtonGroup);
 		final SequentialGroup horizontalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(labelsWithInputsAndButtonLayout)
 			.addContainerGap(251, Short.MAX_VALUE);
 
+		verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE)
+			.addComponent(actionButton);
 		final SequentialGroup verticalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblClassName).addComponent(classNameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 			.addGap(8)
 			.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-			.addComponent(actionButton)
+			.addGroup(verticalButtonGroup)
 			.addContainerGap();
 
 		topPanelLayout.setHorizontalGroup(horizontalLayoutWithGaps);
@@ -131,7 +148,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 					JOptionPane.showMessageDialog(owner, message, "Unsaved class", JOptionPane.ERROR_MESSAGE);
 
 				} else {
-					SensorJavaClass.compileTasks(owner, sensorClassesConfiguration, sensorJavaClass.getName(), "P");
+					SensorJavaClass.compileTasks(owner, sensorClassesConfiguration, sensorJavaClass.getName());
 				}
 			}
 		});
@@ -251,13 +268,11 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 					dialog.setLocationRelativeTo(owner);
 					dialog.setVisible(true);
 				}
-
-				// when the old file is deleted (name changed) update classtextarea
-				{
-					updateClassTextArea();
-					classToSensorJavaClass();
-				}
 			}
+
+			// name was changed, update classtextarea
+			updateClassTextArea();
+			classToSensorJavaClass();
 		} else {
 			classToSensorJavaClass();
 		}
@@ -314,5 +329,90 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 		}
+	}
+
+	static boolean removeSensorJavaClass(SensorJavaClass sensorJavaClass, Window owner, SessionFactory sessionFactory) {
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor Java class and all sensor descriptions and instances referring to it.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+
+		if (confirm != JOptionPane.YES_OPTION) {
+			return false;
+		}
+
+		final Session session = sessionFactory.openSession();
+		Transaction transaction = null;
+
+		transaction = session.beginTransaction();
+		try {
+			@SuppressWarnings("unchecked")
+			final List<SensorDescription> tempResult = (List<SensorDescription>)session
+				.createQuery("FROM SensorDescription WHERE classname = :classname")
+				.setParameter("classname", sensorJavaClass.getName())
+				.list();
+
+			for (final SensorDescription sensorDescription: tempResult) {
+				sensorDescription.initSensorDescription();
+
+				for (final SensorInstance sensorInstance: sensorDescription.getSensorInstances()) {
+					session.delete(sensorInstance);
+				}
+
+				session.delete(sensorDescription);
+			}
+
+			session.flush();
+			transaction.commit();
+		} catch (Exception exception) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+
+			final String[] messages = { "Sensor descriptions and instances could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor descriptions and instances could not be deleted", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		} finally {
+			session.close();
+		}
+
+		try {
+			sensorJavaClass.deleteLoadedInstance();
+		} catch (IOException exception) {
+			final String[] messages = { "Sensor class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of sensor classes." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor class cannot be deleted", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		}
+
+		return true;
+	}
+
+	void showEditFunctions() {
+		if (editFunctionsShown) {
+			return;
+		}
+
+		final JButton removeButton = new JButton("Remove sensor");
+
+		removeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				removeSensorJavaClass(sensorJavaClass, owner, sessionFactory);
+
+				if (removeListener != null) {
+					removeListener.onRemove();
+				}
+			}
+		});
+		horizontalButtonGroup
+			.addPreferredGap(ComponentPlacement.RELATED)
+			.addComponent(removeButton);
+		verticalButtonGroup.addComponent(removeButton);
+		showBottom(true);
+		editFunctionsShown = true;
+	}
+
+	void setRemoveListener(RemoveListener removeListener) {
+		this.removeListener = removeListener;
 	}
 }

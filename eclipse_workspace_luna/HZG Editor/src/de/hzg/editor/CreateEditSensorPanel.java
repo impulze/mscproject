@@ -4,8 +4,6 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collections;
-import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -25,6 +23,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+import de.hzg.common.SensorClassesConfiguration;
 import de.hzg.measurement.SensorDescription;
 import de.hzg.measurement.SensorInstance;
 
@@ -42,7 +41,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 	private ParallelGroup verticalButtonGroup;
 	private boolean editFunctionsShown = false;
 
-	public CreateEditSensorPanel(Window owner, SessionFactory sessionFactory, SensorDescription sensorDescription) {
+	public CreateEditSensorPanel(Window owner, SessionFactory sessionFactory, SensorClassesConfiguration sensorClassesConfiguration, SensorDescription sensorDescription) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
 		this.sensorDescription = sensorDescription;
@@ -50,7 +49,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 		nameTextField = new JTextField();
 		nameTextField.setColumns(20);
 
-		classNameComboBox = new JComboBox<String>();
+		classNameComboBox = new SensorJavaClassComboBox(owner, sensorClassesConfiguration);
 
 		unitTextField = new JTextField();
 		unitTextField.setColumns(10);
@@ -62,16 +61,6 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 		setBottomPanelTitle("Metadata");
 		getBottomPanel().add(dataCreator.createPanel(metadataTextArea));
 		createForm();
-
-		final List<String> classNames = MeasurementQueries.getSensorDescriptionClassNames(owner, sessionFactory);
-
-		if (classNames != null) {
-			Collections.sort(classNames);
-
-			for (final String className : classNames) {
-				classNameComboBox.addItem(className);
-			}
-		}
 
 		setDataProvider(this);
 		sensorDescriptionToFormAndMetadata();
@@ -121,7 +110,8 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 			.addGroup(labelsWithInputsAndButtonLayout)
 			.addContainerGap(251, Short.MAX_VALUE);
 
-		verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(actionButton);
+		verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE)
+			.addComponent(actionButton);
 		final SequentialGroup verticalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblName).addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
@@ -251,6 +241,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 			final String cmpString = sensorDescription.getName() == null ? "" : sensorDescription.getName();
 
 			if (!nameTextField.getText().equals(cmpString)) {
+				System.out.println("names don't match");
 				return true;
 			}
 		}
@@ -259,6 +250,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 			final String cmpString = sensorDescription.getClassName() == null ? "" : sensorDescription.getClassName();
 
 			if (classNameComboBox.getSelectedItem() != null && !classNameComboBox.getSelectedItem().equals(cmpString)) {
+				System.out.println("classnames don't match " + classNameComboBox.getSelectedItem() + " " + sensorDescription.getClassName());
 				return true;
 			}
 		}

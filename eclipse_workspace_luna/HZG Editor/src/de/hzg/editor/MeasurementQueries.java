@@ -35,30 +35,6 @@ public class MeasurementQueries {
 		return result;
 	}
 
-	public static List<String> getSensorDescriptionClassNames(Window owner, SessionFactory sessionFactory) {
-		final Session session = sessionFactory.openSession();
-		final List<String> result;
-
-		try {
-			@SuppressWarnings("unchecked")
-			final List<String> tempResult = (List<String>)session
-				.createQuery("SELECT DISTINCT sd.className FROM SensorDescription sd")
-				.list();
-			result = tempResult;
-		} catch (Exception exception) {
-			final String[] messages = { "Sensor Java classnames could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor Java classnames could not loaded", messages, exception);
-			dialog.pack();
-			dialog.setLocationRelativeTo(owner);
-			dialog.setVisible(true);
-			throw exception;
-		} finally {
-			session.close();
-		}
-
-		return result;
-	}
-
 	public static List<SensorDescription> getSensorDescriptions(Window owner, SessionFactory sessionFactory) {
 		final Session session = sessionFactory.openSession();
 		final List<SensorDescription> result;

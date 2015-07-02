@@ -4,9 +4,13 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-public class SensorClassTableModel extends AbstractTableModel {
+public class SensorJavaClassTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = -7111186243559108891L;
 	private List<String> sensorClassNames;
+
+	public List<String> getSensorClassNames() {
+		return sensorClassNames;
+	}
 
 	public void setSensorClassNames(List<String> sensorClassNames) {
 		this.sensorClassNames = sensorClassNames;
