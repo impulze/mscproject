@@ -56,14 +56,11 @@ public class Editor {
 		menuBar_1.setBorderPainted(false);
 		frame.setJMenuBar(menuBar_1);
 
-		JMenu mnDatabase = new JMenu("File");
-		menuBar_1.add(mnDatabase);
-
-		JMenuItem mntmSwitchDB = new JMenuItem("Switch database");
-		mnDatabase.add(mntmSwitchDB);
+		JMenu mnFile = new JMenu("File");
+		menuBar_1.add(mnFile);
 
 		JSeparator separator_0 = new JSeparator();
-		mnDatabase.add(separator_0);
+		mnFile.add(separator_0);
 
 		JMenuItem mntmExit = new JMenuItem("Exit");
 		mntmExit.addActionListener(new ActionListener() {
@@ -71,7 +68,7 @@ public class Editor {
 				System.exit(0);
 			}
 		});
-		mnDatabase.add(mntmExit);
+		mnFile.add(mntmExit);
 
 		JMenu mnProbe = new JMenu("Edit");
 		menuBar_1.add(mnProbe);
