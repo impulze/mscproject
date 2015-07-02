@@ -47,6 +47,7 @@ public class AddSensorInstanceDialog extends EditDialog<SensorInstance> {
 
 		setOKListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				final List<SensorInstance> sensorInstances = usedProbe.getSensorInstances();
 				final Session session = usedSessionFactory.openSession();
 				final SensorDescription sensorDescription = (SensorDescription)sensorDescriptionComboBox.getSelectedItem();
 				sensorInstance = new SensorInstance();
@@ -63,7 +64,6 @@ public class AddSensorInstanceDialog extends EditDialog<SensorInstance> {
 					sensorInstance.setParameter4(0.0);
 					sensorInstance.setParameter5(0.0);
 					sensorInstance.setParameter6(0.0);
-					final List<SensorInstance> sensorInstances = usedProbe.getSensorInstances();
 					sensorInstances.add(sensorInstance);
 					session.update(usedProbe);
 					session.save(sensorInstance);
@@ -74,6 +74,9 @@ public class AddSensorInstanceDialog extends EditDialog<SensorInstance> {
 					if (transaction != null) {
 						transaction.rollback();
 					}
+
+					sensorInstances.remove(sensorInstance);
+
 					final String[] messages = { "Sensor instance could not be created.", "An exception occured." };
 					final JDialog dialog = new ExceptionDialog(usedOwner, "Probe not loaded", messages, exception);
 					dialog.pack();

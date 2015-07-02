@@ -81,19 +81,7 @@ public class Editor {
 		mntmCreateProbe.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final Probe newProbe = CreateEditProbePanel.createNewProbe();
-					final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, newProbe);
-
-					probePanel.setTitle("Create probe");
-					probePanel.showBottom(false);
-					switchPanel("Create probe", probePanel);
-
-					probePanel.setSavedHandler(new SavedHandler() {
-						@Override
-						public void onSave() {
-							setupEditProbePanel(probePanel);
-						}
-					});
+					setupCreateProbePanel();
 				}
 			}
 		});
@@ -122,8 +110,7 @@ public class Editor {
 		mntmListProbes.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final ListProbesPanel listProbesPanel = new ListProbesPanel(frame, sessionFactory);
-					switchPanel("List probes", listProbesPanel);
+					setupListProbesPanel();
 				}
 			}
 		});
@@ -136,19 +123,7 @@ public class Editor {
 		mntmCreateSensor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final SensorDescription newSensorDescription= CreateEditSensorPanel.createNewSensorDescription();
-					final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, newSensorDescription);
-
-					sensorPanel.setTitle("Create sensor");
-					sensorPanel.showBottom(false);
-					switchPanel("Create sensor", sensorPanel);
-
-					sensorPanel.setSavedHandler(new SavedHandler() {
-						@Override
-						public void onSave() {
-							setupEditSensorPanel(sensorPanel);
-						}
-					});
+					setupCreateSensorPanel();
 				}
 			}
 		});
@@ -191,19 +166,7 @@ public class Editor {
 		mntmCreateSensorClass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final SensorJavaClass newSensorJavaClass = CreateEditSensorJavaClassPanel.createNewSensorJavaClass(usedSensorClassesConfiguration);
-					final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, usedSensorClassesConfiguration, newSensorJavaClass);
-
-					sensorJavaClassPanel.setTitle("Create sensor class");
-					sensorJavaClassPanel.showBottom(false);
-					switchPanel("Create sensor class", sensorJavaClassPanel);
-
-					sensorJavaClassPanel.setSavedHandler(new SavedHandler() {
-						@Override
-						public void onSave() {
-							setupEditSensorJavaClassPanel(sensorJavaClassPanel);
-						}
-					});
+					setupCreateSensorClassPanel(usedSensorClassesConfiguration);
 				}
 			}
 		});
@@ -313,11 +276,65 @@ public class Editor {
 		return clear;
 	}
 
+	private void setupCreateProbePanel() {
+		final Probe newProbe = CreateEditProbePanel.createNewProbe();
+		final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, newProbe);
+
+		probePanel.setTitle("Create probe");
+		probePanel.showBottom(false);
+		switchPanel("Create probe", probePanel);
+
+		probePanel.setSavedHandler(new SavedHandler() {
+			@Override
+			public void onSave() {
+				setupEditProbePanel(probePanel);
+			}
+		});
+	}
+
 	private void setupEditProbePanel(CreateEditProbePanel probePanel) {
 		probePanel.setSaved(true);
 		probePanel.setTitle("Edit probe");
-		probePanel.showBottom(true);
+		probePanel.showEditFunctions();
+		probePanel.setRemoveListener(new RemoveListener() {
+			public void onRemove() {
+				setupListProbesPanel();
+			}
+		});
 		switchPanel("Edit probe", probePanel);
+	}
+
+	private void setupListProbesPanel() {
+		final ListProbesPanel listProbesPanel = new ListProbesPanel(frame, sessionFactory);
+		listProbesPanel.setAddListener(new AddListener() {
+			public void onAdd() {
+				setupCreateProbePanel();
+			}
+		});
+		listProbesPanel.setEditListener(new EditListener<Probe>() {
+			public void onEdit(Probe probe) {
+				final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, probe);
+				setupEditProbePanel(probePanel);
+			}
+		});
+
+		switchPanel("List probes", listProbesPanel);
+	}
+
+	private void setupCreateSensorPanel() {
+		final SensorDescription newSensorDescription= CreateEditSensorPanel.createNewSensorDescription();
+		final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, newSensorDescription);
+
+		sensorPanel.setTitle("Create sensor");
+		sensorPanel.showBottom(false);
+		switchPanel("Create sensor", sensorPanel);
+
+		sensorPanel.setSavedHandler(new SavedHandler() {
+			@Override
+			public void onSave() {
+				setupEditSensorPanel(sensorPanel);
+			}
+		});
 	}
 
 	private void setupEditSensorPanel(CreateEditSensorPanel sensorPanel) {
@@ -325,6 +342,22 @@ public class Editor {
 		sensorPanel.setTitle("Edit sensor");
 		sensorPanel.showBottom(true);
 		switchPanel("Edit sensor", sensorPanel);
+	}
+
+	private void setupCreateSensorClassPanel(SensorClassesConfiguration sensorClassesConfiguration) {
+		final SensorJavaClass newSensorJavaClass = CreateEditSensorJavaClassPanel.createNewSensorJavaClass(sensorClassesConfiguration);
+		final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sensorClassesConfiguration, newSensorJavaClass);
+
+		sensorJavaClassPanel.setTitle("Create sensor class");
+		sensorJavaClassPanel.showBottom(false);
+		switchPanel("Create sensor class", sensorJavaClassPanel);
+
+		sensorJavaClassPanel.setSavedHandler(new SavedHandler() {
+			@Override
+			public void onSave() {
+				setupEditSensorJavaClassPanel(sensorJavaClassPanel);
+			}
+		});
 	}
 
 	private void setupEditSensorJavaClassPanel(CreateEditSensorJavaClassPanel sensorJavaClassPanel) {

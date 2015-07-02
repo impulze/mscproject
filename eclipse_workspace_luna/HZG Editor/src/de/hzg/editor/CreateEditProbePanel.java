@@ -28,12 +28,13 @@ import javax.swing.table.TableRowSorter;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 import de.hzg.measurement.Probe;
 import de.hzg.measurement.SensorDescription;
 import de.hzg.measurement.SensorInstance;
 
-public class CreateEditProbePanel extends SplitPanel implements DataProvider {
+public class CreateEditProbePanel extends SplitPanel implements DataProvider, AddListener {
 	private static final long serialVersionUID = 5644942285449679689L;
 	private final JTextField nameTextField;
 	private final JTextField deviceTextField;
@@ -42,6 +43,10 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 	private final Window owner;
 	private final SessionFactory sessionFactory;
 	private final Probe probe;
+	private RemoveListener removeListener;
+	private SequentialGroup horizontalButtonGroup;
+	private ParallelGroup verticalButtonGroup;
+	private boolean editFunctionsShown = false;
 
 	public CreateEditProbePanel(Window owner, SessionFactory sessionFactory, Probe probe) {
 		this.owner = owner;
@@ -98,14 +103,17 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 			.addGroup(labelsLayout)
 			.addPreferredGap(ComponentPlacement.RELATED)
 			.addGroup(inputsLayout);
+		horizontalButtonGroup = topPanelLayout.createSequentialGroup()
+			.addComponent(actionButton);
 		final ParallelGroup labelsWithInputsAndButtonLayout = topPanelLayout.createParallelGroup(Alignment.LEADING)
 			.addGroup(labelsWithInputsLayout)
-			.addComponent(actionButton);
+			.addGroup(horizontalButtonGroup);
 		final SequentialGroup horizontalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(labelsWithInputsAndButtonLayout)
 			.addContainerGap(251, Short.MAX_VALUE);
 
+		verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(actionButton);
 		final SequentialGroup verticalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblName).addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
@@ -115,7 +123,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 			.addComponent(chckbxActive)
 			.addGap(8)
 			.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-			.addComponent(actionButton)
+			.addGroup(verticalButtonGroup)
 			.addContainerGap();
 
 		topPanelLayout.setHorizontalGroup(horizontalLayoutWithGaps);
@@ -125,18 +133,11 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 	}
 
 	private JTable createTableArea(DataCreator dataCreator) {
+		final Adder adder = new Adder();
 		final JPanel addSensorInstancePanel = new JPanel();
-		final JButton addSensorInstanceButton = new JButton("Add sensor instance");
-
-		addSensorInstanceButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				addSensorInstance();
-			}
-		});
 
 		addSensorInstancePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		addSensorInstancePanel.add(addSensorInstanceButton);
+		adder.addToPanel(addSensorInstancePanel, "Add sensor instance", this);
 
 		dataCreator.addPanel(addSensorInstancePanel);
 
@@ -150,7 +151,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		final String removeString = String.format("Remove %s", "sensor instance");
 		final TablePopupMenu.ActionListener addListener = new TablePopupMenu.ActionListener() {
 			public void actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				addSensorInstance();
+				onAdd();
 			}
 		};
 
@@ -158,7 +159,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		cellPopupMenu.addItem(addString, addListener);
 		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final SensorInstanceTableModel tableModel = (SensorInstanceTableModel) table.getModel();
+				final SensorInstanceTableModel tableModel = (SensorInstanceTableModel)table.getModel();
 				removeSensorInstance(tableModel, row);
 			}
 		});
@@ -274,7 +275,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		return false;
 	}
 
-	private void addSensorInstance() {
+	public void onAdd() {
 		final AddSensorInstanceDialog dialog = new AddSensorInstanceDialog(owner, sessionFactory, probe);
 		dialog.pack();
 		dialog.setLocationRelativeTo(owner);
@@ -282,7 +283,9 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		final SensorInstance sensorInstance = dialog.getResult();
 
 		if (sensorInstance != null) {
-			((SensorInstanceTableModel)table.getModel()).fireTableDataChanged();
+			final SensorInstanceTableModel tableModel = (SensorInstanceTableModel)table.getModel();
+
+			tableModel.fireTableDataChanged();
 		}
 	}
 
@@ -310,5 +313,69 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		} finally {
 			session.close();
 		}
+	}
+
+	static boolean removeProbe(Probe probe, Window owner, SessionFactory sessionFactory) {
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the probe.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+
+		if (confirm != JOptionPane.YES_OPTION) {
+			return false;
+		}
+
+		final Session session = sessionFactory.openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+			for (final SensorInstance sensorInstance: probe.getSensorInstances()) {
+				session.delete(sensorInstance);
+			}
+			session.delete(probe);
+			session.flush();
+			transaction.commit();
+		} catch (Exception exception) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+
+			final String[] messages = { "Probe could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Probe could not be deleted", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+			return false;
+		} finally {
+			session.close();
+		}
+
+		return true;
+	}
+
+	void showEditFunctions() {
+		if (editFunctionsShown) {
+			return;
+		}
+
+		final JButton removeButton = new JButton("Remove probe");
+
+		removeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				removeProbe(probe, owner, sessionFactory);
+
+				if (removeListener != null) {
+					removeListener.onRemove();
+				}
+			}
+		});
+		horizontalButtonGroup
+			.addPreferredGap(ComponentPlacement.RELATED)
+			.addComponent(removeButton);
+		verticalButtonGroup.addComponent(removeButton);
+		showBottom(true);
+		editFunctionsShown = true;
+	}
+
+	void setRemoveListener(RemoveListener removeListener) {
+		this.removeListener = removeListener;
 	}
 };
