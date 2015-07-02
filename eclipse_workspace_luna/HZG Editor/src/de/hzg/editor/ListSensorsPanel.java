@@ -70,10 +70,10 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider {
 		final String editString = String.format("Edit %s", "probe");
 		final String removeString = String.format("Remove %s", "probe");
 
-		noCellPopupMenu.addItem(addString);
-		cellPopupMenu.addItem(addString);
-		cellPopupMenu.addItem(editString);
-		cellPopupMenu.addItem(removeString);
+		noCellPopupMenu.addItem(addString, null);
+		cellPopupMenu.addItem(addString, null);
+		cellPopupMenu.addItem(editString, null);
+		cellPopupMenu.addItem(removeString, null);
 
 		dataCreator.setCellPopupMenu(cellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);

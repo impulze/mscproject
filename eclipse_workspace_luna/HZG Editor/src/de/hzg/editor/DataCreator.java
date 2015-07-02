@@ -24,8 +24,9 @@ public class DataCreator {
 	private final List<List<JPanel>> informationMessagePanelsLists = new ArrayList<List<JPanel>>();
 	private final List<JComponent> panelList = new ArrayList<JComponent>();
 	private int currentRowForPopup = -1;
-	private JPopupMenu cellPopupMenu;
-	private JPopupMenu noCellPopupMenu;
+	private int currentColumnForPopup = -1;
+	private TablePopupMenu cellPopupMenu;
+	private TablePopupMenu noCellPopupMenu;
 	private static double ICON_WEIGHT = 0.0;
 	private static double LABEL_WEIGHT = 1.0;
 
@@ -37,24 +38,36 @@ public class DataCreator {
 		informationMessagePanels.add(informationMessageIconPanel);
 		informationMessagePanels.add(informationMessageLabelPanel);
 		informationMessagePanelsLists.add(informationMessagePanels);
+	}
 
+	public void setDefaultPopupHandler() {
 		// default popup handler
 		popupHandler = new PopupHandler() {
 			@Override
 			public JPopupMenu getComponentPopupMenu(JComponent source) {
-				if (currentRowForPopup >= 0) {
-					return cellPopupMenu;
+				final TablePopupMenu popupMenu;
+
+				if (currentRowForPopup >= 0 && currentColumnForPopup >= 0) {
+					popupMenu = cellPopupMenu;
+				} else {
+					popupMenu = noCellPopupMenu;
 				}
 
-				return noCellPopupMenu;
+				popupMenu.setCurrentRow(currentRowForPopup);
+				popupMenu.setCurrentColumn(currentColumnForPopup);
+				popupMenu.setCurrentTable((JTable)source);
+
+				return popupMenu;
 			}
 
 			@Override
 			public Point getPopupLocation(JComponent source, MouseEvent arg0) {
 				final JTable sourceTable = (JTable)source;
 				final int row = sourceTable.rowAtPoint(arg0.getPoint());
+				final int column = sourceTable.columnAtPoint(arg0.getPoint());
 
 				currentRowForPopup = row;
+				currentColumnForPopup = column;
 
 				return null;
 			}
@@ -180,15 +193,19 @@ public class DataCreator {
 		return resultPanel;
 	}
 
-	void setCellPopupMenu(JPopupMenu cellPopupMenu) {
+	void setCellPopupMenu(TablePopupMenu cellPopupMenu) {
 		this.cellPopupMenu = cellPopupMenu;
 	}
 
-	void setNoCellPopupMenu(JPopupMenu noCellPopupMenu) {
+	void setNoCellPopupMenu(TablePopupMenu noCellPopupMenu) {
 		this.noCellPopupMenu = noCellPopupMenu;
 	}
 
 	public JTable create() {
+		if (popupHandler == null) {
+			setDefaultPopupHandler();
+		}
+
 		final JTable table = new JTable() {
 			private static final long serialVersionUID = 2285091377444632688L;
 

@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.GroupLayout;
@@ -21,7 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -131,15 +131,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		addSensorInstanceButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				final AddSensorInstanceDialog dialog = new AddSensorInstanceDialog(owner, sessionFactory, probe);
-				dialog.pack();
-				dialog.setLocationRelativeTo(owner);
-				dialog.setVisible(true);
-				final SensorInstance sensorInstance = dialog.getResult();
-
-				if (sensorInstance != null) {
-					((AbstractTableModel)table.getModel()).fireTableDataChanged();
-				}
+				addSensorInstance();
 			}
 		});
 
@@ -148,20 +140,28 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 
 		dataCreator.addPanel(addSensorInstancePanel);
 
-		dataCreator.addInformationMessage("Use right click to add/edit/remove sensor instances.");
+		dataCreator.addInformationMessage("Use right click to add/remove sensor instances.");
 		dataCreator.addInformationMessage("Use double left click to change sensor instance values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
 		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
 		final String addString = String.format("Add %s", "sensor instance");
-		final String editString = String.format("Edit %s", "sensor instance");
 		final String removeString = String.format("Remove %s", "sensor instance");
+		final TablePopupMenu.ActionListener addListener = new TablePopupMenu.ActionListener() {
+			public void actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				addSensorInstance();
+			}
+		};
 
-		noCellPopupMenu.addItem(addString);
-		cellPopupMenu.addItem(addString);
-		cellPopupMenu.addItem(editString);
-		cellPopupMenu.addItem(removeString);
+		noCellPopupMenu.addItem(addString, addListener);
+		cellPopupMenu.addItem(addString, addListener);
+		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
+			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				final SensorInstanceTableModel tableModel = (SensorInstanceTableModel) table.getModel();
+				removeSensorInstance(tableModel, row);
+			}
+		});
 
 		dataCreator.setCellPopupMenu(cellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
@@ -273,4 +273,42 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 
 		return false;
 	}
-}
+
+	private void addSensorInstance() {
+		final AddSensorInstanceDialog dialog = new AddSensorInstanceDialog(owner, sessionFactory, probe);
+		dialog.pack();
+		dialog.setLocationRelativeTo(owner);
+		dialog.setVisible(true);
+		final SensorInstance sensorInstance = dialog.getResult();
+
+		if (sensorInstance != null) {
+			((SensorInstanceTableModel)table.getModel()).fireTableDataChanged();
+		}
+	}
+
+	private void removeSensorInstance(SensorInstanceTableModel tableModel, int row) {
+		final List<SensorInstance> sensorInstances = tableModel.getSensorInstances();
+		final SensorInstance sensorInstance = sensorInstances.get(row);
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor instance.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+
+		if (confirm != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		final Session session = sessionFactory.openSession();
+		try {
+			session.delete(sensorInstance);
+			session.flush();
+			sensorInstances.remove(row);
+			tableModel.fireTableDataChanged();
+		} catch (Exception exception) {
+			final String[] messages = { "Sensor instance could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor instance could not be deleted", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		} finally {
+			session.close();
+		}
+	}
+};

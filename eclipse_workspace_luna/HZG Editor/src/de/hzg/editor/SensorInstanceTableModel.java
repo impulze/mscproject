@@ -24,7 +24,7 @@ public class SensorInstanceTableModel extends AbstractTableModel {
 		this.sessionFactory = sessionFactory;
 	}
 
-	public List<SensorInstance> getSensorInstance() {
+	public List<SensorInstance> getSensorInstances() {
 		return sensorInstances;
 	}
 

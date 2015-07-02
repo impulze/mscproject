@@ -64,10 +64,10 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 		final String editString = String.format("Edit %s", "sensor class");
 		final String removeString = String.format("Remove %s", "sensor class");
 
-		noCellPopupMenu.addItem(addString);
-		cellPopupMenu.addItem(addString);
-		cellPopupMenu.addItem(editString);
-		cellPopupMenu.addItem(removeString);
+		noCellPopupMenu.addItem(addString, null);
+		cellPopupMenu.addItem(addString, null);
+		cellPopupMenu.addItem(editString, null);
+		cellPopupMenu.addItem(removeString, null);
 
 		dataCreator.setCellPopupMenu(cellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
