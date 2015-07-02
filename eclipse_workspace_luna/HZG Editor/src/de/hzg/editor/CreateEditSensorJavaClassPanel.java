@@ -5,6 +5,8 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -31,6 +33,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	private final Window owner;
 	private final SensorClassesConfiguration sensorClassesConfiguration;
 	private final SensorJavaClass sensorJavaClass;
+	private boolean inputSaved = false;
 
 	public CreateEditSensorJavaClassPanel(Window owner, SensorClassesConfiguration sensorClassesConfiguration, SensorJavaClass sensorJavaClass) {
 		this.owner = owner;
@@ -51,6 +54,8 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		setDataProvider(this);
 		sensorJavaClassToFormAndClass();
 		setClassFilter();
+
+		inputSaved = sensorJavaClass.isLoaded();
 	}
 
 	public static SensorJavaClass createNewSensorJavaClass(SensorClassesConfiguration sensorClassesConfiguration) {
@@ -114,6 +119,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		final JButton saveButton = getActionButton("Save class");
 		final JButton compileButton = new JButton("Compile");
 		final JButton useTemplateButton = new JButton("Use template");
+		final JTextArea newTextArea = new JTextArea();
 
 		compileButton.addActionListener(new ActionListener() {
 			@Override
@@ -132,7 +138,9 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		useTemplateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				classTextArea.setText(getClassTemplate(classNameTextField.getText()));
+				((AbstractDocument)classTextArea.getDocument()).setDocumentFilter(null);
+				newTextArea.setText(getClassTemplate(classNameTextField.getText()));
+				setClassFilter();
 			}
 		});
 
@@ -143,8 +151,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 
 		dataCreator.addPanel(classInteractions);
 
-		// popups for the textarea?
-		return new JTextArea();
+		return newTextArea;
 	}
 
 	private void setupClassTextArea() {
@@ -156,17 +163,17 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 "import de.hzg.measurement.BaseSensor;\n" +
 "\n" +
 "public class " + name + " extends BaseSensor {\n" +
-" @Override\n" +
-" public double calibrate(double rawValue) {\n" +
-" /* The parameters are stored in the base class.\n" +
-"  * See the manual for further details.\n" +
-"  */\n" +
-"  return (((((parameters[5]\n" +
-"              * rawValue + parameters[4])\n" +
-"              * rawValue + parameters[3])\n" +
-"              * rawValue + parameters[2])\n" +
-"              * rawValue + parameters[1])\n" +
-"              * rawValue + parameters[0]);\n" +
+"\t@Override\n" +
+"\tpublic double calibrate(double rawValue) {\n" +
+"\t/* The parameters are stored in the base class.\n" +
+"\t * See the manual for further details.\n" +
+"\t */\n" +
+"\t\treturn (((((parameters[5]\n" +
+"\t\t            * rawValue + parameters[4])\n" +
+"\t\t            * rawValue + parameters[3])\n" +
+"\t\t            * rawValue + parameters[2])\n" +
+"\t\t            * rawValue + parameters[1])\n" +
+"\t\t            * rawValue + parameters[0]);\n" +
 " }\n" +
 "}";
 	}
@@ -184,13 +191,21 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		sensorJavaClass.setText(classTextArea.getText());
 	}
 
-	public boolean isDirty() {
+	private boolean dirtyName() {
 		{
 			final String cmpString = sensorJavaClass.getName() == null ? "" : sensorJavaClass.getName();
 
 			if (!classNameTextField.getText().equals(cmpString)) {
 				return true;
 			}
+		}
+
+		return false;
+	}
+
+	public boolean isDirty() {
+		if (dirtyName()) {
+			return true;
 		}
 
 		{
@@ -207,6 +222,9 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	public boolean provide(String title) {
 		if (title.equals("Save information")) {
 			// first make sure the identifier is valid
+
+			final boolean deleteOldFile = sensorJavaClass.isLoaded() && (dirtyName() || !inputSaved);
+
 			try {
 				formToSensorJavaClass();
 			} catch (InvalidIdentifierException exception) {
@@ -217,6 +235,29 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 				dialog.setVisible(true);
 				return false;
 			}
+
+			if (deleteOldFile) {
+				final String message = String.format(
+					"The sensor class was previously loaded from the filesystem.\n" +
+					"Changing the name will result in the old file being deleted and the new one being saved.\n");
+
+				JOptionPane.showMessageDialog(owner, message, "Sensor class will be moved", JOptionPane.WARNING_MESSAGE);
+				try {
+					sensorJavaClass.deleteLoadedInstance();
+				} catch (IOException exception) {
+					final String[] messages = { "Old sensor class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of sensor classes." };
+					final JDialog dialog = new ExceptionDialog(owner, "Old sensor class cannot be deleted", messages, exception);
+					dialog.pack();
+					dialog.setLocationRelativeTo(owner);
+					dialog.setVisible(true);
+				}
+
+				// when the old file is deleted (name changed) update classtextarea
+				{
+					updateClassTextArea();
+					classToSensorJavaClass();
+				}
+			}
 		} else {
 			classToSensorJavaClass();
 		}
@@ -226,27 +267,10 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	}
 
 	private boolean saveFile() {
-		// now, if it was loaded from the filesystem or created and already saved, we need to remove the old file
-		assert(getSaved() == sensorJavaClass.isLoaded());
-
 		try {
-			if  (sensorJavaClass.isLoaded()) {
-				final String message = String.format(
-					"The sensor class was previously loaded from the filesystem.\n" +
-					"Changing the name will result in the old file being deleted and the new one being saved.\n");
-
-				JOptionPane.showMessageDialog(owner, message, "Sensor class may be moved", JOptionPane.WARNING_MESSAGE);
-				sensorJavaClass.deleteLoadedInstance();
-			}
-
-			// sadly when updating the classname the textarea has to be updated too
-			{
-				updateClassTextArea();
-				classToSensorJavaClass();
-			}
-
 			sensorJavaClass.save();
 			JOptionPane.showMessageDialog(owner, "Sensor class successfully saved.", "Sensor saved", JOptionPane.INFORMATION_MESSAGE);
+			inputSaved = true;
 		} catch (IOException exception) {
 			final String[] messages = { "Sensor class cannot be saved.", "An exception occured." };
 			final JDialog dialog = new ExceptionDialog(owner, "Sensor class cannot be saved", messages, exception);
@@ -262,17 +286,14 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	private void updateClassTextArea() {
 		((AbstractDocument)classTextArea.getDocument()).setDocumentFilter(null);
 
-		try {
-			final int introBeginOffset = classTextArea.getLineStartOffset(4);
-			final int introEndOffset = classTextArea.getLineEndOffset(4);
-			final String classIntro = String.format("public class %s extends BaseSensor {\n", sensorJavaClass.getName());
-			classTextArea.replaceRange(classIntro, introBeginOffset, introEndOffset);
-		} catch (BadLocationException exception) {
-			final String[] messages = { "Sensor class has a wrong class intro.", "This will most likely cause runtime errors, plesae fix this manually.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor class has a wrong class intro", messages, exception);
-			dialog.pack();
-			dialog.setLocationRelativeTo(owner);
-			dialog.setVisible(true);
+		// TODO: hack, always set class name
+		final Pattern introPattern = Pattern.compile("public class (.+?) ");
+		final Matcher matcher = introPattern.matcher(classTextArea.getText());
+
+		if (matcher.find()) {
+			final int introBeginOffset = matcher.start(1);
+			final int introEndOffset = matcher.end(1);
+			classTextArea.replaceRange(sensorJavaClass.getName(), introBeginOffset, introEndOffset);
 		}
 
 		setClassFilter();
@@ -281,7 +302,8 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	private void setClassFilter() {
 		try {
 			// TODO: seems hackish, always check template to see if this are the right numbers
-			final int editBeginOffset = classTextArea.getLineStartOffset(5);
+			// TODO: allow writing imports
+			final int editBeginOffset = classTextArea.getLineStartOffset(5) - 1;
 			final int editEndOffset = classTextArea.getText().length() - 2;
 			final DocumentFilter lineFilter = new ClassFilter(classTextArea, editBeginOffset, editEndOffset);
 			((AbstractDocument)classTextArea.getDocument()).setDocumentFilter(lineFilter);
