@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
@@ -17,21 +18,26 @@ import de.hzg.measurement.SensorDescription;
 public class EditSensorDialog extends EditDialog<SensorDescription> {
 	private static final long serialVersionUID = 7612051986074038024L;
 	private SensorDescription sensorDescription;
-	private final SessionFactory sessionFactory;
 
 	public EditSensorDialog(Window owner, SessionFactory sessionFactory) {
-		super(owner, "Select sensor to edit", "Sensor name");
-		getNameTextField().setColumns(20);
+		super(owner, "Select sensor to edit");
 
-		this.sessionFactory = sessionFactory;
+		final JLabel sensorNameLabel = new JLabel("Sensor name:");
+		final JTextField sensorNameTextField = new JTextField();
 
-		final Window finalOwner = owner;
+		sensorNameTextField.setColumns(20);
+		sensorNameLabel.setLabelFor(sensorNameTextField);
+
+		getContentPanel().add(sensorNameLabel);
+		getContentPanel().add(sensorNameTextField);
+
+		final Window usedOwner = owner;
+		final SessionFactory usedSessionFactory = sessionFactory;
 
 		setOKListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				final Session session = EditSensorDialog.this.sessionFactory.openSession();
-				final JTextField nameTextField = getNameTextField();
-				final String name = nameTextField.getText();
+				final Session session = usedSessionFactory.openSession();
+				final String name = sensorNameTextField.getText();
 				final List<SensorDescription> result;
 
 				try {
@@ -45,9 +51,9 @@ public class EditSensorDialog extends EditDialog<SensorDescription> {
 					handleResult(result, name);
 				} catch (Exception exception) {
 					final String[] messages = { "Sensor could not be loaded.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(finalOwner, "Sensor not loaded", messages, exception);
+					final JDialog dialog = new ExceptionDialog(usedOwner, "Sensor not loaded", messages, exception);
 					dialog.pack();
-					dialog.setLocationRelativeTo(finalOwner);
+					dialog.setLocationRelativeTo(usedOwner);
 					dialog.setVisible(true);
 					return;
 				} finally {

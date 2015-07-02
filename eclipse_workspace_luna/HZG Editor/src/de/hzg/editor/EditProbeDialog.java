@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
@@ -20,8 +21,16 @@ public class EditProbeDialog extends EditDialog<Probe> {
 	private final SessionFactory sessionFactory;
 
 	public EditProbeDialog(Window owner, SessionFactory sessionFactory) {
-		super(owner, "Select probe to edit", "Probe name");
-		getNameTextField().setColumns(20);
+		super(owner, "Select probe to edit");
+
+		final JLabel probeNameLabel = new JLabel("Probe name:");
+		final JTextField probeNameTextField = new JTextField();
+
+		probeNameTextField.setColumns(20);
+		probeNameLabel.setLabelFor(probeNameTextField);
+
+		getContentPanel().add(probeNameLabel);
+		getContentPanel().add(probeNameTextField);
 
 		this.sessionFactory = sessionFactory;
 
@@ -30,8 +39,7 @@ public class EditProbeDialog extends EditDialog<Probe> {
 		setOKListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				final Session session = EditProbeDialog.this.sessionFactory.openSession();
-				final JTextField nameTextField = getNameTextField();
-				final String name = nameTextField.getText();
+				final String name = probeNameTextField.getText();
 				final List<Probe> result;
 
 				try {

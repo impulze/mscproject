@@ -58,26 +58,14 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 		createForm();
 
 		final Session session = sessionFactory.openSession();
+		final List<String> classNames = MeasurementQueries.getSensorDescriptionClassNames(session, owner);
 
-		try {
-			@SuppressWarnings("unchecked")
-			final List<String> result = (List<String>)session
-				.createQuery("SELECT DISTINCT sd.className FROM SensorDescription sd")
-				.list();
+		if (classNames != null) {
+			Collections.sort(classNames);
 
-			Collections.sort(result);
-
-			for (final String className : result) {
+			for (final String className : classNames) {
 				classNameComboBox.addItem(className);
 			}
-		} catch (Exception exception) {
-			final String[] messages = { "Sensor Java classnames could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor Java classnames not loaded", messages, exception);
-			dialog.pack();
-			dialog.setLocationRelativeTo(owner);
-			dialog.setVisible(true);
-		} finally {
-			session.close();
 		}
 
 		setDataProvider(this);

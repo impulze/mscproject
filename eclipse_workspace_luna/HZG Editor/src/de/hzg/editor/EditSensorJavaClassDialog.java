@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import de.hzg.common.SensorClassesConfiguration;
@@ -13,29 +14,34 @@ import de.hzg.common.SensorClassesConfiguration;
 public class EditSensorJavaClassDialog extends EditDialog<SensorJavaClass> {
 	private static final long serialVersionUID = -1282131025164002098L;
 	private SensorJavaClass sensorJavaClass;
-	private final SensorClassesConfiguration sensorClassesConfiguration;
 
 	public EditSensorJavaClassDialog(Window owner, SensorClassesConfiguration sensorClassesConfiguration) {
-		super(owner, "Select sensor class to edit", "Sensor class");
-		getNameTextField().setColumns(20);
+		super(owner, "Select sensor class to edit");
 
-		this.sensorClassesConfiguration = sensorClassesConfiguration;
+		final JLabel sensorClassLabel = new JLabel("Sensor class:");
+		final JTextField sensorClassTextField = new JTextField();
 
-		final Window finalOwner = owner;
+		sensorClassTextField.setColumns(20);
+		sensorClassLabel.setLabelFor(sensorClassTextField);
+
+		getContentPanel().add(sensorClassLabel);
+		getContentPanel().add(sensorClassTextField);
+
+		final Window usedOwner = owner;
+		final SensorClassesConfiguration usedSensorClassesConfiguration = sensorClassesConfiguration;
 
 		setOKListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				final JTextField nameTextField = getNameTextField();
-				final String name = nameTextField.getText();
-				final SensorJavaClass sensorJavaClass = new SensorJavaClass(EditSensorJavaClassDialog.this.sensorClassesConfiguration);
+				final String name = sensorClassTextField.getText();
+				final SensorJavaClass sensorJavaClass = new SensorJavaClass(usedSensorClassesConfiguration);
 
 				try {
 					sensorJavaClass.setName(name);
 				} catch (InvalidIdentifierException exception) {
 					final String[] messages = { "Sensor class has an invalid identifier.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(finalOwner, "Sensor class has an invalid identifier", messages, exception);
+					final JDialog dialog = new ExceptionDialog(usedOwner, "Sensor class has an invalid identifier", messages, exception);
 					dialog.pack();
-					dialog.setLocationRelativeTo(finalOwner);
+					dialog.setLocationRelativeTo(usedOwner);
 					dialog.setVisible(true);
 					return;
 				}
@@ -44,9 +50,9 @@ public class EditSensorJavaClassDialog extends EditDialog<SensorJavaClass> {
 					sensorJavaClass.load();
 				} catch (IOException exception) {
 					final String[] messages = { "Sensor class could not be loaded.", "An exception occured." };
-					final JDialog dialog = new ExceptionDialog(finalOwner, "Sensor class not loaded", messages, exception);
+					final JDialog dialog = new ExceptionDialog(usedOwner, "Sensor class not loaded", messages, exception);
 					dialog.pack();
-					dialog.setLocationRelativeTo(finalOwner);
+					dialog.setLocationRelativeTo(usedOwner);
 					dialog.setVisible(true);
 					return;
 				}
