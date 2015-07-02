@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 
 import java.awt.BorderLayout;
 
+import javax.swing.JDialog;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -23,6 +24,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import de.hzg.common.Configuration;
+import de.hzg.common.ConfigurationNotFound;
 import de.hzg.common.HibernateUtil;
 import de.hzg.sensors.Probe;
 import de.hzg.sensors.SensorDescription;
@@ -40,7 +42,7 @@ public class Editor {
 					final HibernateUtil hibernateUtil = new HibernateUtil(configuration);
 					final Editor editor = new Editor();
 					editor.sessionFactory = hibernateUtil.getSessionFactory();
-					editor.initialize();
+					editor.initialize(configuration);
 					editor.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -49,7 +51,9 @@ public class Editor {
 		});
 	}
 
-	private void initialize() {
+	private void initialize(Configuration configuration) {
+		final Configuration usedConfiguration = configuration;
+
 		frame = new JFrame();
 		frame.setBounds(100, 100, 850, 600);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -154,7 +158,7 @@ public class Editor {
 				}
 
 				if (clear) {
-					final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, new SensorDescription());
+					final CreateEditSensorPanel sensorPanel = new CreateSensorPanel(frame, sessionFactory);
 					switchPanel("Create sensor", sensorPanel);
 				}
 			}
@@ -179,7 +183,7 @@ public class Editor {
 					final SensorDescription sensorDescription = dialog.getResult();
 
 					if (sensorDescription != null) {
-						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
+						final CreateEditSensorPanel sensorPanel = new EditSensorPanel(frame, sessionFactory, sensorDescription);
 						switchPanel("Edit sensor", sensorPanel);
 					}
 				}
@@ -229,6 +233,7 @@ public class Editor {
 
 		/* TODO: for development */
 		final Session session = sessionFactory.openSession();
+		/*
 		try {
 			@SuppressWarnings("unchecked")
 			final List<Probe> result = (List<Probe>)session
@@ -239,6 +244,19 @@ public class Editor {
 			Probe.initProbe(probe);
 			final CreateEditProbePanel probePanel = new EditProbePanel(frame, sessionFactory, probe);
 			switchPanel("Edit probe", probePanel);
+		} finally {
+			session.close();
+		}
+		*/
+		try {
+			@SuppressWarnings("unchecked")
+			final List<SensorDescription> result = (List<SensorDescription>)session
+				.createQuery("FROM  SensorDescription WHERE name = :name")
+				.setParameter("name", "Vbatt")
+				.list();
+			final SensorDescription sensorDescription = result.get(0);
+			final CreateEditSensorPanel sensorPanel = new EditSensorPanel(frame, sessionFactory, sensorDescription);
+			switchPanel("Edit sensor", sensorPanel);
 		} finally {
 			session.close();
 		}

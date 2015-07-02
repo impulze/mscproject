@@ -24,9 +24,11 @@ public class EditSensorPanel extends CreateEditSensorPanel implements DataProvid
 		final Session session = getSessionFactory().openSession();
 
 		try {
-			formAndMetadataToSensorDescription();
+			formToSensorDescription();
+			metadataToSensorDescription();
 			session.update(getSensorDescription());
 			session.flush();
+			sensorDescriptionToFormAndMetadata();
 			setDirty(false);
 			JOptionPane.showMessageDialog(getOwner(), "Sensor successfully updated.", "Sensor updated", JOptionPane.INFORMATION_MESSAGE);
 		} catch (Exception exception) {

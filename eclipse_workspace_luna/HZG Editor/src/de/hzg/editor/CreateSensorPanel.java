@@ -21,16 +21,22 @@ public class CreateSensorPanel extends CreateEditSensorPanel implements DataProv
 	}
 
 	private static SensorDescription createEmptySensorDescription() {
-		return new SensorDescription();
+		final SensorDescription sensorDescription = new SensorDescription();
+
+		sensorDescription.setMetadata(getMetadataTemplate());
+
+		return sensorDescription;
 	}
 
 	public void provide() {
 		final Session session = getSessionFactory().openSession();
 
 		try {
-			formAndMetadataToSensorDescription();
+			formToSensorDescription();
+			metadataToSensorDescription();
 			session.save(getSensorDescription());
 			session.flush();
+			sensorDescriptionToFormAndMetadata();
 			setDirty(false);
 			JOptionPane.showMessageDialog(getOwner(), "Sensor successfully saved.", "Sensor saved", JOptionPane.INFORMATION_MESSAGE);
 		} catch (Exception exception) {

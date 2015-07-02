@@ -51,7 +51,7 @@ public class SplitPanel extends JPanel {
 		add(bottomPanel);
 	}
 
-	private void setPanelTitle(JPanel panel, String title) {
+	protected void setPanelTitle(JPanel panel, String title) {
 		panel.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), title, TitledBorder.LEADING, TitledBorder.TOP, null, null));
 	}
 

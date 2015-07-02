@@ -97,7 +97,6 @@ public class ProbeTableModel extends AbstractTableModel {
 	}
 
 	 public boolean isCellEditable(int row, int column) {
-		 // TODO: allow this?!
-		return false;
+		return true;
 	}
 }

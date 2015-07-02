@@ -60,8 +60,7 @@ public class ListProbesPanel extends SplitPanel implements DataProvider {
 
 	private JTable createTable(DataCreator dataCreator) {
 		dataCreator.addInformationMessage("Use right click to add/edit/remove probes.");
-		// TODO: allow this?!
-		//dataCreator.addInformationMessage("Use double left click to change probe values.";
+		dataCreator.addInformationMessage("Use double left click to change probe values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();

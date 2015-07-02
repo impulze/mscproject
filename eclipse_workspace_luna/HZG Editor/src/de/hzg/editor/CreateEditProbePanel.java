@@ -109,15 +109,15 @@ public class CreateEditProbePanel extends SplitPanel {
 	}
 
 	private JTable createTable(DataCreator dataCreator) {
-		dataCreator.addInformationMessage("Use right click to add/edit/remove sensors.");
-		dataCreator.addInformationMessage("Use double left click to change sensor values.");
+		dataCreator.addInformationMessage("Use right click to add/edit/remove sensor instances.");
+		dataCreator.addInformationMessage("Use double left click to change sensor instance values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
 		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
-		final String addString = String.format("Add %s", "sensor");
-		final String editString = String.format("Edit %s", "sensor");
-		final String removeString = String.format("Remove %s", "sensor");
+		final String addString = String.format("Add %s", "sensor instance");
+		final String editString = String.format("Edit %s", "sensor instance");
+		final String removeString = String.format("Remove %s", "sensor instance");
 
 		noCellPopupMenu.addItem(addString);
 		cellPopupMenu.addItem(addString);

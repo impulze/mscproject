@@ -21,10 +21,13 @@ import javax.swing.UIManager;
 
 public class DataCreator {
 	private PopupHandler popupHandler;
-	private final List<List<JPanel>> informationPanelLists = new ArrayList<List<JPanel>>();
+	private final List<List<JPanel>> informationMessagePanelsLists = new ArrayList<List<JPanel>>();
+	private final List<JComponent> panelList = new ArrayList<JComponent>();
 	private int currentRowForPopup = -1;
 	private JPopupMenu cellPopupMenu;
 	private JPopupMenu noCellPopupMenu;
+	private static double ICON_WEIGHT = 0.0;
+	private static double LABEL_WEIGHT = 1.0;
 
 	public void addInformationMessage(String message) {
 		final JPanel informationMessageLabelPanel = createInformationMessageLabelPanel(message);
@@ -33,7 +36,7 @@ public class DataCreator {
 
 		informationMessagePanels.add(informationMessageIconPanel);
 		informationMessagePanels.add(informationMessageLabelPanel);
-		informationPanelLists.add(informationMessagePanels);
+		informationMessagePanelsLists.add(informationMessagePanels);
 
 		// default popup handler
 		popupHandler = new PopupHandler() {
@@ -89,7 +92,11 @@ public class DataCreator {
 		return iconLabelPanel;
 	}
 
-	public final JPanel getMessageInformationPanel() {
+	void addPanel(JComponent panel) {
+		panelList.add(panel);
+	}
+
+	public final JPanel getResultPanel() {
 		final JPanel resultPanel = new JPanel();
 		final GridBagLayout gridBagLayout = new GridBagLayout();
 		final GridBagConstraints gridBagConstraints = new GridBagConstraints();
@@ -99,10 +106,17 @@ public class DataCreator {
 		gridBagConstraints.fill = GridBagConstraints.BOTH;
 		gridBagConstraints.weighty = 0;
 
-		for (int i = 0; i < informationPanelLists.size(); i++) {
-			final List<JPanel> informationPanelList = informationPanelLists.get(i);
+		for (int i = 0; i < informationMessagePanelsLists.size(); i++) {
+			final List<JPanel> informationPanelList = informationMessagePanelsLists.get(i);
+			final boolean isLastVertically;
 
-			if (i + 1 == informationPanelLists.size()) {
+			if (i + 1 == informationMessagePanelsLists.size()) {
+				isLastVertically = panelList.size() == 0;
+			} else {
+				isLastVertically = false;
+			}
+
+			if (isLastVertically) {
 				gridBagConstraints.gridheight = GridBagConstraints.REMAINDER;
 			} else {
 				gridBagConstraints.gridheight = 1;
@@ -112,17 +126,24 @@ public class DataCreator {
 
 			for (int j = 0; j < informationPanelList.size(); j++) {
 				final JPanel informationPanel = informationPanelList.get(j);
+				final boolean isLastHorizontally;
 
 				if (j + 1 == informationPanelList.size()) {
+					isLastHorizontally = true;
+				} else {
+					isLastHorizontally = false;
+				}
+
+				if (isLastHorizontally) {
 					gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
 				} else {
 					gridBagConstraints.gridwidth = 1;
 				}
 
 				if (j == 0) {
-					gridBagConstraints.weightx = 0;
+					gridBagConstraints.weightx = ICON_WEIGHT;
 				} else {
-					gridBagConstraints.weightx = 1;
+					gridBagConstraints.weightx = LABEL_WEIGHT;
 				}
 
 				gridBagConstraints.gridx = j;
@@ -132,9 +153,32 @@ public class DataCreator {
 			}
 		}
 
+		for (int i = 0; i < panelList.size(); i++) {
+			final boolean isLastVertically;
+
+			if (i + 1 == panelList.size()) {
+				isLastVertically = true;
+			} else {
+				isLastVertically = false;
+			}
+
+			if (isLastVertically) {
+				gridBagConstraints.gridheight = GridBagConstraints.REMAINDER;
+			} else {
+				gridBagConstraints.gridheight = 1;
+			}
+
+			gridBagConstraints.gridx = 0;
+			gridBagConstraints.gridy = informationMessagePanelsLists.size() + i;
+			gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+			gridBagConstraints.weightx = 1.0;
+
+			gridBagLayout.setConstraints(panelList.get(i), gridBagConstraints);
+			resultPanel.add(panelList.get(i));
+		}
+
 		return resultPanel;
 	}
-
 
 	void setCellPopupMenu(JPopupMenu cellPopupMenu) {
 		this.cellPopupMenu = cellPopupMenu;
@@ -188,7 +232,7 @@ public class DataCreator {
 
 		scrollPane.setViewportView(viewableComponent);
 
-		final JPanel messageInformationPanel = getMessageInformationPanel();
+		final JPanel resultPanel = getResultPanel();
 
 		final GridBagLayout panelLayout = new GridBagLayout();
 
@@ -205,8 +249,8 @@ public class DataCreator {
 		gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
 		gridBagConstraints.gridheight = 1;
 
-		panelLayout.setConstraints(messageInformationPanel, gridBagConstraints);
-		tablePanel.add(messageInformationPanel);
+		panelLayout.setConstraints(resultPanel, gridBagConstraints);
+		tablePanel.add(resultPanel);
 
 		gridBagConstraints.gridy = 1;
 		gridBagConstraints.weighty = 1;
