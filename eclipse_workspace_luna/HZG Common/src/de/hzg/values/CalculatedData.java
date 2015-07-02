@@ -4,7 +4,7 @@ import java.util.Date;
 
 import de.hzg.measurement.SensorInstance;
 
-public class CalculatedData {
+public class CalculatedData implements ValueData<Double> {
 	private Long id;
 	private SensorInstance sensorInstance;
 	private Date date = new Date();

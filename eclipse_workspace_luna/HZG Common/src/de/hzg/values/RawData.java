@@ -4,7 +4,7 @@ import java.util.Date;
 
 import de.hzg.measurement.SensorInstance;
 
-public class RawData {
+public class RawData implements ValueData<Integer> {
 	private Long id;
 	private SensorInstance sensorInstance;
 	private Date date = new Date();

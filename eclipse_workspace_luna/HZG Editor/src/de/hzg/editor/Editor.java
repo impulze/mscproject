@@ -22,6 +22,8 @@ import de.hzg.common.HibernateUtil;
 import de.hzg.common.SensorClassesConfiguration;
 import de.hzg.measurement.Probe;
 import de.hzg.measurement.SensorDescription;
+import de.hzg.values.CalculatedData;
+import de.hzg.values.RawData;
 
 public class Editor {
 	private JFrame frame;
@@ -200,9 +202,27 @@ public class Editor {
 		mnProbe.add(separator_3);
 
 		JMenuItem mntmListRawValues = new JMenuItem("List raw values");
+		mntmListRawValues.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				if (isDirtyCheck()) {
+					final ListValuesPanel<RawData, Integer> listValuesPanel = new ListValuesPanel<RawData, Integer>(frame, sessionFactory, Integer.class, "RawData");
+					listValuesPanel.setTitle("List raw values");
+					switchPanel("List raw values", listValuesPanel);
+				}
+			}
+		});
 		mnProbe.add(mntmListRawValues);
 
 		JMenuItem mntmListCalculatedValues = new JMenuItem("List calculated values");
+		mntmListCalculatedValues.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				if (isDirtyCheck()) {
+					final ListValuesPanel<CalculatedData, Double> listValuesPanel = new ListValuesPanel<CalculatedData, Double>(frame, sessionFactory, Double.class, "CalculatedData");
+					listValuesPanel.setTitle("List calculated values");
+					switchPanel("List calculated values", listValuesPanel);
+				}
+			}
+		});
 		mnProbe.add(mntmListCalculatedValues);
 
 		JMenu mnHelp = new JMenu("Help");
