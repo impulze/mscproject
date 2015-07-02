@@ -98,7 +98,7 @@ public class SensorInstanceTableModel extends AbstractTableModel {
 	}
 
 	public Class<?> getColumnClass(int column) {
-		final Class<?>[] columnClasses = { String.class, Integer.class, Double.class, Double.class, Double.class, Double.class, Double.class, Double.class };
+		final Class<?>[] columnClasses = { SensorDescription.class, Integer.class, Double.class, Double.class, Double.class, Double.class, Double.class, Double.class };
 		return columnClasses[column];
 	}
 

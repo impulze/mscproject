@@ -1,10 +1,13 @@
 package de.hzg.editor;
 
+import java.awt.FlowLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
@@ -14,9 +17,11 @@ import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -52,7 +57,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		chckbxActive = new JCheckBox("active");
 
 		final DataCreator dataCreator = new DataCreator();
-		table = createTable(dataCreator);
+		table = createTableArea(dataCreator);
 		setupTable();
 
 		setBottomPanelTitle("Sensors");
@@ -119,7 +124,30 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 		getTopPanel().setLayout(topPanelLayout);
 	}
 
-	private JTable createTable(DataCreator dataCreator) {
+	private JTable createTableArea(DataCreator dataCreator) {
+		final JPanel addSensorInstancePanel = new JPanel();
+		final JButton addSensorInstanceButton = new JButton("Add sensor instance");
+
+		addSensorInstanceButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				final AddSensorInstanceDialog dialog = new AddSensorInstanceDialog(owner, sessionFactory, probe);
+				dialog.pack();
+				dialog.setLocationRelativeTo(owner);
+				dialog.setVisible(true);
+				final SensorInstance sensorInstance = dialog.getResult();
+
+				if (sensorInstance != null) {
+					((AbstractTableModel)table.getModel()).fireTableDataChanged();
+				}
+			}
+		});
+
+		addSensorInstancePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		addSensorInstancePanel.add(addSensorInstanceButton);
+
+		dataCreator.addPanel(addSensorInstancePanel);
+
 		dataCreator.addInformationMessage("Use right click to add/edit/remove sensor instances.");
 		dataCreator.addInformationMessage("Use double left click to change sensor instance values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
@@ -146,7 +174,7 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 
 		table.setModel(tableModel);
 		table.getColumnModel().getColumn(0).setPreferredWidth(85);
-		table.getColumnModel().getColumn(0).setCellRenderer(new SensorDescriptionCellRenderer());
+		table.getColumnModel().getColumn(0).setCellRenderer(new SensorDescriptionComboBox.Renderer());
 		table.getColumnModel().getColumn(1).setPreferredWidth(70);
 
 		for (int i = 2;  i < 8; i++) {
@@ -171,25 +199,9 @@ public class CreateEditProbePanel extends SplitPanel implements DataProvider {
 
 		final SensorInstanceTableModel tableModel = (SensorInstanceTableModel)table.getModel();
 		final TableColumn sensorDescriptionColumn = table.getColumnModel().getColumn(0);
+		final SensorDescriptionComboBox comboBox = new SensorDescriptionComboBox(owner, sessionFactory);
 
-		final Session session = sessionFactory.openSession();
-
-		try {
-			@SuppressWarnings("unchecked")
-			final List<SensorDescription> result = (List<SensorDescription>)session
-				.createQuery("FROM SensorDescription")
-				.list();
-			sensorDescriptionColumn.setCellEditor(new SensorDescriptionCellEditor(result));
-		} catch (Exception exception) {
-			final String[] messages = { "Sensor descriptions could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor descriptions not loaded", messages, exception);
-			dialog.pack();
-			dialog.setLocationRelativeTo(owner);
-			dialog.setVisible(true);
-		} finally {
-			session.close();
-		}
-
+		sensorDescriptionColumn.setCellEditor(new DefaultCellEditor(comboBox));
 		tableModel.setSensorInstances(probe.getSensorInstances());
 	}
 

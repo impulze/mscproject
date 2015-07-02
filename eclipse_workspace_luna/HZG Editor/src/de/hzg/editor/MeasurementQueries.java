@@ -6,11 +6,13 @@ import java.util.List;
 import javax.swing.JDialog;
 
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 import de.hzg.measurement.SensorDescription;
 
 public class MeasurementQueries {
-	public static List<String> getSensorDescriptionNames(Session session, Window owner) {
+	public static List<String> getSensorDescriptionNames(Window owner, SessionFactory sessionFactory) {
+		final Session session = sessionFactory.openSession();
 		final List<String> result;
 
 		try {
@@ -33,7 +35,8 @@ public class MeasurementQueries {
 		return result;
 	}
 
-	public static List<String> getSensorDescriptionClassNames(Session session, Window owner) {
+	public static List<String> getSensorDescriptionClassNames(Window owner, SessionFactory sessionFactory) {
+		final Session session = sessionFactory.openSession();
 		final List<String> result;
 
 		try {
@@ -56,7 +59,8 @@ public class MeasurementQueries {
 		return result;
 	}
 
-	public static List<SensorDescription> getSensorDescriptions(Session session, Window owner) {
+	public static List<SensorDescription> getSensorDescriptions(Window owner, SessionFactory sessionFactory) {
+		final Session session = sessionFactory.openSession();
 		final List<SensorDescription> result;
 
 		try {

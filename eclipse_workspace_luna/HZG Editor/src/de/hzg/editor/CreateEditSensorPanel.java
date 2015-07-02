@@ -57,8 +57,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 		getBottomPanel().add(dataCreator.createPanel(metadataTextArea));
 		createForm();
 
-		final Session session = sessionFactory.openSession();
-		final List<String> classNames = MeasurementQueries.getSensorDescriptionClassNames(session, owner);
+		final List<String> classNames = MeasurementQueries.getSensorDescriptionClassNames(owner, sessionFactory);
 
 		if (classNames != null) {
 			Collections.sort(classNames);
@@ -133,6 +132,8 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 	}
 
 	private JTextArea createMetadataTextArea(DataCreator dataCreator) {
+		final JTextArea newTextArea = new JTextArea();
+
 		dataCreator.addInformationMessage("A valid SensorML 2.0 document is required here.");
 
 		final JPanel metadataInteractions = new JPanel();
@@ -142,7 +143,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 		useTemplateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				metadataTextArea.setText(getMetadataTemplate());
+				newTextArea.setText(getMetadataTemplate());
 			}
 		});
 
@@ -153,7 +154,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider {
 		dataCreator.addPanel(metadataInteractions);
 
 		// popups for the textarea?
-		return new JTextArea();
+		return newTextArea;
 	}
 
 	private void setupMetadataTextArea() {

@@ -14,12 +14,12 @@
 			<column name="address" not-null="true" />
 		</property>
 
-		<property name="parameter1" column="parameter1" not-null="true" />
-		<property name="parameter2" column="parameter2" not-null="true" />
-		<property name="parameter3" column="parameter3" not-null="true" />
-		<property name="parameter4" column="parameter4" not-null="true" />
-		<property name="parameter5" column="parameter5" not-null="true" />
-		<property name="parameter6" column="parameter6" not-null="true" />
+		<property name="parameter1" column="parameter1" />
+		<property name="parameter2" column="parameter2" />
+		<property name="parameter3" column="parameter3" />
+		<property name="parameter4" column="parameter4" />
+		<property name="parameter5" column="parameter5" />
+		<property name="parameter6" column="parameter6" />
 
 		<many-to-one name="sensorDescription" class="de.hzg.measurement.SensorDescription">
 			<column name="sensor_description_id" />
