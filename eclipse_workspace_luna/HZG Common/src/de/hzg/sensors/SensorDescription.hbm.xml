@@ -21,5 +21,9 @@
 		<property name="unit">
 			<column name="unit" length="20" not-null="true" />
 		</property>
+
+		<property name="metadata">
+			<column name="metadata" not-null="true" />
+		</property>
 	</class>
 </hibernate-mapping>

@@ -5,6 +5,7 @@ public class SensorDescription {
 	private String name;
 	private String className;
 	private String unit;
+	private String metadata;
 
 	public Long getId() {
 		return id;
@@ -31,5 +32,13 @@ public class SensorDescription {
 
 	public void setUnit(String unit) {
 		this.unit = unit;
+	}
+
+	public String getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(String metadata) {
+		this.metadata = metadata;
 	}
 }
