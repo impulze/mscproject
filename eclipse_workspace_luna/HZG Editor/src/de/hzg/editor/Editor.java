@@ -89,9 +89,7 @@ public class Editor {
 				}
 
 				if (clear) {
-					frame.getContentPane().removeAll();
-					final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory);
-					probePanel.setActionButton("Save information", probePanel.getSaveActionListener());
+					final CreateEditProbePanel probePanel = new CreateProbePanel(frame, sessionFactory);
 					switchPanel("Create probe", probePanel);
 				}
 			}
@@ -116,9 +114,7 @@ public class Editor {
 					final Probe probe = dialog.getResult();
 
 					if (probe != null) {
-						final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory);
-						probePanel.setActionButton("Update information", probePanel.getUpdateActionListener());
-						probePanel.setProbe(probe);
+						final CreateEditProbePanel probePanel = new EditProbePanel(frame, sessionFactory, probe);
 						switchPanel("Edit probe", probePanel);
 					}
 				}
@@ -137,9 +133,8 @@ public class Editor {
 				}
 
 				if (clear) {
-					frame.getContentPane().removeAll();
-					final ListPanel listPanel = new ListProbesPanel(frame, sessionFactory);
-					switchPanel("List probes", listPanel);
+					final ListProbesPanel listProbesPanel = new ListProbesPanel(frame, sessionFactory);
+					switchPanel("List probes", listProbesPanel);
 				}
 			}
 		});
@@ -159,9 +154,7 @@ public class Editor {
 				}
 
 				if (clear) {
-					frame.getContentPane().removeAll();
-					final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory);
-					sensorPanel.setActionButton("Save information",sensorPanel.getSaveActionListener());
+					final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, new SensorDescription());
 					switchPanel("Create sensor", sensorPanel);
 				}
 			}
@@ -186,9 +179,7 @@ public class Editor {
 					final SensorDescription sensorDescription = dialog.getResult();
 
 					if (sensorDescription != null) {
-						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory);
-						sensorPanel.setActionButton("Update information", sensorPanel.getUpdateActionListener());
-						sensorPanel.setSensorDescription(sensorDescription);
+						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorDescription);
 						switchPanel("Edit sensor", sensorPanel);
 					}
 				}
@@ -207,9 +198,8 @@ public class Editor {
 				}
 
 				if (clear) {
-					frame.getContentPane().removeAll();
-					final ListPanel listPanel = new ListSensorsPanel(frame, sessionFactory);
-					switchPanel("List sensors", listPanel);
+					final ListSensorsPanel listSensorsPanel = new ListSensorsPanel(frame, sessionFactory);
+					switchPanel("List sensors", listSensorsPanel);
 				}
 			}
 		});
@@ -238,8 +228,6 @@ public class Editor {
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
 		/* TODO: for development */
-		final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory);
-		probePanel.setActionButton("Update information", probePanel.getUpdateActionListener());
 		final Session session = sessionFactory.openSession();
 		try {
 			@SuppressWarnings("unchecked")
@@ -249,7 +237,7 @@ public class Editor {
 				.list();
 			final Probe probe = result.get(0);
 			Probe.initProbe(probe);
-			probePanel.setProbe(probe);
+			final CreateEditProbePanel probePanel = new EditProbePanel(frame, sessionFactory, probe);
 			switchPanel("Edit probe", probePanel);
 		} finally {
 			session.close();

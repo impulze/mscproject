@@ -3,7 +3,6 @@ package de.hzg.editor;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractCellEditor;
@@ -11,23 +10,14 @@ import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 
-import de.hzg.sensors.Probe;
 import de.hzg.sensors.SensorDescription;
-import de.hzg.sensors.SensorInstance;
 
-public class DescriptionCellEditor extends AbstractCellEditor implements ActionListener, TableCellEditor {
+public class SensorDescriptionCellEditor extends AbstractCellEditor implements ActionListener, TableCellEditor {
 	private static final long serialVersionUID = -1596419497648007649L;
 	private final List<SensorDescription> sensorDescriptions;
 	private SensorDescription activeSensorDescription;
 
-	public DescriptionCellEditor(Probe probe) {
-		final List<SensorInstance> sensorInstances = probe.getSensorInstances();
-		final List<SensorDescription> sensorDescriptions = new ArrayList<SensorDescription>(sensorInstances.size());
-
-		for (final SensorInstance sensorInstance: sensorInstances) {
-			sensorDescriptions.add(sensorInstance.getSensorDescription());
-		}
-
+	public SensorDescriptionCellEditor(List<SensorDescription> sensorDescriptions) {
 		this.sensorDescriptions = sensorDescriptions;
 	}
 

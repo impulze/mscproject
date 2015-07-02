@@ -98,6 +98,6 @@ public class SensorDescriptionTableModel extends AbstractTableModel {
 
 	 public boolean isCellEditable(int row, int column) {
 		 // TODO: allow this?!
-		return false;
+		return true;
 	}
 }
