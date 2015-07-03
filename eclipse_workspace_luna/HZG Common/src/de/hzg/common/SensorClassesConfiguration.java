@@ -2,10 +2,7 @@ package de.hzg.common;
 
 public class SensorClassesConfiguration {
 	private String sourceDirectory;
-	private String _package;
-
-	SensorClassesConfiguration() {
-	}
+	static public String CLASSES_PACKAGE = "de.hzg.sensors";
 
 	public String getSourceDirectory() {
 		return sourceDirectory;
@@ -13,13 +10,5 @@ public class SensorClassesConfiguration {
 
 	public void setSourceDirectory(String sourceDirectory) {
 		this.sourceDirectory = sourceDirectory;
-	}
-
-	public String getPackage() {
-		return _package;
-	}
-
-	public void setPackage(String _package) {
-		this._package = _package;
 	}
 }

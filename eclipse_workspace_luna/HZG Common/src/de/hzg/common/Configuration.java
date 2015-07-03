@@ -2,6 +2,8 @@ package de.hzg.common;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,11 +24,11 @@ public class Configuration {
 	private Map<String, Object> map = new HashMap<String, Object>();
 	private static Logger logger = Logger.getLogger(Configuration.class.getName());
 
-	public Configuration() throws ConfigurationSetupException {
+	public Configuration() throws ConfigurationSetupException, Exception {
 		this(DEFAULT_PATH);
 	}
 
-	public Configuration(String filename) throws ConfigurationSetupException {
+	public Configuration(String filename) throws ConfigurationSetupException, Exception {
 		final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		final DocumentBuilder builder;
 		final Document document;
@@ -59,6 +61,13 @@ public class Configuration {
 		if (sensorClassesList != null) {
 			parseSensorClasses(sensorClassesList);
 		}
+
+		final NodeList httpSenderList = root.getElementsByTagName("http_sender");
+
+		if (httpSenderList != null) {
+			parseHTTPSender(httpSenderList);
+		}
+
 	}
 
 	public DatabaseConfiguration getDatabaseConfiguration(String id) throws ConfigurationNotFound {
@@ -104,6 +113,37 @@ public class Configuration {
 		throw new ConfigurationNotFound(String.format("Sensor classes configuration not found."));
 	}
 
+	private void parseHTTPSender(NodeList nodeList) throws MalformedURLException {
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			final Element element = (Element)nodeList.item(i);
+			final HTTPSenderConfiguration httpSenderConfiguration = new HTTPSenderConfiguration();
+
+			final String basicAuth = getTextValue(element, "basic_auth");
+			final String urlString = getTextValue(element, "url");
+			final URL url = new URL(urlString);
+			final String query = getTextValue(element, "query");
+			final Integer interval = getIntValue(element, "interval");
+
+			httpSenderConfiguration.setBasicAuth(basicAuth);
+			httpSenderConfiguration.setURL(url);
+			httpSenderConfiguration.setQuery(query);
+			httpSenderConfiguration.setInterval(interval);
+
+			addObject("http_sender", httpSenderConfiguration);
+		}
+	}
+
+	public HTTPSenderConfiguration getHTTPSenderConfiguration() throws ConfigurationNotFound {
+		@SuppressWarnings("unchecked")
+		final List<HTTPSenderConfiguration> httpSenderConfigurations = (List<HTTPSenderConfiguration>)map.get("http_sender");
+
+		if (httpSenderConfigurations != null) {
+			return httpSenderConfigurations.get(0);
+		}
+
+		throw new ConfigurationNotFound(String.format("HTTP Sender configuration not found."));
+	}
+
 	private void parseSensorClasses(NodeList nodeList) {
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			final Element element = (Element)nodeList.item(i);
@@ -112,7 +152,6 @@ public class Configuration {
 			final String homeDirectory = System.getProperty("user.home");
 			final String sourceDirectory = getTextValue(element, "source_directory");
 			sensorClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
-			sensorClassesConfiguration.setPackage(getTextValue(element, "package"));
 
 			addObject("sensor_classes", sensorClassesConfiguration);
 		}
