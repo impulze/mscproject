@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
-import javax.swing.JTextField;
 
 import de.hzg.common.SensorClassesConfiguration;
 
@@ -16,21 +15,20 @@ public class EditSensorJavaClassDialog extends EditDialog<SensorJavaClass> {
 	public EditSensorJavaClassDialog(Window owner, SensorClassesConfiguration sensorClassesConfiguration) {
 		super(owner, "Select sensor class to edit");
 
-		final JLabel sensorClassLabel = new JLabel("Sensor class:");
-		final JTextField sensorClassTextField = new JTextField();
+		final JLabel sensorJavaClassLabel = new JLabel("Sensor class:");
+		final SensorJavaClassComboBox sensorJavaClassComboBox = new SensorJavaClassComboBox(owner, sensorClassesConfiguration);
 
-		sensorClassTextField.setColumns(20);
-		sensorClassLabel.setLabelFor(sensorClassTextField);
+		sensorJavaClassLabel.setLabelFor(sensorJavaClassComboBox);
 
-		getContentPanel().add(sensorClassLabel);
-		getContentPanel().add(sensorClassTextField);
+		getContentPanel().add(sensorJavaClassLabel);
+		getContentPanel().add(sensorJavaClassComboBox);
 
 		final Window usedOwner = owner;
 		final SensorClassesConfiguration usedSensorClassesConfiguration = sensorClassesConfiguration;
 
 		setOKListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				final String name = sensorClassTextField.getText();
+				final String name = (String) sensorJavaClassComboBox.getSelectedItem();
 				final SensorJavaClass sensorJavaClass = SensorJavaClass.loadByName(usedSensorClassesConfiguration, usedOwner, name);
 
 				EditSensorJavaClassDialog.this.sensorJavaClass = sensorJavaClass;
