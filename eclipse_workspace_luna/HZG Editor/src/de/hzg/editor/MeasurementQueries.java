@@ -8,6 +8,7 @@ import javax.swing.JDialog;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import de.hzg.measurement.Probe;
 import de.hzg.measurement.SensorDescription;
 
 public class MeasurementQueries {
@@ -53,6 +54,35 @@ public class MeasurementQueries {
 		} catch (Exception exception) {
 			final String[] messages = { "Sensor descriptions could not be loaded.", "An exception occured." };
 			final JDialog dialog = new ExceptionDialog(owner, "Sensor descriptions could not loaded", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+			throw exception;
+		} finally {
+			session.close();
+		}
+
+		return result;
+	}
+
+	public static List<Probe> getProbes(Window owner, SessionFactory sessionFactory) {
+		final Session session = sessionFactory.openSession();
+		final List<Probe> result;
+
+		try {
+			@SuppressWarnings("unchecked")
+			final List<Probe> tempResult = (List<Probe>)session
+				.createQuery("FROM Probe")
+				.list();
+
+			for (final Probe probe: tempResult) {
+				probe.initProbe();
+			}
+
+			result = tempResult;
+		} catch (Exception exception) {
+			final String[] messages = { "Probes could not be loaded.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Probes could not loaded", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
