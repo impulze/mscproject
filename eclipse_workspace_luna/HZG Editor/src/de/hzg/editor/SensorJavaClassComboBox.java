@@ -20,5 +20,8 @@ public class SensorJavaClassComboBox extends JComboBox<String> {
 				addItem(name);
 			}
 		}
+
+		// TODO: fix this once all classes are implemeneted
+		setEditable(true);
 	}
 }

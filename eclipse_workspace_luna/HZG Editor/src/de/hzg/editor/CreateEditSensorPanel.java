@@ -241,7 +241,6 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 			final String cmpString = sensorDescription.getName() == null ? "" : sensorDescription.getName();
 
 			if (!nameTextField.getText().equals(cmpString)) {
-				System.out.println("names don't match");
 				return true;
 			}
 		}
@@ -250,7 +249,6 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 			final String cmpString = sensorDescription.getClassName() == null ? "" : sensorDescription.getClassName();
 
 			if (classNameComboBox.getSelectedItem() != null && !classNameComboBox.getSelectedItem().equals(cmpString)) {
-				System.out.println("classnames don't match " + classNameComboBox.getSelectedItem() + " " + sensorDescription.getClassName());
 				return true;
 			}
 		}
