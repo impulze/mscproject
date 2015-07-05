@@ -67,7 +67,7 @@ public class Sender implements Runnable {
 		this.sqlQueryString = getQueryString();
 
 		for (final SensorInstance sensorInstance: sensorInstances) {
-			lastSetStarts.put(sensorInstance, new Timestamp(0)); //new Timestamp((new Date()).getTime()));
+			lastSetStarts.put(sensorInstance, new Timestamp((new Date()).getTime()));
 		}
 	}
 
@@ -89,11 +89,11 @@ public class Sender implements Runnable {
 		return sensorInstances;	
 	}
 
-	void start() {
+	public void start() {
 		scheduledFuture = scheduler.scheduleAtFixedRate(this, 0, 10, TimeUnit.SECONDS);
 	}
 
-	static String getQueryString() {
+	private static String getQueryString() {
 		final String values = "MAX(cd.timestamp) AS time, COUNT(cd.value), AVG(cd.value), MAX(cd.value), MIN(cd.value), STDDEV(cd.value)";
 		final String sqlQueryString;
 
@@ -101,10 +101,8 @@ public class Sender implements Runnable {
 			if (LIMIT > 0) {
 				sqlQueryString = String.format(
 					"SELECT " + values + " FROM ( " +
-						"SELECT * FROM ( " +
-							"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp)" +
-						" ) AS allWithinSlice WHERE slice <= INTERVAL '%d seconds' LIMIT %d" +
-					" ) AS cd GROUP BY cd.sensor_instance_id", BULK_FETCH_INTERVAL.longValue(), LIMIT.longValue());
+						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp) LIMIT %d" +	
+					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.sensor_instance_id", LIMIT.longValue(), BULK_FETCH_INTERVAL.longValue());
 			} else {
 				sqlQueryString = String.format(
 					"SELECT " + values + " FROM ( " +
@@ -124,12 +122,8 @@ public class Sender implements Runnable {
 		return sqlQueryString;
 	}
 
-	@Override
-	public void run() {
-		long runStart = System.currentTimeMillis();
-		System.out.println("new run");
+	private void runOne(Session session) {
 		final List<SensorInstance> toBeChecked = new ArrayList<SensorInstance>(sensorInstances);
-		final Session session = sessionFactory.openSession();
 		final Map<SensorInstance, Integer> howManies = new HashMap<SensorInstance, Integer>();
 
 		for (final SensorInstance sensorInstance: sensorInstances) {
@@ -156,36 +150,39 @@ public class Sender implements Runnable {
 				final List<Object[]> result = query.list();
 
 				if (result.size() == 0) {
-					System.out.println("removing " + sensorInstance.getId());
 					iterator.remove();
 					continue;
 				}
-
-				System.out.println("have results newest lookup now " + (Timestamp)result.get(0)[0]);
 
 				final Object[] record = result.get(0);
 				final Timestamp newestEntry = (Timestamp)record[0];
 				final Long count = (Long)record[1];
 
-				lastSetStarts.put(sensorInstance, newestEntry);
-				howManies.put(sensorInstance, howManies.get(sensorInstance) + count.intValue());
-				System.out.println("count all (" + sensorInstance.getId() + "): " + howManies.get(sensorInstance));
-
-				/*
-				if (!handleResult(sensorName, newestEntry, count, sensorInstance, record)) {
-					continue;
+				if (handleResult(sensorName, newestEntry, count, sensorInstance, record)) {
+					lastSetStarts.put(sensorInstance, newestEntry);
+					howManies.put(sensorInstance, howManies.get(sensorInstance) + count.intValue());
 				}
-				*/
 			}
 		}
+	}
 
-		session.close();
-		long runEnd = System.currentTimeMillis();
+	@Override
+	public void run() {
+		//long runStart = System.currentTimeMillis();
 
-		double seconds = (runEnd - runStart) / 1000.0;
-		long millis = (runEnd - runStart) - (long)(seconds * 1000);
+		final Session session = sessionFactory.openSession();
 
-		System.out.println("run took: " + seconds + " seconds and " + millis + " millis");
+		try {
+			runOne(session);
+		} finally {
+			session.close();
+
+			/*
+			long runEnd = System.currentTimeMillis();
+			double seconds = (runEnd - runStart) / 1000.0;
+			System.out.println("run took: " + seconds + " seconds");
+			 */
+		}
 	}
 
 	private boolean handleResult(String sensorName, Timestamp newestEntry, Long count, SensorInstance sensorInstance, Object[] record) {
@@ -199,11 +196,6 @@ public class Sender implements Runnable {
 		final Double max = (Double)record[3];
 		final Double min = (Double)record[4];
 		final Double stddev = (Double)record[5];
-
-		if ("test".equals("test")) {
-			//System.out.println(String.format("(sid %d) %s", sensorInstance.getId(), newestEntry));
-			return true;
-		}
 
 		//Hibernate.initialize(sensorInstance.getProbe());
 		//Hibernate.initialize(sensorInstance.getSensorDescription());
@@ -226,6 +218,13 @@ public class Sender implements Runnable {
 
 		try {
 			final URL sendURL = new URL(urlString + queryString);
+
+			System.out.println(sendURL);
+
+			if ("test".equals("test")) {
+				return true;
+			}
+
 			final URLConnection connection = sendURL.openConnection();
 
 			if (basicAuth != null) {
