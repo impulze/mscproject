@@ -1,5 +1,8 @@
 package de.hzg.collector;
 
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,7 +40,6 @@ public class CollectorListener implements ServletContextListener {
 		final Formatter formatter = new SimpleFormatter();
 		final WebLogHandler webLogHandler = new WebLogHandler(webLogStream, formatter);
 		final ServletContext servletContext = event.getServletContext();
-		final ClassLoader classLoader = servletContext.getClassLoader();
 
 		webLogHandler.setLevel(Level.ALL);
 		rootLogger.addHandler(webLogHandler);
@@ -67,6 +69,12 @@ public class CollectorListener implements ServletContextListener {
 			}
 
 			try {
+				final URL[] urls = new URL[] {
+					new File(configuration.getSensorClassesConfiguration().getSourceDirectory()).toURI().toURL()
+				};
+
+				final ClassLoader classLoader = new URLClassLoader(urls, servletContext.getClassLoader());
+
 				collector = new Collector(hibernateUtil, classLoader);
 			} catch (Exception exception) {
 				logger.severe("Error creating collector.");

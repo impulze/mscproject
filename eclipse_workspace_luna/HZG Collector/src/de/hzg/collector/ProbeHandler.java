@@ -61,7 +61,7 @@ public class ProbeHandler implements Runnable {
 			final SensorDescription sensorDescription = sensorInstance.getSensorDescription();
 
 			// class name for the calculations
-			final String className = sensorDescription.getClassName();
+			final String className = "de.hzg.sensors." + sensorDescription.getClassName();
 			final Class<?> sensorClass;
 
 			try {
