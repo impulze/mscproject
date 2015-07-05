@@ -7,19 +7,19 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import org.apache.tomcat.jdbc.pool.PoolConfiguration;
+
 import de.hzg.common.Configuration;
 import de.hzg.common.ConfigurationSetupException;
 import de.hzg.common.ExceptionUtil;
 import de.hzg.common.HibernateUtil;
 import de.hzg.common.HibernateUtilSetupException;
+import de.hzg.common.PoolConfigurator;
 
 @WebListener
 public class SenderListener implements ServletContextListener {
 	private Sender sender;
 	private Logger logger;
-
-	public SenderListener() {
-	}
 
 	public void contextInitialized(ServletContextEvent event) {
 		final ServletContext servletContext = event.getServletContext();
@@ -40,7 +40,12 @@ public class SenderListener implements ServletContextListener {
 			}
 
 			try {
-				hibernateUtil = new HibernateUtil(configuration);
+				hibernateUtil = new HibernateUtil(configuration, new PoolConfigurator() {
+					@Override
+					public void configure(PoolConfiguration poolConfiguration) {
+						poolConfiguration.setDefaultReadOnly(true);;
+					}
+				});
 				servletContext.setAttribute("hibernateUtil", hibernateUtil);
 			} catch (HibernateUtilSetupException exception) {
 				logger.severe("Error creating hibernate utility.");

@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import javax.xml.bind.DatatypeConverter;
 
 import org.hibernate.Hibernate;
-import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -33,6 +32,7 @@ import org.hibernate.type.DoubleType;
 import org.hibernate.type.LongType;
 import org.hibernate.type.TimestampType;
 
+import de.hzg.common.ExceptionUtil;
 import de.hzg.common.HTTPSenderConfiguration;
 import de.hzg.common.HibernateUtil;
 import de.hzg.measurement.SensorInstance;
@@ -90,7 +90,7 @@ public class Sender implements Runnable {
 	}
 
 	public void start() {
-		scheduledFuture = scheduler.scheduleAtFixedRate(this, 0, 10, TimeUnit.SECONDS);
+		scheduledFuture = scheduler.scheduleAtFixedRate(this, 0, this.interval, TimeUnit.SECONDS);
 	}
 
 	private static String getQueryString() {
@@ -101,21 +101,21 @@ public class Sender implements Runnable {
 			if (LIMIT > 0) {
 				sqlQueryString = String.format(
 					"SELECT " + values + " FROM ( " +
-						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp) LIMIT %d" +	
+						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin WINDOW Timestamps as (ORDER BY timestamp) LIMIT %d" +
 					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.sensor_instance_id", LIMIT.longValue(), BULK_FETCH_INTERVAL.longValue());
 			} else {
 				sqlQueryString = String.format(
 					"SELECT " + values + " FROM ( " +
-						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp)" +
+						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin WINDOW Timestamps as (ORDER BY timestamp)" +
 					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.sensor_instance_id", BULK_FETCH_INTERVAL.longValue());
 			}
 		} else {
 			if (LIMIT > 0) {
 				sqlQueryString = String.format("SELECT " + values + " FROM ( " +
-					"SELECT * FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp ORDER BY timestamp LIMIT %d" +
+					"SELECT * FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin ORDER BY timestamp LIMIT %d" +
 				" ) AS cd GROUP BY cd.sensor_instance_id", LIMIT.longValue());
 			} else {
-				sqlQueryString = "SELECT " + values + " FROM calculations AS cd WHERE sensor_instance_id = :sid AND timestamp > :timestamp GROUP BY cd.sensor_instance_id";
+				sqlQueryString = "SELECT " + values + " FROM calculations AS cd WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin GROUP BY cd.sensor_instance_id";
 			}
 		}
 
@@ -124,11 +124,7 @@ public class Sender implements Runnable {
 
 	private void runOne(Session session) {
 		final List<SensorInstance> toBeChecked = new ArrayList<SensorInstance>(sensorInstances);
-		final Map<SensorInstance, Integer> howManies = new HashMap<SensorInstance, Integer>();
-
-		for (final SensorInstance sensorInstance: sensorInstances) {
-			howManies.put(sensorInstance, 0);
-		}
+		final Timestamp runBegin = new Timestamp(Calendar.getInstance().getTimeInMillis());
 
 		while (!toBeChecked.isEmpty()) {
 			final Iterator<SensorInstance> iterator = toBeChecked.iterator();
@@ -144,9 +140,11 @@ public class Sender implements Runnable {
 					.addScalar("min", DoubleType.INSTANCE)
 					.addScalar("stddev", DoubleType.INSTANCE)
 					.setParameter("timestamp", lastSetStarts.get(sensorInstance))
-					.setParameter("sid", sensorInstance.getId());
+					.setParameter("sid", sensorInstance.getId())
+					.setParameter("run_begin", runBegin);
 
 				final String sensorName = sensorInstance.getSensorDescription().getName();
+				@SuppressWarnings("unchecked")
 				final List<Object[]> result = query.list();
 
 				if (result.size() == 0) {
@@ -160,7 +158,6 @@ public class Sender implements Runnable {
 
 				if (handleResult(sensorName, newestEntry, count, sensorInstance, record)) {
 					lastSetStarts.put(sensorInstance, newestEntry);
-					howManies.put(sensorInstance, howManies.get(sensorInstance) + count.intValue());
 				}
 			}
 		}
@@ -174,6 +171,9 @@ public class Sender implements Runnable {
 
 		try {
 			runOne(session);
+		} catch (Exception exception) {
+			final String stackTrace = ExceptionUtil.stackTraceToString(exception);
+			logger.severe(stackTrace);
 		} finally {
 			session.close();
 
@@ -195,10 +195,7 @@ public class Sender implements Runnable {
 		final Double avg = (Double)record[2];
 		final Double max = (Double)record[3];
 		final Double min = (Double)record[4];
-		final Double stddev = (Double)record[5];
-
-		//Hibernate.initialize(sensorInstance.getProbe());
-		//Hibernate.initialize(sensorInstance.getSensorDescription());
+		final Double stddev = record[5] == null ? 0 : (Double)record[5];
 
 		String queryString = "?" + this.queryString;
 
@@ -211,20 +208,13 @@ public class Sender implements Runnable {
 			queryString = queryString.replace("${min}", min.toString());
 			queryString = queryString.replace("${stddev}", stddev.toString());
 			queryString = queryString.replace("${count}", count.toString());
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
+		} catch (UnsupportedEncodingException exception) {
+			exception.printStackTrace();
 			return false;
 		}
 
 		try {
 			final URL sendURL = new URL(urlString + queryString);
-
-			System.out.println(sendURL);
-
-			if ("test".equals("test")) {
-				return true;
-			}
-
 			final URLConnection connection = sendURL.openConnection();
 
 			if (basicAuth != null) {
