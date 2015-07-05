@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import org.hibernate.Session;
@@ -34,6 +35,7 @@ public class ProbeHandler implements Runnable {
 	private Set<Integer> missingSensors = new HashSet<Integer>();
 	private final SessionFactory sessionFactory;
 	private Session session;
+	private final AtomicBoolean needsFlush = new AtomicBoolean(false);
 
 	public ProbeHandler(HibernateUtil hibernateUtil, Probe probe, ClassLoader classLoader) throws ProbeHandlerSetupException {
 		this.probe = probe;
@@ -136,7 +138,6 @@ public class ProbeHandler implements Runnable {
 
 		session.save(rawData);
 		session.save(calculatedData);
-		session.flush();
 	}
 
 	private void doRun() throws InterruptedException {
@@ -154,6 +155,10 @@ public class ProbeHandler implements Runnable {
 
 					if (binaryData != null) {
 						handleBinaryData(binaryData);
+					}
+
+					if (needsFlush.compareAndSet(true, false)) {
+						session.flush();
 					}
 				} else {
 					break;
@@ -176,5 +181,9 @@ public class ProbeHandler implements Runnable {
 		synchronized (this) {
 			shutdown = true;
 		}
+	}
+
+	public void setNeedsFlush() {
+		needsFlush.set(true);
 	}
 }
