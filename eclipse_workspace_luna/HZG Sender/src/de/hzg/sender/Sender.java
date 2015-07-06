@@ -186,6 +186,11 @@ public class Sender implements Runnable {
 	}
 
 	private boolean handleResult(String sensorName, Timestamp newestEntry, Long count, SensorInstance sensorInstance, Object[] record) {
+		// TODO: we only have one station right now
+		if (sensorInstance.getProbe().getId() != 2) {
+			return true;
+		}
+
 		// need to extract station, parameter, time, value, max, min, stddev, count
 		// TODO: for now hardcoded, get this from probe?
 		final String station = "testenv";
