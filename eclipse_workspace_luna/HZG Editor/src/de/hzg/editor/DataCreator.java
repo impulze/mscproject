@@ -68,7 +68,6 @@ public class DataCreator {
 				final int row = sourceTable.rowAtPoint(arg0.getPoint());
 				final int column = sourceTable.columnAtPoint(arg0.getPoint());
 
-				System.out.println("setting row to " + row);
 				currentRowForPopup = row;
 				currentColumnForPopup = column;
 
@@ -227,7 +226,6 @@ public class DataCreator {
 
 			@Override
 			public Point getPopupLocation(MouseEvent arg0) {
-				System.out.println("getpou: " + popupHandler);
 				if (popupHandler != null) {
 					final Point result =  popupHandler.getPopupLocation(this, arg0);
 
