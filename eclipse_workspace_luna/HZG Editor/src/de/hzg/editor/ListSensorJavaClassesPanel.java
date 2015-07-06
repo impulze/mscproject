@@ -6,10 +6,13 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.hibernate.SessionFactory;
 
@@ -44,17 +47,28 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 
 	private void createForm() {
 		final JButton actionButton = getActionButton("Refresh list");
+		final JButton checkClassesButton = getActionButton("Check classes");
+		final JButton compileClassesButton = getActionButton("Compile classes");
 
 		final GroupLayout topPanelLayout = new GroupLayout(getTopPanel());
 
 		final SequentialGroup horizontalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
 			.addComponent(actionButton)
+			.addPreferredGap(ComponentPlacement.RELATED)
+			.addComponent(checkClassesButton)
+			.addPreferredGap(ComponentPlacement.RELATED)
+			.addComponent(compileClassesButton)
 			.addContainerGap(251, Short.MAX_VALUE);
+
+		final ParallelGroup verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE)
+			.addComponent(actionButton)
+			.addComponent(checkClassesButton)
+			.addComponent(compileClassesButton);
 
 		final SequentialGroup verticalLayoutWithGaps = topPanelLayout.createSequentialGroup()
 			.addContainerGap()
-			.addComponent(actionButton)
+			.addGroup(verticalButtonGroup)
 			.addContainerGap();
 
 		topPanelLayout.setHorizontalGroup(horizontalLayoutWithGaps);
@@ -127,6 +141,10 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 			tableModel.setSensorClassNames(sensorClassNames);
 			tableModel.fireTableDataChanged();
 			return true;
+		} else if (title.equals("Compile classes")) {
+			System.out.println("Compile classes");
+		} else if (title.equals("Check classes")) {
+			System.out.println("Check classes");
 		}
 
 		return false;

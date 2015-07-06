@@ -90,7 +90,7 @@ public class SensorJavaClass {
 
 	public static List<String> listNames(SensorClassesConfiguration sensorClassesConfiguration, Window owner) {
 		final String sourceDirectory = sensorClassesConfiguration.getSourceDirectory();
-		final String packageDirectory = sensorClassesConfiguration.getPackage().replace('.', File.separatorChar);
+		final String packageDirectory = SensorClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
 		final String walkDirectory = sourceDirectory + File.separatorChar + packageDirectory + File.separatorChar;
 		final List<String> sensorClassNames = new ArrayList<String>();
 
@@ -187,7 +187,7 @@ public class SensorJavaClass {
 
 	private static String getInputPath(SensorClassesConfiguration sensorClassesConfiguration, String name) {
 		final String sourceDirectory = sensorClassesConfiguration.getSourceDirectory();
-		final String packageDirectory = sensorClassesConfiguration.getPackage().replace('.', File.separatorChar);
+		final String packageDirectory = SensorClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
 
 		return sourceDirectory + File.separatorChar + packageDirectory + File.separatorChar + name + Kind.SOURCE.extension;
 	}
