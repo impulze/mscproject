@@ -10,6 +10,7 @@ import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -41,18 +42,17 @@ public class Sender implements Runnable {
 	private static final Integer LIMIT = 9999;
 	// 0 = 9999 values iteratively until now, x = x seconds interval until now
 	private static final Long BULK_FETCH_INTERVAL = new Long(600);
-	private static final Timestamp startedTimestamp = new Timestamp((new Date()).getTime());
 	private static final Logger logger = Logger.getLogger(Sender.class.getName());
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private final SessionFactory sessionFactory;
 	private final String basicAuth;
 	private final String urlString;
 	private final String queryString;
-	private final int interval;
 	private ScheduledFuture<?> scheduledFuture;
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private final List<SensorInstance> sensorInstances;
-	private static int l = 0;
+	private final Map<SensorInstance, Timestamp> lastSetStarts = new HashMap<SensorInstance, Timestamp>();
+	private final String sqlQueryString;
 
 	Sender(HibernateUtil hibernateUtil, HTTPSenderConfiguration httpSenderConfiguration) {
 		final URL url = httpSenderConfiguration.getURL();
@@ -63,6 +63,11 @@ public class Sender implements Runnable {
 		this.urlString = url.toString();
 		this.queryString = httpSenderConfiguration.getQuery();
 		this.sensorInstances = getSensorInstances(sessionFactory);
+		this.sqlQueryString = getQueryString();
+
+		for (final SensorInstance sensorInstance: sensorInstances) {
+			lastSetStarts.put(sensorInstance, new Timestamp(0)); //new Timestamp((new Date()).getTime()));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -87,43 +92,54 @@ public class Sender implements Runnable {
 		scheduledFuture = scheduler.scheduleAtFixedRate(this, 0, 10, TimeUnit.SECONDS);
 	}
 
-	@Override
-	public void run() {
-		final List<SensorInstance> toBeChecked = new ArrayList<SensorInstance>();
-		final Map<SensorInstance, Timestamp> lastSetStarts = new HashMap<SensorInstance, Timestamp>();
-		final Session session = sessionFactory.openSession();
+	static String getQueryString() {
+		final String values = "MAX(cd.timestamp) AS time, COUNT(cd.value), AVG(cd.value), MAX(cd.value), MIN(cd.value), STDDEV(cd.value)";
+		final String sqlQueryString;
 
-		for (final SensorInstance sensorInstance: sensorInstances) {
-			// TODO: start time
-			final Query query = session.createQuery("SELECT cd.date FROM CalculatedData cd WHERE cd.sensorInstance = :sensorInstance AND timestamp < 'now'")
-				.setEntity("sensorInstance", sensorInstance);
-			final List<?> tempResult = query.list();
-			@SuppressWarnings("unchecked")
-			final List<Timestamp> result = (List<Timestamp>) tempResult;
-
-			if (result.size() != 0) {
-				lastSetStarts.put(sensorInstance, result.get(0));
-				toBeChecked.add(sensorInstance);
+		if (BULK_FETCH_INTERVAL.longValue() > 0) {
+			if (LIMIT > 0) {
+				sqlQueryString = "SELECT " + values + " FROM ( " +
+						"SELECT * FROM ( " +
+							"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp)" +
+						" ) AS allWithinSlice WHERE slice <= CAST(:interval AS INTERVAL) LIMIT :limit" +
+					" ) AS cd GROUP BY cd.sensor_instance_id";
+			} else {
+				sqlQueryString =
+						"SELECT " + values + " FROM ( " +
+							"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp)" +
+						" ) AS cd WHERE slice <= CAST(:interval AS INTERVAL) GROUP BY cd.sensor_instance_id";
+			}
+		} else {
+			if (LIMIT > 0) {
+				sqlQueryString = "SELECT " + values + " FROM ( " +
+					"SELECT * FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp ORDER BY timestamp LIMIT :limit" +
+				" ) AS cd GROUP BY cd.sensor_instance_id";
+			} else {
+				sqlQueryString = "SELECT " + values + " FROM calculations AS cd WHERE sensor_instance_id = :sid AND timestamp > :timestamp GROUP BY cd.sensor_instance_id";
 			}
 		}
 
-		int howmany = 0;
+		return sqlQueryString;
+	}
+
+	@Override
+	public void run() {
+		long runStart = System.currentTimeMillis();
+		System.out.println("new run");
+		final List<SensorInstance> toBeChecked = new ArrayList<SensorInstance>(sensorInstances);
+		final Session session = sessionFactory.openSession();
+		final Map<SensorInstance, Integer> howManies = new HashMap<SensorInstance, Integer>();
+
+		for (final SensorInstance sensorInstance: sensorInstances) {
+			howManies.put(sensorInstance, 0);
+		}
 
 		while (!toBeChecked.isEmpty()) {
 			final Iterator<SensorInstance> iterator = toBeChecked.iterator();
 
 			while (iterator.hasNext()) {
 				final SensorInstance sensorInstance = iterator.next();
-				final String sensorName = sensorInstance.getSensorDescription().getName();
-				final SQLQuery query;
-
-				if (BULK_FETCH_INTERVAL.longValue() > 0) {
-					query = session.createSQLQuery("SELECT MAX(cd.timestamp) AS time, COUNT(cd.value), AVG(cd.value), MAX(cd.value), MIN(cd.value), STDDEV(cd.value) FROM ( SELECT * FROM calculations WHERE calculations.sensor_instance_id = :sid AND timestamp BETWEEN :first_entry AND :last_entry ORDER BY timestamp ASC LIMIT :limit ) AS cd GROUP BY cd.sensor_instance_id");
-				} else {
-					query = session.createSQLQuery("SELECT MAX(cd.timestamp) AS time, COUNT(cd.value), AVG(cd.value), MAX(cd.value), MIN(cd.value), STDDEV(cd.value) FROM ( SELECT * FROM calculations WHERE calculations.sensor_instance_id = :sid AND timestamp >= :first_entry ORDER BY timestamp ASC LIMIT :limit ) AS cd GROUP BY cd.sensor_instance_id");
-				}
-
-				final Timestamp firstEntry = lastSetStarts.get(sensorInstance);
+				final SQLQuery query = session.createSQLQuery(sqlQueryString);
 
 				query.addScalar("time", TimestampType.INSTANCE)
 					.addScalar("count", LongType.INSTANCE)
@@ -131,72 +147,52 @@ public class Sender implements Runnable {
 					.addScalar("max", DoubleType.INSTANCE)
 					.addScalar("min", DoubleType.INSTANCE)
 					.addScalar("stddev", DoubleType.INSTANCE)
-					.setParameter("first_entry", firstEntry)
-					.setParameter("sid", sensorInstance.getId())
-					.setParameter("limit", LIMIT);
+					.setParameter("timestamp", lastSetStarts.get(sensorInstance))
+					.setParameter("sid", sensorInstance.getId());
 
-				final Timestamp lastEntry = new Timestamp(firstEntry.getTime() + BULK_FETCH_INTERVAL.longValue() * 1000L);
-
-				lastEntry.setNanos(firstEntry.getNanos());
-
-				if (BULK_FETCH_INTERVAL.longValue() > 0) {
-					query.setParameter("last_entry", lastEntry);
+				if (LIMIT > 0) {
+					query.setParameter("limit", LIMIT);
 				}
 
+				if (BULK_FETCH_INTERVAL.longValue() > 0) {
+					query.setParameter("interval", BULK_FETCH_INTERVAL.longValue() + " seconds'");
+				}
+
+				final String sensorName = sensorInstance.getSensorDescription().getName();
+				//final Timestamp oldestLookupTimestamp = lastSetStarts.get(sensorInstance);
 				final List<Object[]> result = query.list();
 
 				if (result.size() == 0) {
-					final Timestamp now = new Timestamp((new Date()).getTime());
-
-					lastSetStarts.put(sensorInstance, lastEntry);
-
-					// TODO: hole here, this should be fixed by a proper query...
-					if (lastEntry.after(now)) {
-						System.out.println("removed " + sensorInstance.getId());
-						iterator.remove();
-					}
-
+					System.out.println("removing " + sensorInstance.getId());
+					iterator.remove();
 					continue;
 				}
+
+				System.out.println("have results newest lookup now " + (Timestamp)result.get(0)[0]);
 
 				final Object[] record = result.get(0);
 				final Timestamp newestEntry = (Timestamp)record[0];
 				final Long count = (Long)record[1];
 
-				if (count == 0) {
-					final Timestamp now = new Timestamp((new Date()).getTime());
+				lastSetStarts.put(sensorInstance, newestEntry);
+				howManies.put(sensorInstance, howManies.get(sensorInstance) + count.intValue());
+				System.out.println("count all (" + sensorInstance.getId() + "): " + howManies.get(sensorInstance));
 
-					lastSetStarts.put(sensorInstance, lastEntry);
-
-					// TODO: hole here, this should be fixed by a proper query...
-					if (lastEntry.after(now)) {
-						System.out.println("removed " + sensorInstance.getId());
-						iterator.remove();
-					}
-
-					continue;
-				}
-
+				/*
 				if (!handleResult(sensorName, newestEntry, count, sensorInstance, record)) {
 					continue;
 				}
-
-				if (sensorInstance.getId() == 1) {
-					howmany += count;
-				}
-
-				if (count == 1) {
-					// only 1 result, newest = first, so add lastEntry
-					lastSetStarts.put(sensorInstance, lastEntry);
-				} else {
-					lastSetStarts.put(sensorInstance, newestEntry);
-				}
+				*/
 			}
 		}
 
-		System.out.println("how many " + howmany);
-
 		session.close();
+		long runEnd = System.currentTimeMillis();
+
+		double seconds = (runEnd - runStart) / 1000.0;
+		long millis = (runEnd - runStart) - (long)(seconds * 1000);
+
+		System.out.println("run took: " + seconds + " seconds and " + millis + " millis")
 	}
 
 	private boolean handleResult(String sensorName, Timestamp newestEntry, Long count, SensorInstance sensorInstance, Object[] record) {
