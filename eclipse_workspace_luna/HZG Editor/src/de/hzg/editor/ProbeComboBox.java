@@ -15,7 +15,6 @@ import javax.swing.table.TableCellRenderer;
 import org.hibernate.SessionFactory;
 
 import de.hzg.measurement.Probe;
-import de.hzg.measurement.SensorDescription;
 
 public class ProbeComboBox extends JComboBox<Probe> {
 	private static final long serialVersionUID = 723731398929179486L;
