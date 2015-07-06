@@ -1,8 +1,10 @@
 package de.hzg.sender;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -35,6 +37,8 @@ import org.hibernate.type.TimestampType;
 import de.hzg.common.ExceptionUtil;
 import de.hzg.common.HTTPSenderConfiguration;
 import de.hzg.common.HibernateUtil;
+import de.hzg.measurement.Probe;
+import de.hzg.measurement.SensorDescription;
 import de.hzg.measurement.SensorInstance;
 
 public class Sender implements Runnable {
@@ -80,6 +84,7 @@ public class Sender implements Runnable {
 			sensorInstances= session.createQuery("FROM SensorInstance").list();
 
 			for (final SensorInstance sensorInstance: sensorInstances) {
+				Hibernate.initialize(sensorInstance.getProbe());
 				Hibernate.initialize(sensorInstance.getSensorDescription());
 			}
 		} finally {
@@ -159,6 +164,17 @@ public class Sender implements Runnable {
 				if (handleResult(sensorName, newestEntry, count, sensorInstance, record)) {
 					lastSetStarts.put(sensorInstance, newestEntry);
 				}
+
+				if (count != 0) {
+					// there was data between 'now and the start of this run
+					if (LIMIT <= 0 || count != LIMIT.longValue()) {
+						// either there was no limit and we had data or we had a limit but we don't need another iterator
+						iterator.remove();
+					}
+				} else {
+					// there were no items between 'now' and the start of this run, so remove the iterator
+					iterator.remove();
+				}
 			}
 		}
 	}
@@ -187,7 +203,7 @@ public class Sender implements Runnable {
 
 	private boolean handleResult(String sensorName, Timestamp newestEntry, Long count, SensorInstance sensorInstance, Object[] record) {
 		// TODO: we only have one station right now
-		if (sensorInstance.getProbe().getId() != 2) {
+		if (sensorInstance.getProbe().getId() != 2 || sensorInstance.getId() != 2) {
 			return true;
 		}
 
@@ -220,7 +236,10 @@ public class Sender implements Runnable {
 
 		try {
 			final URL sendURL = new URL(urlString + queryString);
-			final URLConnection connection = sendURL.openConnection();
+			final HttpURLConnection connection = (HttpURLConnection)sendURL.openConnection();
+
+			// TODO: debugging
+			System.out.println(sendURL);
 
 			if (basicAuth != null) {
 				final String authString = "Basic " + new String(DatatypeConverter.printBase64Binary(basicAuth.getBytes()));
@@ -228,13 +247,31 @@ public class Sender implements Runnable {
 			}
 
 			connection.setRequestProperty("Accept-Charset", "UTF-8");
+			connection.setRequestMethod("GET");
+			connection.connect();
 
+			final int responseCode = connection.getResponseCode();
 			final byte[] buffer = new byte[4096];
 			final InputStream response = connection.getInputStream();
-			int r;
 
-			while ((r = response.read(buffer)) > 0) {
-				System.out.write(buffer, 0, r);
+			if (responseCode != 200) {
+				int result;
+				final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+				while ((result = response.read(buffer)) > 0) {
+					outputStream.write(buffer, 0, result);
+				}
+
+				final String outputString = outputStream.toString("UTF-8");
+				final Probe probe = sensorInstance.getProbe();
+				final SensorDescription sensorDescription = sensorInstance.getSensorDescription();
+				final String msg = String.format(
+						"The transmission to HZG failed for probe '%s' sensor '%s': '%s'",
+						probe.getName(),
+						sensorDescription.getName(),
+						outputString);
+
+				logger.warning(msg);
 			}
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
