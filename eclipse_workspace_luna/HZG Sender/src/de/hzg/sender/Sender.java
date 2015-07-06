@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -235,7 +236,7 @@ public class Sender implements Runnable {
 
 		try {
 			final URL sendURL = new URL(urlString + queryString);
-			final URLConnection connection = sendURL.openConnection();
+			final HttpURLConnection connection = (HttpURLConnection)sendURL.openConnection();
 
 			// TODO: debugging
 			System.out.println(sendURL);
@@ -246,24 +247,29 @@ public class Sender implements Runnable {
 			}
 
 			connection.setRequestProperty("Accept-Charset", "UTF-8");
+			connection.setRequestMethod("GET");
+			connection.connect();
 
+			final int responseCode = connection.getResponseCode();
 			final byte[] buffer = new byte[4096];
 			final InputStream response = connection.getInputStream();
-			int result;
-			final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-			while ((result = response.read(buffer)) > 0) {
-				outputStream.write(buffer, 0, result);
-			}
+			if (responseCode != 200) {
+				int result;
+				final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-			if (!outputStream.equals("OK\r\n")) {
+				while ((result = response.read(buffer)) > 0) {
+					outputStream.write(buffer, 0, result);
+				}
+
+				final String outputString = outputStream.toString("UTF-8");
 				final Probe probe = sensorInstance.getProbe();
 				final SensorDescription sensorDescription = sensorInstance.getSensorDescription();
 				final String msg = String.format(
 						"The transmission to HZG failed for probe '%s' sensor '%s': '%s'",
 						probe.getName(),
 						sensorDescription.getName(),
-						outputStream.toString("UTF-8"));
+						outputString);
 
 				logger.warning(msg);
 			}
