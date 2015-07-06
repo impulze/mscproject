@@ -3,6 +3,10 @@ package de.hzg.collector;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.hibernate.Query;
@@ -16,6 +20,8 @@ public class Collector implements Runnable {
 	private static final Logger logger = Logger.getLogger(Collector.class.getName());
 	private List<Thread> probeHandlerThreads = new ArrayList<Thread>();
 	private List<ProbeHandler> probeHandlers = new ArrayList<ProbeHandler>();
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+	private ScheduledFuture<?> flushFuture = null;
 
 	public Collector(HibernateUtil hibernateUtil, ClassLoader classLoader) {
 		final SessionFactory sessionFactory = hibernateUtil.getSessionFactory();
@@ -49,6 +55,15 @@ public class Collector implements Runnable {
 		for (final Thread probeHandlerThread: probeHandlerThreads) {
 			probeHandlerThread.start();
 		}
+
+		flushFuture = scheduler.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				for (final ProbeHandler probeHandler: probeHandlers) {
+					probeHandler.setNeedsFlush();
+				}
+			}
+		}, 0, 15, TimeUnit.SECONDS);
 	}
 
 	public boolean finished() {
@@ -65,7 +80,7 @@ public class Collector implements Runnable {
 				}
 			}
 
-			return probeHandlers.size() == 0;
+			return probeHandlers.size() == 0 && flushFuture.isDone();
 		}
 	}
 
@@ -80,6 +95,8 @@ public class Collector implements Runnable {
 				probeHandler.shutdown();
 				probeHandlerThread.interrupt();
 			}
+
+			flushFuture.cancel(true);
 		}
 	}
 }
