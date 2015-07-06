@@ -46,6 +46,7 @@ public class Sender implements Runnable {
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private final SessionFactory sessionFactory;
 	private final String basicAuth;
+	private final Integer interval;
 	private final String urlString;
 	private final String queryString;
 	private ScheduledFuture<?> scheduledFuture;
@@ -98,22 +99,23 @@ public class Sender implements Runnable {
 
 		if (BULK_FETCH_INTERVAL.longValue() > 0) {
 			if (LIMIT > 0) {
-				sqlQueryString = "SELECT " + values + " FROM ( " +
+				sqlQueryString = String.format(
+					"SELECT " + values + " FROM ( " +
 						"SELECT * FROM ( " +
 							"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp)" +
-						" ) AS allWithinSlice WHERE slice <= CAST(:interval AS INTERVAL) LIMIT :limit" +
-					" ) AS cd GROUP BY cd.sensor_instance_id";
+						" ) AS allWithinSlice WHERE slice <= INTERVAL '%d seconds' LIMIT %d" +
+					" ) AS cd GROUP BY cd.sensor_instance_id", BULK_FETCH_INTERVAL.longValue(), LIMIT.longValue());
 			} else {
-				sqlQueryString =
-						"SELECT " + values + " FROM ( " +
-							"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp)" +
-						" ) AS cd WHERE slice <= CAST(:interval AS INTERVAL) GROUP BY cd.sensor_instance_id";
+				sqlQueryString = String.format(
+					"SELECT " + values + " FROM ( " +
+						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp WINDOW Timestamps as (ORDER BY timestamp)" +
+					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.sensor_instance_id", BULK_FETCH_INTERVAL.longValue());
 			}
 		} else {
 			if (LIMIT > 0) {
-				sqlQueryString = "SELECT " + values + " FROM ( " +
-					"SELECT * FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp ORDER BY timestamp LIMIT :limit" +
-				" ) AS cd GROUP BY cd.sensor_instance_id";
+				sqlQueryString = String.format("SELECT " + values + " FROM ( " +
+					"SELECT * FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp ORDER BY timestamp LIMIT %d" +
+				" ) AS cd GROUP BY cd.sensor_instance_id", LIMIT.longValue());
 			} else {
 				sqlQueryString = "SELECT " + values + " FROM calculations AS cd WHERE sensor_instance_id = :sid AND timestamp > :timestamp GROUP BY cd.sensor_instance_id";
 			}
@@ -150,16 +152,7 @@ public class Sender implements Runnable {
 					.setParameter("timestamp", lastSetStarts.get(sensorInstance))
 					.setParameter("sid", sensorInstance.getId());
 
-				if (LIMIT > 0) {
-					query.setParameter("limit", LIMIT);
-				}
-
-				if (BULK_FETCH_INTERVAL.longValue() > 0) {
-					query.setParameter("interval", BULK_FETCH_INTERVAL.longValue() + " seconds'");
-				}
-
 				final String sensorName = sensorInstance.getSensorDescription().getName();
-				//final Timestamp oldestLookupTimestamp = lastSetStarts.get(sensorInstance);
 				final List<Object[]> result = query.list();
 
 				if (result.size() == 0) {
@@ -192,7 +185,7 @@ public class Sender implements Runnable {
 		double seconds = (runEnd - runStart) / 1000.0;
 		long millis = (runEnd - runStart) - (long)(seconds * 1000);
 
-		System.out.println("run took: " + seconds + " seconds and " + millis + " millis")
+		System.out.println("run took: " + seconds + " seconds and " + millis + " millis");
 	}
 
 	private boolean handleResult(String sensorName, Timestamp newestEntry, Long count, SensorInstance sensorInstance, Object[] record) {
