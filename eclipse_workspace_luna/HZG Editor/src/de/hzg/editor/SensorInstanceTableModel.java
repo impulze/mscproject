@@ -12,6 +12,7 @@ import javax.swing.table.AbstractTableModel;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 public class SensorInstanceTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 4685270309147674179L;
@@ -82,11 +83,27 @@ public class SensorInstanceTableModel extends AbstractTableModel {
 			default: assert(false);
 		}
 
+		Transaction transaction = null;
+
 		try {
+			transaction = session.beginTransaction();
 			session.update(sensorInstance);
+
+			if (column == 0) {
+				final SensorDescription sensorDescription = (SensorDescription)value;
+
+				sensorDescription.getSensorInstances().add(sensorInstance);
+				session.update(sensorDescription);
+			}
+
 			session.flush();
+			transaction.commit();
 			JOptionPane.showMessageDialog(owner, "Sensor instance successfully updated.", "Sensor instance updated", JOptionPane.INFORMATION_MESSAGE);
 		} catch (Exception exception) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+
 			final String[] messages = { "Sensor instance could not be updated.", "An exception occured." };
 			final JDialog dialog = new ExceptionDialog(owner, "Sensor instance not updated", messages, exception);
 			dialog.pack();
