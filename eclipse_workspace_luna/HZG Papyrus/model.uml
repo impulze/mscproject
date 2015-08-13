@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<uml:Model xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML" xmi:id="_aIVEgA6yEeWq7oIQtWxbBg" name="model">
+<uml:Model xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML" xmi:id="_aIVEgA6yEeWq7oIQtWxbBg" name="model">
+  <ownedComment xmi:type="uml:Comment" xmi:id="_fdlgwDAWEeWb1Or7ixercg" annotatedElement="_Ran8UDAWEeWb1Or7ixercg">
+    <body> Eine Meeressonde (CTD)</body>
+  </ownedComment>
+  <ownedComment xmi:type="uml:Comment" xmi:id="_1D79IDAhEeWb1Or7ixercg" annotatedElement="_qXtzYDATEeWb1Or7ixercg">
+    <body>Ein Sensor einer CTD (Modell)</body>
+  </ownedComment>
   <packagedElement xmi:type="uml:Component" xmi:id="_c6xW8A6yEeWq7oIQtWxbBg" name="ConnectorServlet" visibility="public">
     <packagedElement xmi:type="uml:Component" xmi:id="_yJky0A65EeWq7oIQtWxbBg" name="SensorCalibration">
       <packagedElement xmi:type="uml:Component" xmi:id="_15sHAA-AEeWQHs2Qs59IRg" name="SensorModule"/>
@@ -171,6 +177,135 @@ class names names on the filesystem and serial device</body>
     <message xmi:type="uml:Message" xmi:id="_r9GQIA-CEeWQHs2Qs59IRg" name="Message0" messageSort="reply" receiveEvent="_r9G3MQ-CEeWQHs2Qs59IRg" sendEvent="_r9G3MA-CEeWQHs2Qs59IRg"/>
     <message xmi:type="uml:Message" xmi:id="_uV23QA-CEeWQHs2Qs59IRg" name="handleSpecificProbeForEachActiveProbe()" receiveEvent="_uV3eUA-CEeWQHs2Qs59IRg" sendEvent="_uV23QQ-CEeWQHs2Qs59IRg"/>
     <message xmi:type="uml:Message" xmi:id="_xkTusBQAEeW6oc7hIkQDGg" name="GetObservation()" receiveEvent="_xkWyABQAEeW6oc7hIkQDGg" sendEvent="_xkVj4BQAEeW6oc7hIkQDGg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_qXtzYDATEeWb1Or7ixercg" name="ProcedureDescription">
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_oSQtUDAUEeWb1Or7ixercg" name="id">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Integer"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_zMbU0DAUEeWb1Or7ixercg" name="name">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_2tdLkDAUEeWb1Or7ixercg" name="classname">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_58KjQDAUEeWb1Or7ixercg" name="unit">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_8bpdcDAUEeWb1Or7ixercg" name="metadata">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BrF90DAVEeWb1Or7ixercg" name="ProcedureInstance">
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_BrF90jAVEeWb1Or7ixercg" name="procedureDescription" visibility="public" type="_qXtzYDATEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_vz2kkDAWEeWb1Or7ixercg" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_vz62ADAWEeWb1Or7ixercg" value="1"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_WC350DAWEeWb1Or7ixercg" name="sensor" type="_Ran8UDAWEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_BrF90zAVEeWb1Or7ixercg" name="address">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Integer"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_dtN54DAXEeWb1Or7ixercg" name="activeCalibrationSet" type="_ucjP4DAVEeWb1Or7ixercg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:DataType" xmi:id="_ggT-gDAVEeWb1Or7ixercg" name="Double"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_ucjP4DAVEeWb1Or7ixercg" name="CalibrationSet">
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_ucjP5DAVEeWb1Or7ixercg" name="parameter1" type="_ggT-gDAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_ucjP5jAVEeWb1Or7ixercg" name="parameter2" type="_ggT-gDAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_ucjP5zAVEeWb1Or7ixercg" name="parameter3" type="_ggT-gDAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_ucjP6DAVEeWb1Or7ixercg" name="parameter4" type="_ggT-gDAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_ucjP6TAVEeWb1Or7ixercg" name="parameter5" type="_ggT-gDAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_ucjP7TAVEeWb1Or7ixercg" name="parameter6" type="_ggT-gDAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_6kCmIDAVEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_DhpIYDAYEeWb1Or7ixercg" name="start" type="_GYqY0DAYEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_N1Xa8DAYEeWb1Or7ixercg" name="end" type="_GYqY0DAYEeWb1Or7ixercg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:DataType" xmi:id="_GYqY0DAYEeWb1Or7ixercg" name="Timestamp"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_Ran8UDAWEeWb1Or7ixercg" name="Sensor">
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_Ran8UjAWEeWb1Or7ixercg" name="name">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_Ran8UzAWEeWb1Or7ixercg" name="device">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_Ran8VDAWEeWb1Or7ixercg" name="active">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Boolean"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_nsvMIDAZEeWb1Or7ixercg" memberEnd="_nsvMITAZEeWb1Or7ixercg _nstW8DAZEeWb1Or7ixercg">
+    <name xsi:nil="true"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_nstW8DAZEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg" association="_nsvMIDAZEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_nstW8TAZEeWb1Or7ixercg"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_nstW8jAZEeWb1Or7ixercg" value="*"/>
+    </ownedEnd>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_nsvMITAZEeWb1Or7ixercg" name="sensor" type="_Ran8UDAWEeWb1Or7ixercg" association="_nsvMIDAZEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_nsvMIjAZEeWb1Or7ixercg" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_nsvMIzAZEeWb1Or7ixercg" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_3_54oDAZEeWb1Or7ixercg" memberEnd="_3_54oTAZEeWb1Or7ixercg _3_4DcDAZEeWb1Or7ixercg">
+    <name xsi:nil="true"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_3_54oTAZEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg" association="_3_54oDAZEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_3_54ojAZEeWb1Or7ixercg"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_3_54ozAZEeWb1Or7ixercg" value="*"/>
+    </ownedEnd>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_3_4DcDAZEeWb1Or7ixercg" name="procedureDescription" type="_qXtzYDATEeWb1Or7ixercg" association="_3_54oDAZEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_3_4DcTAZEeWb1Or7ixercg" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_3_4DcjAZEeWb1Or7ixercg" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_WeuykDAaEeWb1Or7ixercg" memberEnd="_WeuykTAaEeWb1Or7ixercg _WesWUDAaEeWb1Or7ixercg">
+    <name xsi:nil="true"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_WesWUDAaEeWb1Or7ixercg" name="calibrationSet" type="_ucjP4DAVEeWb1Or7ixercg" association="_WeuykDAaEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_WesWUTAaEeWb1Or7ixercg" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_WesWUjAaEeWb1Or7ixercg" value="1"/>
+    </ownedEnd>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_WeuykTAaEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg" association="_WeuykDAaEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_WeuykjAaEeWb1Or7ixercg"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_WeuykzAaEeWb1Or7ixercg" value="*"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_jaYwsDAaEeWb1Or7ixercg" name="CalculationValue">
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_oweEkDAaEeWb1Or7ixercg" name="value" type="_ggT-gDAVEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_wJAYYDAaEeWb1Or7ixercg" name="date" type="_GYqY0DAYEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_x9E-EDAaEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg"/>
+    <nestedClassifier xmi:type="uml:Class" xmi:id="_3U7MgDAaEeWb1Or7ixercg" name="CalculationValue">
+      <ownedAttribute xmi:type="uml:Property" xmi:id="_3U7MgTAaEeWb1Or7ixercg" name="value" type="_ggT-gDAVEeWb1Or7ixercg"/>
+      <ownedAttribute xmi:type="uml:Property" xmi:id="_3U7MgjAaEeWb1Or7ixercg" name="date" type="_GYqY0DAYEeWb1Or7ixercg"/>
+      <ownedAttribute xmi:type="uml:Property" xmi:id="_3U7MgzAaEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg"/>
+    </nestedClassifier>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_5Yzv0DAaEeWb1Or7ixercg" name="RawValue">
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_5Yzv0TAaEeWb1Or7ixercg" name="value">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Integer"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_5Yzv0jAaEeWb1Or7ixercg" name="date" type="_GYqY0DAYEeWb1Or7ixercg"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_5Yzv0zAaEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg"/>
+    <nestedClassifier xmi:type="uml:Class" xmi:id="_5Yzv1DAaEeWb1Or7ixercg" name="CalculationValue">
+      <ownedAttribute xmi:type="uml:Property" xmi:id="_5Yzv1TAaEeWb1Or7ixercg" name="value" type="_ggT-gDAVEeWb1Or7ixercg"/>
+      <ownedAttribute xmi:type="uml:Property" xmi:id="_5Yzv1jAaEeWb1Or7ixercg" name="date" type="_GYqY0DAYEeWb1Or7ixercg"/>
+      <ownedAttribute xmi:type="uml:Property" xmi:id="_5Yzv1zAaEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg"/>
+    </nestedClassifier>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_-F2GsDAaEeWb1Or7ixercg" memberEnd="_-F2GsTAaEeWb1Or7ixercg _-F0RgDAaEeWb1Or7ixercg">
+    <name xsi:nil="true"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_-F2GsTAaEeWb1Or7ixercg" name="rawValue" type="_5Yzv0DAaEeWb1Or7ixercg" association="_-F2GsDAaEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_-F2GsjAaEeWb1Or7ixercg"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_-F2GszAaEeWb1Or7ixercg" value="*"/>
+    </ownedEnd>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_-F0RgDAaEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg" association="_-F2GsDAaEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_-F0RgTAaEeWb1Or7ixercg" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_-F0RgjAaEeWb1Or7ixercg" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_SzEU8DAhEeWb1Or7ixercg" memberEnd="_SzEU8TAhEeWb1Or7ixercg _SzBRoDAhEeWb1Or7ixercg">
+    <name xsi:nil="true"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_SzEU8TAhEeWb1Or7ixercg" name="calculationValue" type="_jaYwsDAaEeWb1Or7ixercg" association="_SzEU8DAhEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_SzEU8jAhEeWb1Or7ixercg"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_SzEU8zAhEeWb1Or7ixercg" value="*"/>
+    </ownedEnd>
+    <ownedEnd xmi:type="uml:Property" xmi:id="_SzBRoDAhEeWb1Or7ixercg" name="procedureInstance" type="_BrF90DAVEeWb1Or7ixercg" association="_SzEU8DAhEeWb1Or7ixercg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_SzBRoTAhEeWb1Or7ixercg" value="1"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_SzBRojAhEeWb1Or7ixercg" value="1"/>
+    </ownedEnd>
   </packagedElement>
   <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_i5WpoA-AEeWQHs2Qs59IRg">
     <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_i5zVkA-AEeWQHs2Qs59IRg" source="http://www.eclipse.org/uml2/2.0.0/UML">
