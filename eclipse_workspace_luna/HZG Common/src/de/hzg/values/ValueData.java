@@ -13,4 +13,19 @@ public interface ValueData<T> {
 
 	T getValue();
 	void setValue(T value);
+
+	Double getAverage();
+	void setAverage(Double average);
+
+	T getMin();
+	void setMin(T min);
+
+	T getMax();
+	void setMax(T max);
+
+	T getMedian();
+	void setMedian(T median);
+
+	Double getStddev();
+	void setStddev(Double stddev);
 }
