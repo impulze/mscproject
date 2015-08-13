@@ -7,7 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -37,9 +36,9 @@ import org.hibernate.type.TimestampType;
 import de.hzg.common.ExceptionUtil;
 import de.hzg.common.HTTPSenderConfiguration;
 import de.hzg.common.HibernateUtil;
-import de.hzg.measurement.Probe;
-import de.hzg.measurement.SensorDescription;
-import de.hzg.measurement.SensorInstance;
+import de.hzg.measurement.Sensor;
+import de.hzg.measurement.ObservedPropertyDescription;
+import de.hzg.measurement.ObservedPropertyInstance;
 
 public class Sender implements Runnable {
 	// how many values can the HZG database accept
@@ -55,8 +54,8 @@ public class Sender implements Runnable {
 	private final String queryString;
 	private ScheduledFuture<?> scheduledFuture;
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	private final List<SensorInstance> sensorInstances;
-	private final Map<SensorInstance, Timestamp> lastSetStarts = new HashMap<SensorInstance, Timestamp>();
+	private final List<ObservedPropertyInstance> observedPropertyInstances;
+	private final Map<ObservedPropertyInstance, Timestamp> lastSetStarts = new HashMap<ObservedPropertyInstance, Timestamp>();
 	private final String sqlQueryString;
 
 	Sender(HibernateUtil hibernateUtil, HTTPSenderConfiguration httpSenderConfiguration) {
@@ -67,31 +66,31 @@ public class Sender implements Runnable {
 		this.interval = httpSenderConfiguration.getInterval();
 		this.urlString = url.toString();
 		this.queryString = httpSenderConfiguration.getQuery();
-		this.sensorInstances = getSensorInstances(sessionFactory);
+		this.observedPropertyInstances = getObservedPropertyInstances(sessionFactory);
 		this.sqlQueryString = getQueryString();
 
-		for (final SensorInstance sensorInstance: sensorInstances) {
-			lastSetStarts.put(sensorInstance, new Timestamp((new Date()).getTime()));
+		for (final ObservedPropertyInstance observedPropertyInstance: observedPropertyInstances) {
+			lastSetStarts.put(observedPropertyInstance, new Timestamp((new Date()).getTime()));
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	static private List<SensorInstance> getSensorInstances(SessionFactory sessionFactory) {
+	static private List<ObservedPropertyInstance> getObservedPropertyInstances(SessionFactory sessionFactory) {
 		final Session session = sessionFactory.openSession();
-		final List<SensorInstance> sensorInstances;
+		final List<ObservedPropertyInstance> observedPropertyInstances;
 
 		try {
-			sensorInstances= session.createQuery("FROM SensorInstance").list();
+			observedPropertyInstances= session.createQuery("FROM ObservedPropertyInstance").list();
 
-			for (final SensorInstance sensorInstance: sensorInstances) {
-				Hibernate.initialize(sensorInstance.getProbe());
-				Hibernate.initialize(sensorInstance.getSensorDescription());
+			for (final ObservedPropertyInstance observedPropertyInstance: observedPropertyInstances) {
+				Hibernate.initialize(observedPropertyInstance.getSensor());
+				Hibernate.initialize(observedPropertyInstance.getObservedPropertyDescription());
 			}
 		} finally {
 			session.close();
 		}
 
-		return sensorInstances;	
+		return observedPropertyInstances;
 	}
 
 	public void start() {
@@ -99,28 +98,28 @@ public class Sender implements Runnable {
 	}
 
 	private static String getQueryString() {
-		final String values = "MAX(cd.timestamp) AS time, COUNT(cd.value), AVG(cd.value), MAX(cd.value), MIN(cd.value), STDDEV(cd.value)";
+		final String values = "MAX(cd.date) AS time, COUNT(cd.value), AVG(cd.value), MAX(cd.value), MIN(cd.value), STDDEV(cd.value)";
 		final String sqlQueryString;
 
 		if (BULK_FETCH_INTERVAL.longValue() > 0) {
 			if (LIMIT > 0) {
 				sqlQueryString = String.format(
 					"SELECT " + values + " FROM ( " +
-						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin WINDOW Timestamps as (ORDER BY timestamp) LIMIT %d" +
-					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.sensor_instance_id", LIMIT.longValue(), BULK_FETCH_INTERVAL.longValue());
+						"SELECT *, last_value(date) over Timestamps - first_value(date) over Timestamps AS slice FROM calculations WHERE observed_property_instance_id = :sid AND date > :timestamp AND date <= :run_begin WINDOW Timestamps as (ORDER BY date) LIMIT %d" +
+					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.observed_property_instance_id", LIMIT.longValue(), BULK_FETCH_INTERVAL.longValue());
 			} else {
 				sqlQueryString = String.format(
 					"SELECT " + values + " FROM ( " +
-						"SELECT *, last_value(timestamp) over Timestamps - first_value(timestamp) over Timestamps AS slice FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin WINDOW Timestamps as (ORDER BY timestamp)" +
-					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.sensor_instance_id", BULK_FETCH_INTERVAL.longValue());
+						"SELECT *, last_value(date) over Timestamps - first_value(date) over Timestamps AS slice FROM calculations WHERE observed_property_instance_id = :sid AND date > :timestamp AND date <= :run_begin WINDOW Timestamps as (ORDER BY date)" +
+					" ) AS cd WHERE slice <= INTERVAL '%d seconds' GROUP BY cd.observed_property_instance_id", BULK_FETCH_INTERVAL.longValue());
 			}
 		} else {
 			if (LIMIT > 0) {
 				sqlQueryString = String.format("SELECT " + values + " FROM ( " +
-					"SELECT * FROM calculations WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin ORDER BY timestamp LIMIT %d" +
-				" ) AS cd GROUP BY cd.sensor_instance_id", LIMIT.longValue());
+					"SELECT * FROM calculations WHERE observed_property_instance_id = :sid AND date > :timestamp AND date <= :run_begin ORDER BY date LIMIT %d" +
+				" ) AS cd GROUP BY cd.observed_property_instance_id", LIMIT.longValue());
 			} else {
-				sqlQueryString = "SELECT " + values + " FROM calculations AS cd WHERE sensor_instance_id = :sid AND timestamp > :timestamp AND timestamp <= :run_begin GROUP BY cd.sensor_instance_id";
+				sqlQueryString = "SELECT " + values + " FROM calculations AS cd WHERE observed_property_instance_id = :sid AND date > :timestamp AND date <= :run_begin GROUP BY cd.observed_property_instance_id";
 			}
 		}
 
@@ -128,14 +127,14 @@ public class Sender implements Runnable {
 	}
 
 	private void runOne(Session session) {
-		final List<SensorInstance> toBeChecked = new ArrayList<SensorInstance>(sensorInstances);
+		final List<ObservedPropertyInstance> toBeChecked = new ArrayList<ObservedPropertyInstance>(observedPropertyInstances);
 		final Timestamp runBegin = new Timestamp(Calendar.getInstance().getTimeInMillis());
 
 		while (!toBeChecked.isEmpty()) {
-			final Iterator<SensorInstance> iterator = toBeChecked.iterator();
+			final Iterator<ObservedPropertyInstance> iterator = toBeChecked.iterator();
 
 			while (iterator.hasNext()) {
-				final SensorInstance sensorInstance = iterator.next();
+				final ObservedPropertyInstance observedPropertyInstance = iterator.next();
 				final SQLQuery query = session.createSQLQuery(sqlQueryString);
 
 				query.addScalar("time", TimestampType.INSTANCE)
@@ -144,11 +143,11 @@ public class Sender implements Runnable {
 					.addScalar("max", DoubleType.INSTANCE)
 					.addScalar("min", DoubleType.INSTANCE)
 					.addScalar("stddev", DoubleType.INSTANCE)
-					.setParameter("timestamp", lastSetStarts.get(sensorInstance))
-					.setParameter("sid", sensorInstance.getId())
+					.setParameter("timestamp", lastSetStarts.get(observedPropertyInstance))
+					.setParameter("sid", observedPropertyInstance.getId())
 					.setParameter("run_begin", runBegin);
 
-				final String sensorName = sensorInstance.getSensorDescription().getName();
+				final String observedPropertyDescriptionName = observedPropertyInstance.getObservedPropertyDescription().getName();
 				@SuppressWarnings("unchecked")
 				final List<Object[]> result = query.list();
 
@@ -161,8 +160,8 @@ public class Sender implements Runnable {
 				final Timestamp newestEntry = (Timestamp)record[0];
 				final Long count = (Long)record[1];
 
-				if (handleResult(sensorName, newestEntry, count, sensorInstance, record)) {
-					lastSetStarts.put(sensorInstance, newestEntry);
+				if (handleResult(observedPropertyDescriptionName, newestEntry, count, observedPropertyInstance, record)) {
+					lastSetStarts.put(observedPropertyInstance, newestEntry);
 				}
 
 				if (count != 0) {
@@ -201,16 +200,16 @@ public class Sender implements Runnable {
 		}
 	}
 
-	private boolean handleResult(String sensorName, Timestamp newestEntry, Long count, SensorInstance sensorInstance, Object[] record) {
+	private boolean handleResult(String observedPropertyDescriptionName, Timestamp newestEntry, Long count, ObservedPropertyInstance observedPropertyInstance, Object[] record) {
 		// TODO: we only have one station right now
-		if (sensorInstance.getProbe().getId() != 2 || sensorInstance.getId() != 2) {
+		if (observedPropertyInstance.getSensor().getId() != 2 || observedPropertyInstance.getId() != 2) {
 			return true;
 		}
 
 		// need to extract station, parameter, time, value, max, min, stddev, count
-		// TODO: for now hardcoded, get this from probe?
+		// TODO: for now hardcoded, get this from sensor?
 		final String station = "testenv";
-		// TODO: for now hardcoded, already obtainable via sensorDescription.getName()
+		// TODO: for now hardcoded, already obtainable via observedPropertyDescription.getName()
 		final String parameter = "test";
 
 		final Double avg = (Double)record[2];
@@ -263,12 +262,12 @@ public class Sender implements Runnable {
 				}
 
 				final String outputString = outputStream.toString("UTF-8");
-				final Probe probe = sensorInstance.getProbe();
-				final SensorDescription sensorDescription = sensorInstance.getSensorDescription();
+				final Sensor sensor = observedPropertyInstance.getSensor();
+				final ObservedPropertyDescription observedPropertyDescription = observedPropertyInstance.getObservedPropertyDescription();
 				final String msg = String.format(
-						"The transmission to HZG failed for probe '%s' sensor '%s': '%s'",
-						probe.getName(),
-						sensorDescription.getName(),
+						"The transmission to HZG failed for sensor '%s' observed property description '%s': '%s'",
+						sensor.getName(),
+						observedPropertyDescription.getName(),
 						outputString);
 
 				logger.warning(msg);

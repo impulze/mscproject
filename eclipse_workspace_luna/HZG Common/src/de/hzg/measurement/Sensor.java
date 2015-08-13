@@ -9,7 +9,7 @@ public class Sensor {
 	private String name;
 	private String device;
 	private boolean active;
-	private List<ProcedureInstance> procedureInstances;
+	private List<ObservedPropertyInstance> observedPropertyInstances;
 
 	public Long getId() {
 		return id;
@@ -43,19 +43,19 @@ public class Sensor {
 		this.active = active;
 	}
 
-	public List<ProcedureInstance> getProcedureInstances() {
-		return procedureInstances;
+	public List<ObservedPropertyInstance> getObservedPropertyInstances() {
+		return observedPropertyInstances;
 	}
 
-	public void setProcedureInstances(List<ProcedureInstance> procedureInstances) {
-		this.procedureInstances = procedureInstances;
+	public void setObservedPropertyInstances(List<ObservedPropertyInstance> observedPropertyInstances) {
+		this.observedPropertyInstances = observedPropertyInstances;
 	}
 
 	public void initSensor() {
-		Hibernate.initialize(getProcedureInstances());
+		Hibernate.initialize(getObservedPropertyInstances());
 
-		for (final ProcedureInstance procedureInstance: getProcedureInstances()) {
-			Hibernate.initialize(procedureInstance.getProcedureDescription());
+		for (final ObservedPropertyInstance observedPropertyInstance: getObservedPropertyInstances()) {
+			observedPropertyInstance.initObservedPropertyInstance();
 		}
 	}
 }

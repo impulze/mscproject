@@ -1,8 +1,8 @@
 package de.hzg.common;
 
-public class ProcedureClassesConfiguration {
+public class ObservedPropertyClassesConfiguration {
 	private String sourceDirectory;
-	static public String CLASSES_PACKAGE = "de.hzg.procedures";
+	static public String CLASSES_PACKAGE = "de.hzg.observed_properties";
 
 	public String getSourceDirectory() {
 		return sourceDirectory;

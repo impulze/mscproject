@@ -16,28 +16,28 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.hibernate.SessionFactory;
 
-import de.hzg.common.ProcedureClassesConfiguration;
+import de.hzg.common.ObservedPropertyClassesConfiguration;
 
-public class ListProcedureJavaClassesPanel extends SplitPanel implements DataProvider, AddListener {
+public class ListObservedPropertyJavaClassesPanel extends SplitPanel implements DataProvider, AddListener {
 	private static final long serialVersionUID = -6614179124616055688L;
 	private final JTable table;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
-	private final ProcedureClassesConfiguration procedureClassesConfiguration;
+	private final ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration;
 	private AddListener addListener;
-	private EditListener<ProcedureJavaClass> editListener;
+	private EditListener<ObservedPropertyJavaClass> editListener;
 
-	public ListProcedureJavaClassesPanel(Window owner, SessionFactory sessionFactory, ProcedureClassesConfiguration procedureClassesConfiguration) {
+	public ListObservedPropertyJavaClassesPanel(Window owner, SessionFactory sessionFactory, ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
-		this.procedureClassesConfiguration = procedureClassesConfiguration;
+		this.observedPropertyClassesConfiguration = observedPropertyClassesConfiguration;
 
 		final DataCreator dataCreator = new DataCreator();
 		table = createTable(dataCreator);
 		setupTable(table);
 
-		setTitle("List procedure classes");
-		setBottomPanelTitle("Procedure classes");
+		setTitle("List observed property classes");
+		setBottomPanelTitle("Observed property classes");
 		getBottomPanel().add(dataCreator.createPanel(table));
 		createForm();
 
@@ -79,21 +79,21 @@ public class ListProcedureJavaClassesPanel extends SplitPanel implements DataPro
 
 	private JTable createTable(DataCreator dataCreator) {
 		final Adder adder = new Adder();
-		final JPanel addProcedureClassPanel = new JPanel();
+		final JPanel addObservedPropertyClassPanel = new JPanel();
 
-		addProcedureClassPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		adder.addToPanel(addProcedureClassPanel, "Add procedure class", this);
+		addObservedPropertyClassPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		adder.addToPanel(addObservedPropertyClassPanel, "Add observed property class", this);
 
-		dataCreator.addPanel(addProcedureClassPanel);
+		dataCreator.addPanel(addObservedPropertyClassPanel);
 
-		dataCreator.addInformationMessage("Use right click to add/edit/remove procedure classes.");
+		dataCreator.addInformationMessage("Use right click to add/edit/remove observed property classes.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
 		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
-		final String addString = String.format("Add %s", "procedure class");
-		final String editString = String.format("Edit %s", "procedure class");
-		final String removeString = String.format("Remove %s", "procedure class");
+		final String addString = String.format("Add %s", "observed property class");
+		final String editString = String.format("Edit %s", "observed property class");
+		final String removeString = String.format("Remove %s", "observed property class");
 
 		final TablePopupMenu.ActionListener addActionListener = new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
@@ -105,40 +105,40 @@ public class ListProcedureJavaClassesPanel extends SplitPanel implements DataPro
 		cellPopupMenu.addItem(addString, addActionListener);
 		cellPopupMenu.addItem(editString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final ProcedureJavaClassTableModel tableModel = (ProcedureJavaClassTableModel)table.getModel();
-				final String name = tableModel.getProcedureClassNames().get(row);
-				final ProcedureJavaClass procedureJavaClass = ProcedureJavaClass.loadByName(procedureClassesConfiguration, owner, name);
+				final ObservedPropertyJavaClassTableModel tableModel = (ObservedPropertyJavaClassTableModel)table.getModel();
+				final String name = tableModel.getObservedPropertyClassNames().get(row);
+				final ObservedPropertyJavaClass observedPropertyJavaClass = ObservedPropertyJavaClass.loadByName(observedPropertyClassesConfiguration, owner, name);
 
-				onEdit(procedureJavaClass);
+				onEdit(observedPropertyJavaClass);
 			}
 		});
 		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final ProcedureJavaClassTableModel tableModel = (ProcedureJavaClassTableModel)table.getModel();
-				removeProcedureJavaClass(tableModel, row);
+				final ObservedPropertyJavaClassTableModel tableModel = (ObservedPropertyJavaClassTableModel)table.getModel();
+				removeObservedPropertyJavaClass(tableModel, row);
 			}
 		});
 
-		dataCreator.setCellPopupMenu(cellPopupMenu);
+		dataCreator.setCellPopupMenu(-1, cellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
 
 		return dataCreator.create();
 	}
 
 	void setupTable(JTable table) {
-		final ProcedureJavaClassTableModel tableModel = new ProcedureJavaClassTableModel();
+		final ObservedPropertyJavaClassTableModel tableModel = new ObservedPropertyJavaClassTableModel();
 
 		table.setModel(tableModel);
 		table.getColumnModel().getColumn(0).setPreferredWidth(100);
 	}
 
 	public boolean provide(String title) {
-		final ProcedureJavaClassTableModel tableModel = (ProcedureJavaClassTableModel)table.getModel();
+		final ObservedPropertyJavaClassTableModel tableModel = (ObservedPropertyJavaClassTableModel)table.getModel();
 
 		if (title.equals("Refresh list")) {
-			final List<String> procedureClassNames = ProcedureJavaClass.listNames(procedureClassesConfiguration, owner);
+			final List<String> observedPropertyClassNames = ObservedPropertyJavaClass.listNames(observedPropertyClassesConfiguration, owner);
 
-			tableModel.setProcedureClassNames(procedureClassNames);
+			tableModel.setObservedPropertyClassNames(observedPropertyClassNames);
 			tableModel.fireTableDataChanged();
 			return true;
 		} else if (title.equals("Compile classes")) {
@@ -150,14 +150,14 @@ public class ListProcedureJavaClassesPanel extends SplitPanel implements DataPro
 		return false;
 	}
 
-	void removeProcedureJavaClass(ProcedureJavaClassTableModel tableModel, int row) {
-		final List<String> procedureClassNames = tableModel.getProcedureClassNames();
-		final String name = procedureClassNames.get(row);
-		final ProcedureJavaClass procedureJavaClass = ProcedureJavaClass.loadByName(procedureClassesConfiguration, owner, name);
-		final boolean deleted = CreateEditProcedureJavaClassPanel.removeProcedureJavaClass(procedureJavaClass, owner, sessionFactory);
+	void removeObservedPropertyJavaClass(ObservedPropertyJavaClassTableModel tableModel, int row) {
+		final List<String> observedPropertyClassNames = tableModel.getObservedPropertyClassNames();
+		final String name = observedPropertyClassNames.get(row);
+		final ObservedPropertyJavaClass observedPropertyJavaClass = ObservedPropertyJavaClass.loadByName(observedPropertyClassesConfiguration, owner, name);
+		final boolean deleted = CreateEditObservedPropertyJavaClassPanel.removeObservedPropertyJavaClass(observedPropertyJavaClass, owner, sessionFactory);
 
 		if (deleted) {
-			procedureClassNames.remove(row);
+			observedPropertyClassNames.remove(row);
 			tableModel.fireTableDataChanged();
 		}
 	}
@@ -172,13 +172,13 @@ public class ListProcedureJavaClassesPanel extends SplitPanel implements DataPro
 		}
 	}
 
-	void setEditListener(EditListener<ProcedureJavaClass> editListener) {
+	void setEditListener(EditListener<ObservedPropertyJavaClass> editListener) {
 		this.editListener = editListener;
 	}
 
-	public void onEdit(ProcedureJavaClass procedureJavaClass) {
+	public void onEdit(ObservedPropertyJavaClass observedPropertyJavaClass) {
 		if (editListener != null) {
-			editListener.onEdit(procedureJavaClass);
+			editListener.onEdit(observedPropertyJavaClass);
 		}
 	}
 }

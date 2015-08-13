@@ -52,13 +52,13 @@ public class ValueTableModel<T extends ValueData<E>, E> extends AbstractTableMod
 		}
 
 		final T value = values.get(row);
-		final String procedureName = value.getProcedureInstance().getProcedureDescription().getName();
-		final String sensorName = value.getProcedureInstance().getSensor().getName();
+		final String observedPropertyName = value.getObservedPropertyInstance().getObservedPropertyDescription().getName();
+		final String sensorName = value.getObservedPropertyInstance().getSensor().getName();
 
 		switch (column) {
 			// TODO: why?
 			case 0: return dateFormat.format(value.getDate());
-			case 1: return sensorName + "/" + procedureName;
+			case 1: return sensorName + "/" + observedPropertyName;
 			case 2: return value.getValue();
 			default: assert(false);
 		}
@@ -72,7 +72,7 @@ public class ValueTableModel<T extends ValueData<E>, E> extends AbstractTableMod
 	}
 
 	public String getColumnName(int column) {
-		final String[] columnNames = { "Date", "Sensor/Procedure", "Value" };
+		final String[] columnNames = { "Date", "Sensor/Observed property", "Value" };
 		return columnNames[column];
 	}
 

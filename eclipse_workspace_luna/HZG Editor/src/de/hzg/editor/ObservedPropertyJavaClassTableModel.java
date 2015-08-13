@@ -4,16 +4,16 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-public class ProcedureJavaClassTableModel extends AbstractTableModel {
+public class ObservedPropertyJavaClassTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = -7111186243559108891L;
-	private List<String> procedureClassNames;
+	private List<String> observedPropertyClassNames;
 
-	public List<String> getProcedureClassNames() {
-		return procedureClassNames;
+	public List<String> getObservedPropertyClassNames() {
+		return observedPropertyClassNames;
 	}
 
-	public void setProcedureClassNames(List<String> procedureClassNames) {
-		this.procedureClassNames = procedureClassNames;
+	public void setObservedPropertyClassNames(List<String> observedPropertyClassNames) {
+		this.observedPropertyClassNames = observedPropertyClassNames;
 	}
 
 	@Override
@@ -23,22 +23,22 @@ public class ProcedureJavaClassTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		if (procedureClassNames == null) {
+		if (observedPropertyClassNames == null) {
 			return 0;
 		}
 
-		return procedureClassNames.size();
+		return observedPropertyClassNames.size();
 	}
 
 	@Override
 	public Object getValueAt(int row, int column) {
-		if (procedureClassNames.size() < row) {
+		if (observedPropertyClassNames.size() < row) {
 			return null;
 		}
 
-		final String procedureClassName = procedureClassNames.get(row);
+		final String observedPropertyClassName = observedPropertyClassNames.get(row);
 
-		return procedureClassName;
+		return observedPropertyClassName;
 	}
 
 	public Class<?> getColumnClass(int column) {

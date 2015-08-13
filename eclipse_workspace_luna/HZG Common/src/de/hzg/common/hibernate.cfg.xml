@@ -8,11 +8,12 @@
 			java:comp/env/jdbc/LocalProbeDB
 		</property>
 
-		<mapping resource="de/hzg/values/RawData.hbm.xml" />
 		<mapping resource="de/hzg/values/CalculatedData.hbm.xml" />
+		<mapping resource="de/hzg/values/RawData.hbm.xml" />
 
+		<mapping resource="de/hzg/measurement/CalibrationSet.hbm.xml" />
+		<mapping resource="de/hzg/measurement/ObservedPropertyDescription.hbm.xml" />
+		<mapping resource="de/hzg/measurement/ObservedPropertyInstance.hbm.xml" />
 		<mapping resource="de/hzg/measurement/Sensor.hbm.xml" />
-		<mapping resource="de/hzg/measurement/ProcedureDescription.hbm.xml" />
-		<mapping resource="de/hzg/measurement/ProcedureInstance.hbm.xml" />
 	</session-factory>
 </hibernate-configuration>

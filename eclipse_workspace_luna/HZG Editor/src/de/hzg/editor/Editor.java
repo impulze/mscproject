@@ -19,8 +19,8 @@ import org.hibernate.SessionFactory;
 
 import de.hzg.common.Configuration;
 import de.hzg.common.HibernateUtil;
-import de.hzg.common.ProcedureClassesConfiguration;
-import de.hzg.measurement.ProcedureDescription;
+import de.hzg.common.ObservedPropertyClassesConfiguration;
+import de.hzg.measurement.ObservedPropertyDescription;
 import de.hzg.measurement.Sensor;
 import de.hzg.values.CalculatedData;
 import de.hzg.values.RawData;
@@ -29,14 +29,14 @@ public class Editor {
 	private JFrame frame;
 	private SessionFactory sessionFactory;
 	private Component currentComponent = null;
-	private static ProcedureClassesConfiguration procedureClassesConfiguration;
+	private static ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					final Configuration configuration = new Configuration();
-					procedureClassesConfiguration = configuration.getProcedureClassesConfiguration();
+					observedPropertyClassesConfiguration = configuration.getObservedPropertyClassesConfiguration();
 					final HibernateUtil hibernateUtil = new HibernateUtil(configuration);
 					final Editor editor = new Editor();
 					editor.sessionFactory = hibernateUtil.getSessionFactory();
@@ -117,86 +117,86 @@ public class Editor {
 		JSeparator separator_1 = new JSeparator();
 		mnEdit.add(separator_1);
 
-		JMenuItem mntmCreateProcedure = new JMenuItem("Create procedure");
-		mntmCreateProcedure.addActionListener(new ActionListener() {
+		JMenuItem mntmCreateObservedProperty = new JMenuItem("Create observed property description");
+		mntmCreateObservedProperty.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					setupCreateProcedurePanel();
+					setupCreateObservedPropertyDescriptionPanel();
 				}
 			}
 		});
-		mnEdit.add(mntmCreateProcedure);
+		mnEdit.add(mntmCreateObservedProperty);
 
-		JMenuItem mntmEditProcedure = new JMenuItem("Edit procedure");
-		mntmEditProcedure.addActionListener(new ActionListener() {
+		JMenuItem mntmEditObservedProperty = new JMenuItem("Edit observed property description");
+		mntmEditObservedProperty.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final EditProcedureDialog dialog = new EditProcedureDialog(frame, sessionFactory);
+					final EditObservedPropertyDialog dialog = new EditObservedPropertyDialog(frame, sessionFactory);
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
 					dialog.setVisible(true);
-					final ProcedureDescription procedureDescription = dialog.getResult();
+					final ObservedPropertyDescription observedPropertyDescription = dialog.getResult();
 
-					if (procedureDescription != null) {
-						final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, procedureDescription);
-						setupEditProcedurePanel(procedurePanel);
+					if (observedPropertyDescription != null) {
+						final CreateEditObservedPropertyDescriptionPanel observedPropertyDescriptionPanel = new CreateEditObservedPropertyDescriptionPanel(frame, sessionFactory, observedPropertyClassesConfiguration, observedPropertyDescription);
+						setupEditObservedPropertyDescriptionPanel(observedPropertyDescriptionPanel);
 					}
 				}
 			}
 		});
-		mnEdit.add(mntmEditProcedure);
+		mnEdit.add(mntmEditObservedProperty);
 
-		JMenuItem mntmListProcedures = new JMenuItem("List procedures");
-		mntmListProcedures.addActionListener(new ActionListener() {
+		JMenuItem mntmListObservedPropertyDescriptions = new JMenuItem("List observed property descriptions");
+		mntmListObservedPropertyDescriptions.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					setupListProceduresPanel();
+					setupListObservedPropertyDescriptionsPanel();
 				}
 			}
 		});
-		mnEdit.add(mntmListProcedures);
+		mnEdit.add(mntmListObservedPropertyDescriptions);
 
 		JSeparator separator_2 = new JSeparator();
 		mnEdit.add(separator_2);
 
-		JMenuItem mntmCreateProcedureClass = new JMenuItem("Create procedure class");
-		mntmCreateProcedureClass.addActionListener(new ActionListener() {
+		JMenuItem mntmCreateObservedPropertyClass = new JMenuItem("Create observed property class");
+		mntmCreateObservedPropertyClass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					setupCreateProcedureJavaClassPanel();
+					setupCreateObservedPropertyJavaClassPanel();
 				}
 			}
 		});
-		mnEdit.add(mntmCreateProcedureClass);
+		mnEdit.add(mntmCreateObservedPropertyClass);
 
-		JMenuItem mntmEditProcedureClass = new JMenuItem("Edit procedure class");
-		mntmEditProcedureClass.addActionListener(new ActionListener() {
+		JMenuItem mntmEditObservedPropertyClass = new JMenuItem("Edit observed property class");
+		mntmEditObservedPropertyClass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final EditProcedureJavaClassDialog dialog = new EditProcedureJavaClassDialog(frame, procedureClassesConfiguration);
+					final EditObservedPropertyJavaClassDialog dialog = new EditObservedPropertyJavaClassDialog(frame, observedPropertyClassesConfiguration);
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
 					dialog.setVisible(true);
-					final ProcedureJavaClass procedureJavaClass = dialog.getResult();
+					final ObservedPropertyJavaClass observedPropertyJavaClass = dialog.getResult();
 
-					if (procedureJavaClass != null) {
-						final CreateEditProcedureJavaClassPanel procedureJavaClassPanel = new CreateEditProcedureJavaClassPanel(frame, sessionFactory, procedureClassesConfiguration, procedureJavaClass);
-						setupEditProcedureJavaClassPanel(procedureJavaClassPanel);
+					if (observedPropertyJavaClass != null) {
+						final CreateEditObservedPropertyJavaClassPanel observedPropertyJavaClassPanel = new CreateEditObservedPropertyJavaClassPanel(frame, sessionFactory, observedPropertyClassesConfiguration, observedPropertyJavaClass);
+						setupEditObservedPropertyJavaClassPanel(observedPropertyJavaClassPanel);
 					}
 				}
 			}
 		});
-		mnEdit.add(mntmEditProcedureClass);
+		mnEdit.add(mntmEditObservedPropertyClass);
 
-		JMenuItem mntmListProcedureClasses = new JMenuItem("List procedure classes");
-		mntmListProcedureClasses.addActionListener(new ActionListener() {
+		JMenuItem mntmListObservedPropertyClasses = new JMenuItem("List observed property classes");
+		mntmListObservedPropertyClasses.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					setupListProcedureJavaClassesPanel();
+					setupListObservedPropertyJavaClassesPanel();
 				}
 			}
 		});
-		mnEdit.add(mntmListProcedureClasses);
+		mnEdit.add(mntmListObservedPropertyClasses);
 
 		JSeparator separator_3 = new JSeparator();
 		mnEdit.add(separator_3);
@@ -248,17 +248,24 @@ public class Editor {
 
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
-		/* TODO: for development */
+		/* TODO: for development*/ 
 		final Session session = sessionFactory.openSession();
 		try {
 			@SuppressWarnings("unchecked")
-			final List<ProcedureDescription> result = (List<ProcedureDescription>)session
-				.createQuery("FROM  ProcedureDescription WHERE name = :name")
-				.setParameter("name", "Vbatt")
+			//final List<ObservedPropertyDescription> result = (List<ObservedPropertyDescription>)session
+			final List<Sensor> result = (List<Sensor>)session
+				//.createQuery("FROM  ObservedPropertyDescription WHERE name = :name")
+				//.setParameter("name", "Vbatt")
+				.createQuery("FROM Sensor WHERE name = :name")
+				.setParameter("name", "FakeCTDHelgoland")
 				.list();
-			final ProcedureDescription procedureDescription = result.get(0);
-			final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, procedureDescription);
-			setupEditProcedurePanel(procedurePanel);
+			//final ObservedPropertyDescription observedPropertyDescription = result.get(0);
+			//final CreateEditObservedPropertyDescriptionPanel observedPropertyDescriptionPanel = new CreateEditObservedPropertyDescriptionPanel(frame, sessionFactory, observedPropertyClassesConfiguration, observedPropertyDescription);
+			final Sensor sensor = result.get(0);
+			sensor.initSensor();
+			final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensor);
+			//setupEditObservedPropertyDescriptionPanel(observedPropertyDescriptionPanel);
+			setupEditSensorPanel(sensorPanel);
 		} finally {
 			session.close();
 		}
@@ -280,10 +287,10 @@ public class Editor {
 	private boolean isDirty() {
 		if (currentComponent instanceof CreateEditSensorPanel) {
 			return ((CreateEditSensorPanel)currentComponent).isDirty();
-		} else if (currentComponent instanceof CreateEditProcedurePanel) {
-			return ((CreateEditProcedurePanel)currentComponent).isDirty();
-		} else if (currentComponent instanceof CreateEditProcedureJavaClassPanel) {
-			return ((CreateEditProcedureJavaClassPanel)currentComponent).isDirty();
+		} else if (currentComponent instanceof CreateEditObservedPropertyDescriptionPanel) {
+			return ((CreateEditObservedPropertyDescriptionPanel)currentComponent).isDirty();
+		} else if (currentComponent instanceof CreateEditObservedPropertyJavaClassPanel) {
+			return ((CreateEditObservedPropertyJavaClassPanel)currentComponent).isDirty();
 		}
 
 		return false;
@@ -344,92 +351,92 @@ public class Editor {
 		switchPanel("List sensors", listSensorsPanel);
 	}
 
-	private void setupCreateProcedurePanel() {
-		final ProcedureDescription newProcedureDescription= CreateEditProcedurePanel.createNewProcedureDescription();
-		final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, newProcedureDescription);
+	private void setupCreateObservedPropertyDescriptionPanel() {
+		final ObservedPropertyDescription newObservedPropertyDescription= CreateEditObservedPropertyDescriptionPanel.createNewObservedPropertyDescription();
+		final CreateEditObservedPropertyDescriptionPanel observedPropertyDescriptionPanel = new CreateEditObservedPropertyDescriptionPanel(frame, sessionFactory, observedPropertyClassesConfiguration, newObservedPropertyDescription);
 
-		procedurePanel.setTitle("Create procedure");
-		switchPanel("Create procedure", procedurePanel);
+		observedPropertyDescriptionPanel.setTitle("Create observed property description");
+		switchPanel("Create observed property description", observedPropertyDescriptionPanel);
 
-		procedurePanel.setSavedHandler(new SavedHandler() {
+		observedPropertyDescriptionPanel.setSavedHandler(new SavedHandler() {
 			@Override
 			public void onSave() {
-				setupEditProcedurePanel(procedurePanel);
+				setupEditObservedPropertyDescriptionPanel(observedPropertyDescriptionPanel);
 			}
 		});
 	}
 
-	private void setupEditProcedurePanel(CreateEditProcedurePanel procedurePanel) {
-		procedurePanel.setSaved(true);
-		procedurePanel.setTitle("Edit procedure");
-		procedurePanel.showEditFunctions();
-		procedurePanel.setRemoveListener(new RemoveListener() {
+	private void setupEditObservedPropertyDescriptionPanel(CreateEditObservedPropertyDescriptionPanel observedPropertyDescriptionPanel) {
+		observedPropertyDescriptionPanel.setSaved(true);
+		observedPropertyDescriptionPanel.setTitle("Edit observed property description");
+		observedPropertyDescriptionPanel.showEditFunctions();
+		observedPropertyDescriptionPanel.setRemoveListener(new RemoveListener() {
 			public void onRemove() {
-				setupListProceduresPanel();
+				setupListObservedPropertyDescriptionsPanel();
 			}
 		});
-		switchPanel("Edit procedure", procedurePanel);
+		switchPanel("Edit observed property description", observedPropertyDescriptionPanel);
 	}
 
-	private void setupListProceduresPanel() {
-		final ListProceduresPanel listProceduresPanel = new ListProceduresPanel(frame, sessionFactory);
-		listProceduresPanel.setAddListener(new AddListener() {
+	private void setupListObservedPropertyDescriptionsPanel() {
+		final ListObservedPropertyDescriptionsPanel listObservedPropertyDescriptionsPanel = new ListObservedPropertyDescriptionsPanel(frame, sessionFactory);
+		listObservedPropertyDescriptionsPanel.setAddListener(new AddListener() {
 			public void onAdd() {
-				setupCreateProcedurePanel();
+				setupCreateObservedPropertyDescriptionPanel();
 			}
 		});
-		listProceduresPanel.setEditListener(new EditListener<ProcedureDescription>() {
-			public void onEdit(ProcedureDescription procedureDescription) {
-				final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, procedureDescription);
-				setupEditProcedurePanel(procedurePanel);
+		listObservedPropertyDescriptionsPanel.setEditListener(new EditListener<ObservedPropertyDescription>() {
+			public void onEdit(ObservedPropertyDescription observedPropertyDescription) {
+				final CreateEditObservedPropertyDescriptionPanel observedPropertyDescriptionPanel = new CreateEditObservedPropertyDescriptionPanel(frame, sessionFactory, observedPropertyClassesConfiguration, observedPropertyDescription);
+				setupEditObservedPropertyDescriptionPanel(observedPropertyDescriptionPanel);
 			}
 		});
 
-		switchPanel("List procedures", listProceduresPanel);
+		switchPanel("List observed property descriptions", listObservedPropertyDescriptionsPanel);
 	}
 
-	private void setupCreateProcedureJavaClassPanel() {
-		final ProcedureJavaClass newProcedureJavaClass = CreateEditProcedureJavaClassPanel.createNewProcedureJavaClass(procedureClassesConfiguration);
-		final CreateEditProcedureJavaClassPanel procedureJavaClassPanel = new CreateEditProcedureJavaClassPanel(frame, sessionFactory, procedureClassesConfiguration, newProcedureJavaClass);
+	private void setupCreateObservedPropertyJavaClassPanel() {
+		final ObservedPropertyJavaClass newObservedPropertyJavaClass = CreateEditObservedPropertyJavaClassPanel.createNewObservedPropertyJavaClass(observedPropertyClassesConfiguration);
+		final CreateEditObservedPropertyJavaClassPanel observedPropertyJavaClassPanel = new CreateEditObservedPropertyJavaClassPanel(frame, sessionFactory, observedPropertyClassesConfiguration, newObservedPropertyJavaClass);
 
-		procedureJavaClassPanel.setTitle("Create procedure class");
-		switchPanel("Create procedure class", procedureJavaClassPanel);
+		observedPropertyJavaClassPanel.setTitle("Create observed property class");
+		switchPanel("Create observed property class", observedPropertyJavaClassPanel);
 
-		procedureJavaClassPanel.setSavedHandler(new SavedHandler() {
+		observedPropertyJavaClassPanel.setSavedHandler(new SavedHandler() {
 			@Override
 			public void onSave() {
-				setupEditProcedureJavaClassPanel(procedureJavaClassPanel);
+				setupEditObservedPropertyJavaClassPanel(observedPropertyJavaClassPanel);
 			}
 		});
 	}
 
-	private void setupEditProcedureJavaClassPanel(CreateEditProcedureJavaClassPanel procedureJavaClassPanel) {
-		// In terms of procedureJavaClassPanel being saved basically means it's on the filesystem
-		procedureJavaClassPanel.setSaved(true);
-		procedureJavaClassPanel.setTitle("Edit procedure class");
-		procedureJavaClassPanel.showEditFunctions();
-		procedureJavaClassPanel.setRemoveListener(new RemoveListener() {
+	private void setupEditObservedPropertyJavaClassPanel(CreateEditObservedPropertyJavaClassPanel observedPropertyJavaClassPanel) {
+		// In terms of observedPropertyJavaClassPanel being saved basically means it's on the filesystem
+		observedPropertyJavaClassPanel.setSaved(true);
+		observedPropertyJavaClassPanel.setTitle("Edit observed property class");
+		observedPropertyJavaClassPanel.showEditFunctions();
+		observedPropertyJavaClassPanel.setRemoveListener(new RemoveListener() {
 			public void onRemove() {
-				setupListProcedureJavaClassesPanel();
+				setupListObservedPropertyJavaClassesPanel();
 			}
 		});
-		switchPanel("Edit procedure class", procedureJavaClassPanel);
+		switchPanel("Edit observed property class", observedPropertyJavaClassPanel);
 	}
 
-	private void setupListProcedureJavaClassesPanel() {
-		final ListProcedureJavaClassesPanel listProcedureClassesPanel = new ListProcedureJavaClassesPanel(frame, sessionFactory, procedureClassesConfiguration);
-		listProcedureClassesPanel.setAddListener(new AddListener() {
+	private void setupListObservedPropertyJavaClassesPanel() {
+		final ListObservedPropertyJavaClassesPanel listObservedPropertyClassesPanel = new ListObservedPropertyJavaClassesPanel(frame, sessionFactory, observedPropertyClassesConfiguration);
+		listObservedPropertyClassesPanel.setAddListener(new AddListener() {
 			public void onAdd() {
-				setupCreateProcedureJavaClassPanel();
+				setupCreateObservedPropertyJavaClassPanel();
 			}
 		});
-		listProcedureClassesPanel.setEditListener(new EditListener<ProcedureJavaClass>() {
-			public void onEdit(ProcedureJavaClass procedureJavaClass) {
-				final CreateEditProcedureJavaClassPanel procedureJavaClassPanel = new CreateEditProcedureJavaClassPanel(frame, sessionFactory, procedureClassesConfiguration, procedureJavaClass);
-				setupEditProcedureJavaClassPanel(procedureJavaClassPanel);
+		listObservedPropertyClassesPanel.setEditListener(new EditListener<ObservedPropertyJavaClass>() {
+			public void onEdit(ObservedPropertyJavaClass observedPropertyJavaClass) {
+				final CreateEditObservedPropertyJavaClassPanel observedPropertyJavaClassPanel = new CreateEditObservedPropertyJavaClassPanel(frame, sessionFactory, observedPropertyClassesConfiguration, observedPropertyJavaClass);
+				setupEditObservedPropertyJavaClassPanel(observedPropertyJavaClassPanel);
 			}
 		});
 
-		switchPanel("List procedure classes", listProcedureClassesPanel);
+		switchPanel("List observed property classes", listObservedPropertyClassesPanel);
 	}
 }

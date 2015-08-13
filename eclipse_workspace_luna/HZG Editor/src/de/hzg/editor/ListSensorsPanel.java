@@ -105,7 +105,7 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider, AddLis
 			}
 		});
 
-		dataCreator.setCellPopupMenu(cellPopupMenu);
+		dataCreator.setCellPopupMenu(-1, cellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
 
 		return dataCreator.create();

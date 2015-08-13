@@ -22,7 +22,8 @@ public class Collector implements Runnable {
 	private List<SensorHandler> sensorHandlers = new ArrayList<SensorHandler>();
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private ScheduledFuture<?> flushFuture = null;
-
+	// TODO: make this configurable via xml (for now 1 minute)
+	private static int FLUSH_INTERVAL_S = 60;
 	public Collector(HibernateUtil hibernateUtil, ClassLoader classLoader) {
 		final SessionFactory sessionFactory = hibernateUtil.getSessionFactory();
 		final Session session = sessionFactory.openSession();
@@ -63,7 +64,7 @@ public class Collector implements Runnable {
 					sensorHandler.setNeedsFlush();
 				}
 			}
-		}, 0, 15, TimeUnit.SECONDS);
+		}, 0, FLUSH_INTERVAL_S, TimeUnit.SECONDS);
 	}
 
 	public boolean finished() {

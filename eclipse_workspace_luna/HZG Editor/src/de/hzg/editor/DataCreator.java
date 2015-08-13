@@ -7,7 +7,9 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -25,7 +27,7 @@ public class DataCreator {
 	private final List<JComponent> panelList = new ArrayList<JComponent>();
 	private int currentRowForPopup = -1;
 	private int currentColumnForPopup = -1;
-	private TablePopupMenu cellPopupMenu;
+	private Map<Integer, TablePopupMenu> cellPopupMenus = new HashMap<Integer, TablePopupMenu>();
 	private TablePopupMenu noCellPopupMenu;
 	private static double ICON_WEIGHT = 0.0;
 	private static double LABEL_WEIGHT = 1.0;
@@ -48,7 +50,29 @@ public class DataCreator {
 				final TablePopupMenu popupMenu;
 
 				if (currentRowForPopup >= 0 && currentColumnForPopup >= 0) {
-					popupMenu = cellPopupMenu;
+					Map.Entry<Integer, TablePopupMenu> highestEntry = null;
+
+					for (final Map.Entry<Integer, TablePopupMenu> checkPopupMenu: cellPopupMenus.entrySet()) {
+						if (highestEntry == null) {
+							highestEntry = checkPopupMenu;
+						}
+
+						if (checkPopupMenu.getKey() <= currentColumnForPopup && checkPopupMenu.getKey() > highestEntry.getKey()) {
+							highestEntry = checkPopupMenu;
+						}
+					}
+
+					if (highestEntry.getKey() < currentColumnForPopup) {
+						final TablePopupMenu restMenu = cellPopupMenus.get(new Integer(-1));
+
+						if (restMenu != null) {
+							popupMenu = restMenu;
+						} else {
+							popupMenu = highestEntry.getValue();
+						}
+					} else {
+						popupMenu = highestEntry.getValue();
+					}
 				} else {
 					popupMenu = noCellPopupMenu;
 				}
@@ -195,8 +219,8 @@ public class DataCreator {
 		return resultPanel;
 	}
 
-	void setCellPopupMenu(TablePopupMenu cellPopupMenu) {
-		this.cellPopupMenu = cellPopupMenu;
+	void setCellPopupMenu(Integer maxColumn, TablePopupMenu cellPopupMenu) {
+		this.cellPopupMenus.put(maxColumn, cellPopupMenu);
 	}
 
 	void setNoCellPopupMenu(TablePopupMenu noCellPopupMenu) {

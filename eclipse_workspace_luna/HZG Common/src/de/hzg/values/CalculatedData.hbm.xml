@@ -12,16 +12,36 @@
 			</generator>
 		</id>
 
-		<property name="value">
-			<column name="value" not-null="true" />
-		</property>
-
 		<property name="date">
-			<column name="timestamp" not-null="true" />
+			<column name="date" not-null="true" />
 		</property>
 
-		<many-to-one name="procedureInstance" class="de.hzg.measurement.ProcedureInstance">
-			<column name="procedure_instance_id" />
+		<property name="value">
+			<column name="value" />
+		</property>
+
+		<property name="average">
+			<column name="avg" />
+		</property>
+
+		<property name="min">
+			<column name="min" />
+		</property>
+
+		<property name="max">
+			<column name="max" />
+		</property>
+
+		<property name="median">
+			<column name="median" />
+		</property>
+
+		<property name="stddev">
+			<column name="stddev" />
+		</property>
+
+		<many-to-one name="observedPropertyInstance" class="de.hzg.measurement.ObservedPropertyInstance">
+			<column name="observed_property_instance_id" not-null="true" />
 		</many-to-one>
 	</class>
 </hibernate-mapping>

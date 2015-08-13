@@ -29,17 +29,18 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import de.hzg.common.ProcedureClassesConfiguration;
-import de.hzg.measurement.ProcedureDescription;
-import de.hzg.measurement.ProcedureInstance;
+import de.hzg.common.ObservedPropertyClassesConfiguration;
+import de.hzg.measurement.CalibrationSet;
+import de.hzg.measurement.ObservedPropertyDescription;
+import de.hzg.measurement.ObservedPropertyInstance;
 
-public class CreateEditProcedureJavaClassPanel extends SplitPanel implements DataProvider {
+public class CreateEditObservedPropertyJavaClassPanel extends SplitPanel implements DataProvider {
 	private static final long serialVersionUID = 4736407909177124580L;
 	private final JTextField classNameTextField;
 	private final JTextArea classTextArea;
 	private final Window owner;
-	private final ProcedureClassesConfiguration procedureClassesConfiguration;
-	private final ProcedureJavaClass procedureJavaClass;
+	private final ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration;
+	private final ObservedPropertyJavaClass observedPropertyJavaClass;
 	private boolean inputSaved = false;
 	private RemoveListener removeListener;
 	private SequentialGroup horizontalButtonGroup;
@@ -47,11 +48,11 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 	private boolean editFunctionsShown = false;
 	private SessionFactory sessionFactory;
 
-	public CreateEditProcedureJavaClassPanel(Window owner, SessionFactory sessionFactory, ProcedureClassesConfiguration procedureClassesConfiguration, ProcedureJavaClass procedureJavaClass) {
+	public CreateEditObservedPropertyJavaClassPanel(Window owner, SessionFactory sessionFactory, ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, ObservedPropertyJavaClass observedPropertyJavaClass) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
-		this.procedureClassesConfiguration = procedureClassesConfiguration;
-		this.procedureJavaClass = procedureJavaClass;
+		this.observedPropertyClassesConfiguration = observedPropertyClassesConfiguration;
+		this.observedPropertyJavaClass = observedPropertyJavaClass;
 
 		classNameTextField = new JTextField();
 		classNameTextField.setColumns(30);
@@ -65,24 +66,24 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 		createForm();
 
 		setDataProvider(this);
-		procedureJavaClassToFormAndClass();
+		observedPropertyJavaClassToFormAndClass();
 		setClassFilter();
 
-		inputSaved = procedureJavaClass.isLoaded();
+		inputSaved = observedPropertyJavaClass.isLoaded();
 	}
 
-	public static ProcedureJavaClass createNewProcedureJavaClass(ProcedureClassesConfiguration procedureClassesConfiguration) {
-		final ProcedureJavaClass procedureJavaClass = new ProcedureJavaClass(procedureClassesConfiguration);
+	public static ObservedPropertyJavaClass createNewObservedPropertyJavaClass(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration) {
+		final ObservedPropertyJavaClass observedPropertyJavaClass = new ObservedPropertyJavaClass(observedPropertyClassesConfiguration);
 
 		try {
-			procedureJavaClass.setName("Example");
+			observedPropertyJavaClass.setName("Example");
 		} catch (InvalidIdentifierException exception) {
 			assert(false);
 		}
 
-		procedureJavaClass.setText(getClassTemplate("Example"));
+		observedPropertyJavaClass.setText(getClassTemplate("Example"));
 
-		return procedureJavaClass;
+		return observedPropertyJavaClass;
 	}
 
 	private void createForm() {
@@ -129,8 +130,7 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 
 	private JTextArea createClassTextArea(DataCreator dataCreator) {
 		dataCreator.addInformationMessage("For now only very basic operations are supported, see the manual.");
-		dataCreator.addInformationMessage("The compiler will be invoked in: '" + procedureClassesConfiguration.getSourceDirectory() + "'");
-		dataCreator.addInformationMessage("Compiler and arguments: '" + ProcedureJavaClass.getCompilerInvocation() + "'");
+		dataCreator.addInformationMessage("The compiler will be invoked in: '" + observedPropertyClassesConfiguration.getSourceDirectory() + "'");
 
 		final JPanel classInteractions = new JPanel();
 		final JButton saveButton = getActionButton("Save class");
@@ -148,7 +148,7 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 					JOptionPane.showMessageDialog(owner, message, "Unsaved class", JOptionPane.ERROR_MESSAGE);
 
 				} else {
-					ProcedureJavaClass.compileTasks(owner, procedureClassesConfiguration, procedureJavaClass.getName());
+					ObservedPropertyJavaClass.compileTasks(owner, observedPropertyClassesConfiguration, observedPropertyJavaClass.getName());
 				}
 			}
 		});
@@ -175,42 +175,42 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 	}
 
 	private static String getClassTemplate(String name) {
-		return "package de.hzg.procedures;\n" +
+		return "package de.hzg.observed_properties;\n" +
 "\n" +
-"import de.hzg.measurement.BaseProcedure;\n" +
+"import de.hzg.measurement.BaseObservedProperty;\n" +
 "\n" +
-"public class " + name + " extends BaseProcedure {\n" +
+"public class " + name + " extends BaseObservedProperty {\n" +
 "\t@Override\n" +
-"\tpublic double calibrate(double rawValue) {\n" +
+"\tpublic double getCalculationValue(int binaryValue) {\n" +
 "\t/* The parameters are stored in the base class.\n" +
 "\t * See the manual for further details.\n" +
 "\t */\n" +
 "\t\treturn (((((parameters[5]\n" +
-"\t\t            * rawValue + parameters[4])\n" +
-"\t\t            * rawValue + parameters[3])\n" +
-"\t\t            * rawValue + parameters[2])\n" +
-"\t\t            * rawValue + parameters[1])\n" +
-"\t\t            * rawValue + parameters[0]);\n" +
+"\t\t            * binaryValue + parameters[4])\n" +
+"\t\t            * binaryValue + parameters[3])\n" +
+"\t\t            * binaryValue + parameters[2])\n" +
+"\t\t            * binaryValue + parameters[1])\n" +
+"\t\t            * binaryValue + parameters[0]);\n" +
 " }\n" +
 "}";
 	}
 
-	private void procedureJavaClassToFormAndClass() {
-		classNameTextField.setText(procedureJavaClass.getName());
-		classTextArea.setText(procedureJavaClass.getText());
+	private void observedPropertyJavaClassToFormAndClass() {
+		classNameTextField.setText(observedPropertyJavaClass.getName());
+		classTextArea.setText(observedPropertyJavaClass.getText());
 	}
 
-	private void formToProcedureJavaClass() throws InvalidIdentifierException {
-		procedureJavaClass.setName(classNameTextField.getText());
+	private void formToObservedPropertyJavaClass() throws InvalidIdentifierException {
+		observedPropertyJavaClass.setName(classNameTextField.getText());
 	}
 
-	private void classToProcedureJavaClass() {
-		procedureJavaClass.setText(classTextArea.getText());
+	private void classToObservedPropertyJavaClass() {
+		observedPropertyJavaClass.setText(classTextArea.getText());
 	}
 
 	private boolean dirtyName() {
 		{
-			final String cmpString = procedureJavaClass.getName() == null ? "" : procedureJavaClass.getName();
+			final String cmpString = observedPropertyJavaClass.getName() == null ? "" : observedPropertyJavaClass.getName();
 
 			if (!classNameTextField.getText().equals(cmpString)) {
 				return true;
@@ -226,7 +226,7 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 		}
 
 		{
-			final String cmpString = procedureJavaClass.getText() == null ? "" : procedureJavaClass.getText();
+			final String cmpString = observedPropertyJavaClass.getText() == null ? "" : observedPropertyJavaClass.getText();
 
 			if (!classTextArea.getText().equals(cmpString)) {
 				return true;
@@ -237,16 +237,17 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 	}
 
 	public boolean provide(String title) {
+		String oldName = null;
+
 		if (title.equals("Save information")) {
 			// first make sure the identifier is valid
-
-			final boolean deleteOldFile = procedureJavaClass.isLoaded() && (dirtyName() || !inputSaved);
+			final boolean deleteOldFile = observedPropertyJavaClass.isLoaded() && (dirtyName() || !inputSaved);
 
 			try {
-				formToProcedureJavaClass();
+				formToObservedPropertyJavaClass();
 			} catch (InvalidIdentifierException exception) {
-				final String[] messages = { "Procedure class has an invalid identifier.", "An exception occured." };
-				final JDialog dialog = new ExceptionDialog(owner, "Procedure class has an invalid identifier", messages, exception);
+				final String[] messages = { "Observed property class has an invalid identifier.", "An exception occured." };
+				final JDialog dialog = new ExceptionDialog(owner, "Observed property class has an invalid identifier", messages, exception);
 				dialog.pack();
 				dialog.setLocationRelativeTo(owner);
 				dialog.setVisible(true);
@@ -254,16 +255,17 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 			}
 
 			if (deleteOldFile) {
+				oldName = observedPropertyJavaClass.getNameLoaded();
 				final String message = String.format(
-					"The procedure class was previously loaded from the filesystem.\n" +
+					"The observed property class was previously loaded from the filesystem.\n" +
 					"Changing the name will result in the old file being deleted and the new one being saved.\n");
 
-				JOptionPane.showMessageDialog(owner, message, "Procedure class will be moved", JOptionPane.WARNING_MESSAGE);
+				JOptionPane.showMessageDialog(owner, message, "Observed property class will be moved", JOptionPane.WARNING_MESSAGE);
 				try {
-					procedureJavaClass.deleteLoadedInstance();
+					observedPropertyJavaClass.deleteLoadedInstance();
 				} catch (IOException exception) {
-					final String[] messages = { "Old procedure class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of procedure classes." };
-					final JDialog dialog = new ExceptionDialog(owner, "Old procedure class cannot be deleted", messages, exception);
+					final String[] messages = { "Old observed property class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of observed property classes." };
+					final JDialog dialog = new ExceptionDialog(owner, "Old observed property class cannot be deleted", messages, exception);
 					dialog.pack();
 					dialog.setLocationRelativeTo(owner);
 					dialog.setVisible(true);
@@ -272,23 +274,49 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 
 			// name was changed, update classtextarea
 			updateClassTextArea();
-			classToProcedureJavaClass();
+			classToObservedPropertyJavaClass();
 		} else {
-			classToProcedureJavaClass();
+			classToObservedPropertyJavaClass();
 		}
 
 		// always save
-		return saveFile();
+		final boolean result =  saveFile();
+
+		if (oldName != null) {
+			updateDescriptions(oldName, observedPropertyJavaClass.getName());
+		}
+
+		return result;
 	}
 
+	private void updateDescriptions(String oldName, String newName) {
+		final Session session = sessionFactory.openSession();
+
+		try {
+			final int result = session
+				.createQuery("UPDATE ObservedPropertyDescription SET className = :newClassName WHERE className = :oldClassName")
+				.setParameter("newClassName", newName)
+				.setParameter("oldClassName", oldName)
+				.executeUpdate();
+			JOptionPane.showMessageDialog(owner, "" + result + " observed property descriptions successfully updated for the new name.", "Observed property descriptions updated", JOptionPane.INFORMATION_MESSAGE);
+		} catch (Exception exception) {
+			final String[] messages = { "Observed property descriptions could not be updated.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property descriptions could not be updated", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		} finally {
+			session.close();
+		}
+	}
 	private boolean saveFile() {
 		try {
-			procedureJavaClass.save();
-			JOptionPane.showMessageDialog(owner, "Procedure class successfully saved.", "Procedure saved", JOptionPane.INFORMATION_MESSAGE);
+			observedPropertyJavaClass.save();
+			JOptionPane.showMessageDialog(owner, "Observed property class successfully saved.", "Observed property saved", JOptionPane.INFORMATION_MESSAGE);
 			inputSaved = true;
 		} catch (IOException exception) {
-			final String[] messages = { "Procedure class cannot be saved.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure class cannot be saved", messages, exception);
+			final String[] messages = { "Observed property class cannot be saved.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property class cannot be saved", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -308,7 +336,7 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 		if (matcher.find()) {
 			final int introBeginOffset = matcher.start(1);
 			final int introEndOffset = matcher.end(1);
-			classTextArea.replaceRange(procedureJavaClass.getName(), introBeginOffset, introEndOffset);
+			classTextArea.replaceRange(observedPropertyJavaClass.getName(), introBeginOffset, introEndOffset);
 		}
 
 		setClassFilter();
@@ -323,16 +351,16 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 			final DocumentFilter lineFilter = new ClassFilter(classTextArea, editBeginOffset, editEndOffset);
 			((AbstractDocument)classTextArea.getDocument()).setDocumentFilter(lineFilter);
 		} catch (BadLocationException exception) {
-			final String[] messages = { "Procedure class has a wrong length.", "This will most likely cause runtime errors, plesae fix this manually.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure class has a wrong length", messages, exception);
+			final String[] messages = { "Observed property class has a wrong length.", "This will most likely cause runtime errors, plesae fix this manually.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property class has a wrong length", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 		}
 	}
 
-	static boolean removeProcedureJavaClass(ProcedureJavaClass procedureJavaClass, Window owner, SessionFactory sessionFactory) {
-		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the procedure Java class and all procedure descriptions and instances referring to it.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+	static boolean removeObservedPropertyJavaClass(ObservedPropertyJavaClass observedPropertyJavaClass, Window owner, SessionFactory sessionFactory) {
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the observed property Java class and all observed property descriptions and instances referring to it and the calibration sets for those instances.", "Are you sure?", JOptionPane.YES_NO_OPTION);
 
 		if (confirm != JOptionPane.YES_OPTION) {
 			return false;
@@ -344,19 +372,23 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 		transaction = session.beginTransaction();
 		try {
 			@SuppressWarnings("unchecked")
-			final List<ProcedureDescription> tempResult = (List<ProcedureDescription>)session
-				.createQuery("FROM ProcedureDescription WHERE classname = :classname")
-				.setParameter("classname", procedureJavaClass.getName())
+			final List<ObservedPropertyDescription> tempResult = (List<ObservedPropertyDescription>)session
+				.createQuery("FROM ObservedPropertyDescription WHERE classname = :classname")
+				.setParameter("classname", observedPropertyJavaClass.getName())
 				.list();
 
-			for (final ProcedureDescription procedureDescription: tempResult) {
-				procedureDescription.initProcedureDescription();
+			for (final ObservedPropertyDescription observedPropertyDescription: tempResult) {
+				observedPropertyDescription.initObservedPropertyDescription();
 
-				for (final ProcedureInstance procedureInstance: procedureDescription.getProcedureInstances()) {
-					session.delete(procedureInstance);
+				for (final ObservedPropertyInstance observedPropertyInstance: observedPropertyDescription.getObservedPropertyInstances()) {
+					for (final CalibrationSet calibrationSet: observedPropertyInstance.getCalibrationSets()) {
+						session.delete(calibrationSet);
+					}
+
+					session.delete(observedPropertyInstance);
 				}
 
-				session.delete(procedureDescription);
+				session.delete(observedPropertyDescription);
 			}
 
 			session.flush();
@@ -366,8 +398,8 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 				transaction.rollback();
 			}
 
-			final String[] messages = { "Procedure descriptions and instances could not be deleted.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure descriptions and instances could not be deleted", messages, exception);
+			final String[] messages = { "Observed property descriptions and instances could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property descriptions and instances could not be deleted", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -376,10 +408,10 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 		}
 
 		try {
-			procedureJavaClass.deleteLoadedInstance();
+			observedPropertyJavaClass.deleteLoadedInstance();
 		} catch (IOException exception) {
-			final String[] messages = { "Procedure class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of procedure classes." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure class cannot be deleted", messages, exception);
+			final String[] messages = { "Observed property class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of observed property classes." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property class cannot be deleted", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -393,11 +425,11 @@ public class CreateEditProcedureJavaClassPanel extends SplitPanel implements Dat
 			return;
 		}
 
-		final JButton removeButton = new JButton("Remove procedure");
+		final JButton removeButton = new JButton("Remove observed property class");
 
 		removeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				removeProcedureJavaClass(procedureJavaClass, owner, sessionFactory);
+				removeObservedPropertyJavaClass(observedPropertyJavaClass, owner, sessionFactory);
 
 				if (removeListener != null) {
 					removeListener.onRemove();

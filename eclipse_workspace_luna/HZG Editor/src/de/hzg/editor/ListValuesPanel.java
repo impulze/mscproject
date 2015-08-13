@@ -90,9 +90,9 @@ public class ListValuesPanel<T extends ValueData<E>, E> extends SplitPanel imple
 			final ValueTableModel<T, E> tableModel = (ValueTableModel<T, E>)table.getModel();;
 
 			for (final T value: result) {
-				Hibernate.initialize(value.getProcedureInstance());
-				Hibernate.initialize(value.getProcedureInstance().getProcedureDescription());
-				Hibernate.initialize(value.getProcedureInstance().getSensor());
+				Hibernate.initialize(value.getObservedPropertyInstance());
+				Hibernate.initialize(value.getObservedPropertyInstance().getObservedPropertyDescription());
+				Hibernate.initialize(value.getObservedPropertyInstance().getSensor());
 			}
 
 			tableModel.setValues(result);

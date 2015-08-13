@@ -22,9 +22,9 @@
 			<column name="device" length="255" not-null="true" />
 		</property>
 
-		<bag name="procedureInstances" table="procedure_instances">
+		<bag name="observedPropertyInstances" table="observed_property_instances">
 			<key column="sensor_id" not-null="true" />
-			<one-to-many class="de.hzg.measurement.ProcedureInstance" />
+			<one-to-many class="de.hzg.measurement.ObservedPropertyInstance" />
 		</bag>
 	</class>
 </hibernate-mapping>

@@ -21,18 +21,18 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import de.hzg.common.ProcedureClassesConfiguration;
+import de.hzg.common.ObservedPropertyClassesConfiguration;
 
-public class ProcedureJavaClass {
+public class ObservedPropertyJavaClass {
 	private String name;
 	private String nameLoaded;
 	private String text;
-	private final ProcedureClassesConfiguration procedureClassesConfiguration;
+	private final ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration;
 	private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 	private static final StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
-	ProcedureJavaClass(ProcedureClassesConfiguration procedureClassesConfiguration) {
-		this.procedureClassesConfiguration = procedureClassesConfiguration;
+	ObservedPropertyJavaClass(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration) {
+		this.observedPropertyClassesConfiguration = observedPropertyClassesConfiguration;
 	}
 
 	public String getName() {
@@ -71,28 +71,32 @@ public class ProcedureJavaClass {
 		return nameLoaded != null;
 	}
 
+	public String getNameLoaded() {
+		return nameLoaded;
+	}
+
 	public void load() throws IOException {
-		text = load(procedureClassesConfiguration, name);
+		text = load(observedPropertyClassesConfiguration, name);
 		nameLoaded = name;
 	}
 
 	public void save() throws IOException {
-		save(procedureClassesConfiguration, name, text);
+		save(observedPropertyClassesConfiguration, name, text);
 		nameLoaded = name;
 	}
 
 	public void deleteLoadedInstance() throws IOException {
 		if (nameLoaded != null) {
-			delete(procedureClassesConfiguration, nameLoaded);
+			delete(observedPropertyClassesConfiguration, nameLoaded);
 			nameLoaded = null;
 		}
 	}
 
-	public static List<String> listNames(ProcedureClassesConfiguration procedureClassesConfiguration, Window owner) {
-		final String sourceDirectory = procedureClassesConfiguration.getSourceDirectory();
-		final String packageDirectory = ProcedureClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
+	public static List<String> listNames(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, Window owner) {
+		final String sourceDirectory = observedPropertyClassesConfiguration.getSourceDirectory();
+		final String packageDirectory = ObservedPropertyClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
 		final String walkDirectory = sourceDirectory + File.separatorChar + packageDirectory + File.separatorChar;
-		final List<String> procedureClassNames = new ArrayList<String>();
+		final List<String> observedPropertyClassNames = new ArrayList<String>();
 
 		try {
 			Files.walkFileTree(Paths.get(walkDirectory), new SimpleFileVisitor<Path>() {
@@ -101,40 +105,40 @@ public class ProcedureJavaClass {
 					final String name = path.getFileName().toString();
 
 					if (name.endsWith(Kind.SOURCE.extension)) {
-						procedureClassNames.add(name.substring(0, name.length() - Kind.SOURCE.extension.length()));
+						observedPropertyClassNames.add(name.substring(0, name.length() - Kind.SOURCE.extension.length()));
 					}
 
 					return FileVisitResult.CONTINUE;
 				}
 			});
 		} catch (IOException exception) {
-			final String[] messages = { "Procedure classes cannot be determined.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure classes cannot be determined", messages, exception);
+			final String[] messages = { "Observed property classes cannot be determined.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property classes cannot be determined", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 		}
 
-		return procedureClassNames;
+		return observedPropertyClassNames;
 	}
-	private static String load(ProcedureClassesConfiguration procedureClassesConfiguration, String name) throws IOException {
-		final String inputPath = getInputPath(procedureClassesConfiguration, name);
+	private static String load(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, String name) throws IOException {
+		final String inputPath = getInputPath(observedPropertyClassesConfiguration, name);
 		final byte[] rawText = Files.readAllBytes(Paths.get(inputPath));
 		return new String(rawText, Charset.defaultCharset());
 	}
 
-	private static void save(ProcedureClassesConfiguration procedureClassesConfiguration, String name, String text) throws IOException {
-		final String inputPath = getInputPath(procedureClassesConfiguration, name); 
+	private static void save(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, String name, String text) throws IOException {
+		final String inputPath = getInputPath(observedPropertyClassesConfiguration, name); 
 		final byte[] rawText = text.getBytes();
 		Files.write(Paths.get(inputPath), rawText);
 	}
 
-	private static void delete(ProcedureClassesConfiguration procedureClassesConfiguration, String name) throws IOException {
-		final String inputPath = getInputPath(procedureClassesConfiguration, name); 
+	private static void delete(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, String name) throws IOException {
+		final String inputPath = getInputPath(observedPropertyClassesConfiguration, name); 
 		Files.delete(Paths.get(inputPath));
 	}
 
-	public static boolean compileTasks(Window owner, ProcedureClassesConfiguration procedureClassesConfiguration, String... names) {
+	public static boolean compileTasks(Window owner, ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, String... names) {
 		final CompileOutputDialog dialog = new CompileOutputDialog(owner);
 		final StringBuilder writerStringBuilder = new StringBuilder();
 		final Writer writer = new Writer() {
@@ -171,7 +175,7 @@ public class ProcedureJavaClass {
 		final String[] inputPaths = new String[names.length];
 
 		for (int i = 0; i < names.length; i++) {
-			inputPaths[i] = getInputPath(procedureClassesConfiguration, names[i]);
+			inputPaths[i] = getInputPath(observedPropertyClassesConfiguration, names[i]);
 		}
 
 		final CompilerSwingWorker worker = new CompilerSwingWorker(owner, dialog, writer, inputPaths, fileManager, compiler);
@@ -185,9 +189,9 @@ public class ProcedureJavaClass {
 		return worker.result();
 	}
 
-	private static String getInputPath(ProcedureClassesConfiguration procedureClassesConfiguration, String name) {
-		final String sourceDirectory = procedureClassesConfiguration.getSourceDirectory();
-		final String packageDirectory = ProcedureClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
+	private static String getInputPath(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, String name) {
+		final String sourceDirectory = observedPropertyClassesConfiguration.getSourceDirectory();
+		final String packageDirectory = ObservedPropertyClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
 
 		return sourceDirectory + File.separatorChar + packageDirectory + File.separatorChar + name + Kind.SOURCE.extension;
 	}
@@ -200,15 +204,15 @@ public class ProcedureJavaClass {
 		return "";
 	}
 
-	public static ProcedureJavaClass loadByName(ProcedureClassesConfiguration procedureClassesConfiguration, Window owner, String name) {
+	public static ObservedPropertyJavaClass loadByName(ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, Window owner, String name) {
 
-		final ProcedureJavaClass procedureJavaClass = new ProcedureJavaClass(procedureClassesConfiguration);
+		final ObservedPropertyJavaClass observedPropertyJavaClass = new ObservedPropertyJavaClass(observedPropertyClassesConfiguration);
 
 		try {
-			procedureJavaClass.setName(name);
+			observedPropertyJavaClass.setName(name);
 		} catch (InvalidIdentifierException exception) {
-			final String[] messages = { "Procedure class has an invalid identifier.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure class has an invalid identifier", messages, exception);
+			final String[] messages = { "Observed property class has an invalid identifier.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property class has an invalid identifier", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -216,16 +220,16 @@ public class ProcedureJavaClass {
 		}
 
 		try {
-			procedureJavaClass.load();
+			observedPropertyJavaClass.load();
 		} catch (IOException exception) {
-			final String[] messages = { "Procedure class could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure class not loaded", messages, exception);
+			final String[] messages = { "Observed property class could not be loaded.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property class not loaded", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 			return null;
 		}
 
-		return procedureJavaClass;
+		return observedPropertyJavaClass;
 	}
 }

@@ -1,16 +1,20 @@
 package de.hzg.measurement;
 
-public class ProcedureInstance {
+import java.sql.Timestamp;
+
+import org.hibernate.Hibernate;
+
+public class CalibrationSet {
 	private Long id;
-	private Integer address;
+	private ObservedPropertyInstance observedPropertyInstance;
 	private Double parameter1;
 	private Double parameter2;
 	private Double parameter3;
 	private Double parameter4;
 	private Double parameter5;
 	private Double parameter6;
-	private Sensor sensor;
-	private ProcedureDescription procedureDescription;
+	private Timestamp validStart;
+	private Timestamp validEnd;
 
 	public Long getId() {
 		return id;
@@ -20,12 +24,12 @@ public class ProcedureInstance {
 		this.id = id;
 	}
 
-	public Integer getAddress() {
-		return address;
+	public ObservedPropertyInstance getObservedPropertyInstance() {
+		return observedPropertyInstance;
 	}
 
-	public void setAddress(Integer address) {
-		this.address = address;
+	public void setObservedPropertyInstance(ObservedPropertyInstance observedPropertyInstance) {
+		this.observedPropertyInstance = observedPropertyInstance;
 	}
 
 	public Double getParameter1() {
@@ -76,28 +80,25 @@ public class ProcedureInstance {
 		this.parameter6 = parameter6;
 	}
 
-	public Sensor getSensor() {
-		return sensor;
+	public Timestamp getValidStart() {
+		return validStart;
 	}
 
-	public void setSensor(Sensor sensor) {
-		this.sensor = sensor;
+	public void setValidStart(Timestamp validStart) {
+		this.validStart = validStart;
 	}
 
-	public ProcedureDescription getProcedureDescription() {
-		return procedureDescription;
+	public Timestamp getValidEnd() {
+		return validEnd;
 	}
 
-	public void setProcedureDescription(ProcedureDescription procedureDescription) {
-		this.procedureDescription = procedureDescription;
+	public void setValidEnd(Timestamp validEnd) {
+		this.validEnd = validEnd;
 	}
 
-	public void getParameters(double[] parameters) {
-		parameters[0] = getParameter1();
-		parameters[1] = getParameter2();
-		parameters[2] = getParameter3();
-		parameters[3] = getParameter4();
-		parameters[4] = getParameter5();
-		parameters[5] = getParameter6();
+	public void initCalibrationSet() {
+		Hibernate.initialize(getObservedPropertyInstance());
+
+		getObservedPropertyInstance().initObservedPropertyInstance();
 	}
 }

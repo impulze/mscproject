@@ -2,11 +2,11 @@ package de.hzg.values;
 
 import java.util.Date;
 
-import de.hzg.measurement.ProcedureInstance;
+import de.hzg.measurement.ObservedPropertyInstance;
 
 public interface ValueData<T> {
-	ProcedureInstance getProcedureInstance();
-	void setProcedureInstance(ProcedureInstance procedureInstance);
+	ObservedPropertyInstance getObservedPropertyInstance();
+	void setObservedPropertyInstance(ObservedPropertyInstance observedPropertyInstance);
 
 	Date getDate();
 	void setDate(Date date);

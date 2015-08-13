@@ -4,29 +4,34 @@ import java.util.List;
 
 import org.hibernate.Hibernate;
 
-public class ProcedureDescription {
+public class ObservedPropertyDescription {
 	private Long id;
 	private String name;
 	private String className;
 	private String unit;
 	private String metadata;
-	private List<ProcedureInstance> procedureInstances;
+	private List<ObservedPropertyInstance> observedPropertyInstances;
 
 	public Long getId() {
 		return id;
 	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	public String getClassName() {
 		return className;
 	}
+
 	public void setClassName(String className) {
 		this.className = className;
 	}
@@ -47,19 +52,20 @@ public class ProcedureDescription {
 		this.metadata = metadata;
 	}
 
-	public List<ProcedureInstance> getProcedureInstances() {
-		return procedureInstances;
+	public List<ObservedPropertyInstance> getObservedPropertyInstances() {
+		return observedPropertyInstances;
 	}
 
-	public void setprocedureInstances(List<ProcedureInstance> procedureInstances) {
-		this.procedureInstances = procedureInstances;
+	public void setObservedPropertyInstances(List<ObservedPropertyInstance> observedPropertyInstances) {
+		this.observedPropertyInstances = observedPropertyInstances;
 	}
 
-	public void initProcedureDescription() {
-		Hibernate.initialize(getProcedureInstances());
+	public void initObservedPropertyDescription() {
+		Hibernate.initialize(getObservedPropertyInstances());
 
-		for (final ProcedureInstance procedureInstance: getProcedureInstances()) {
-			Hibernate.initialize(procedureInstance.getSensor());
+
+		for (final ObservedPropertyInstance observedPropertyInstance: getObservedPropertyInstances()) {
+			observedPropertyInstance.initObservedPropertyInstance();
 		}
 	}
 }

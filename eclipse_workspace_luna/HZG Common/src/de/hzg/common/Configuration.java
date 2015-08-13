@@ -56,10 +56,10 @@ public class Configuration {
 			parseDatabases(databaseList);
 		}
 
-		final NodeList procedureClassesList = root.getElementsByTagName("procedure_classes");
+		final NodeList observedPropertyClassesList = root.getElementsByTagName("observed_property_classes");
 
-		if (procedureClassesList != null) {
-			parseProcedureClasses(procedureClassesList);
+		if (observedPropertyClassesList != null) {
+			parseObservedPropertyClasses(observedPropertyClassesList);
 		}
 
 		final NodeList httpSenderList = root.getElementsByTagName("http_sender");
@@ -102,15 +102,15 @@ public class Configuration {
 		}
 	}
 
-	public ProcedureClassesConfiguration getProcedureClassesConfiguration() throws ConfigurationNotFound {
+	public ObservedPropertyClassesConfiguration getObservedPropertyClassesConfiguration() throws ConfigurationNotFound {
 		@SuppressWarnings("unchecked")
-		final List<ProcedureClassesConfiguration> procedureClassesConfigurations = (List<ProcedureClassesConfiguration>)map.get("procedure_classes");
+		final List<ObservedPropertyClassesConfiguration> observedPropertyClassesConfigurations = (List<ObservedPropertyClassesConfiguration>)map.get("observed_property_classes");
 
-		if (procedureClassesConfigurations != null) {
-			return procedureClassesConfigurations.get(0);
+		if (observedPropertyClassesConfigurations != null) {
+			return observedPropertyClassesConfigurations.get(0);
 		}
 
-		throw new ConfigurationNotFound(String.format("Procedure classes configuration not found."));
+		throw new ConfigurationNotFound(String.format("Observed property classes configuration not found."));
 	}
 
 	private void parseHTTPSender(NodeList nodeList) throws MalformedURLException {
@@ -144,23 +144,27 @@ public class Configuration {
 		throw new ConfigurationNotFound(String.format("HTTP Sender configuration not found."));
 	}
 
-	private void parseProcedureClasses(NodeList nodeList) {
+	private void parseObservedPropertyClasses(NodeList nodeList) {
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			final Element element = (Element)nodeList.item(i);
-			final ProcedureClassesConfiguration procedureClassesConfiguration = new ProcedureClassesConfiguration();
+			final ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration = new ObservedPropertyClassesConfiguration();
 
 			final String homeDirectory = System.getProperty("user.home");
 			final String sourceDirectory = getTextValue(element, "source_directory");
-			procedureClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
+			observedPropertyClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
 
-			addObject("procedure_classes", procedureClassesConfiguration);
+			addObject("observed_property_classes", observedPropertyClassesConfiguration);
 		}
 	}
 
 	static private String getTextValue(Element element, String tagName) {
+		if (element == null) {
+			return null;
+		}
+
 		final NodeList nodeList = element.getElementsByTagName(tagName);
 
-		if (nodeList != null) {
+		if (nodeList != null && nodeList.getLength() > 0) {
 			final Element subElement = (Element)nodeList.item(0);
 			return subElement.getFirstChild().getNodeValue();
 		}

@@ -70,7 +70,7 @@ public class CollectorListener implements ServletContextListener {
 
 			try {
 				final URL[] urls = new URL[] {
-					new File(configuration.getProcedureClassesConfiguration().getSourceDirectory()).toURI().toURL()
+					new File(configuration.getObservedPropertyClassesConfiguration().getSourceDirectory()).toURI().toURL()
 				};
 
 				final ClassLoader classLoader = new URLClassLoader(urls, servletContext.getClassLoader());

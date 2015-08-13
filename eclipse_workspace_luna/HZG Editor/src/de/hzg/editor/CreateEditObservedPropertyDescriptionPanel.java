@@ -4,6 +4,7 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -23,11 +24,12 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import de.hzg.common.ProcedureClassesConfiguration;
-import de.hzg.measurement.ProcedureDescription;
-import de.hzg.measurement.ProcedureInstance;
+import de.hzg.common.ObservedPropertyClassesConfiguration;
+import de.hzg.measurement.CalibrationSet;
+import de.hzg.measurement.ObservedPropertyDescription;
+import de.hzg.measurement.ObservedPropertyInstance;
 
-public class CreateEditProcedurePanel extends SplitPanel implements DataProvider  {
+public class CreateEditObservedPropertyDescriptionPanel extends SplitPanel implements DataProvider  {
 	private static final long serialVersionUID = 4302743064914251776L;
 	private final JTextField nameTextField;
 	private final JComboBox<String> classNameComboBox;
@@ -35,21 +37,21 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 	private final JTextArea metadataTextArea;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
-	private ProcedureDescription procedureDescription;
+	private ObservedPropertyDescription observedPropertyDescription;
 	private RemoveListener removeListener;
 	private SequentialGroup horizontalButtonGroup;
 	private ParallelGroup verticalButtonGroup;
 	private boolean editFunctionsShown = false;
 
-	public CreateEditProcedurePanel(Window owner, SessionFactory sessionFactory, ProcedureClassesConfiguration procedureClassesConfiguration, ProcedureDescription procedureDescription) {
+	public CreateEditObservedPropertyDescriptionPanel(Window owner, SessionFactory sessionFactory, ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, ObservedPropertyDescription observedPropertyDescription) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
-		this.procedureDescription = procedureDescription;
+		this.observedPropertyDescription = observedPropertyDescription;
 
 		nameTextField = new JTextField();
 		nameTextField.setColumns(20);
 
-		classNameComboBox = new ProcedureJavaClassComboBox(owner, procedureClassesConfiguration);
+		classNameComboBox = new ObservedPropertyJavaClassComboBox(owner, observedPropertyClassesConfiguration);
 
 		unitTextField = new JTextField();
 		unitTextField.setColumns(10);
@@ -63,15 +65,16 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 		createForm();
 
 		setDataProvider(this);
-		procedureDescriptionToFormAndMetadata();
+		observedPropertyDescriptionToFormAndMetadata();
 	}
 
-	public static ProcedureDescription createNewProcedureDescription() {
-		final ProcedureDescription procedureDescription = new ProcedureDescription();
+	public static ObservedPropertyDescription createNewObservedPropertyDescription() {
+		final ObservedPropertyDescription observedPropertyDescription = new ObservedPropertyDescription();
 
-		procedureDescription.setMetadata(getMetadataTemplate());
+		observedPropertyDescription.setObservedPropertyInstances(new ArrayList<ObservedPropertyInstance>());
+		observedPropertyDescription.setMetadata(getMetadataTemplate());
 
-		return procedureDescription;
+		return observedPropertyDescription;
 	}
 
 	private void createForm() {
@@ -198,47 +201,47 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 "</sml:PhysicalComponent>";
 	}
 
-	private void procedureDescriptionToFormAndMetadata() {
-		nameTextField.setText(procedureDescription.getName());
-		classNameComboBox.setSelectedItem(procedureDescription.getClassName());
-		unitTextField.setText(procedureDescription.getUnit());
-		metadataTextArea.setText(procedureDescription.getMetadata());
+	private void observedPropertyDescriptionToFormAndMetadata() {
+		nameTextField.setText(observedPropertyDescription.getName());
+		classNameComboBox.setSelectedItem(observedPropertyDescription.getClassName());
+		unitTextField.setText(observedPropertyDescription.getUnit());
+		metadataTextArea.setText(observedPropertyDescription.getMetadata());
 	}
 
 	private void formToSensorDescription() {
 		if (nameTextField.getText().length() == 0) {
-			procedureDescription.setName(null);
+			observedPropertyDescription.setName(null);
 		} else {
-			procedureDescription.setName(nameTextField.getText());
+			observedPropertyDescription.setName(nameTextField.getText());
 		}
 
 		final String selectedClassName = (String)classNameComboBox.getSelectedItem();
 
 		if (selectedClassName == null) {
-			procedureDescription.setClassName(null);
+			observedPropertyDescription.setClassName(null);
 		} else {
 			assert(selectedClassName.length() != 0);
-			procedureDescription.setClassName(selectedClassName);
+			observedPropertyDescription.setClassName(selectedClassName);
 		}
 
 		if (unitTextField.getText().length() == 0) {
-			procedureDescription.setUnit(null);
+			observedPropertyDescription.setUnit(null);
 		} else {
-			procedureDescription.setUnit(unitTextField.getText());
+			observedPropertyDescription.setUnit(unitTextField.getText());
 		}
 	}
 
 	private void metadataToSensorDescription() {
 		if (metadataTextArea.getText().length() == 0) {
-			procedureDescription.setMetadata(null);
+			observedPropertyDescription.setMetadata(null);
 		} else {
-			procedureDescription.setMetadata(metadataTextArea.getText());
+			observedPropertyDescription.setMetadata(metadataTextArea.getText());
 		}
 	}
 
 	public boolean isDirty() {
 		{
-			final String cmpString = procedureDescription.getName() == null ? "" : procedureDescription.getName();
+			final String cmpString = observedPropertyDescription.getName() == null ? "" : observedPropertyDescription.getName();
 
 			if (!nameTextField.getText().equals(cmpString)) {
 				return true;
@@ -246,7 +249,7 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 		}
 
 		{
-			final String cmpString = procedureDescription.getClassName() == null ? "" : procedureDescription.getClassName();
+			final String cmpString = observedPropertyDescription.getClassName() == null ? "" : observedPropertyDescription.getClassName();
 
 			if (classNameComboBox.getSelectedItem() != null && !classNameComboBox.getSelectedItem().equals(cmpString)) {
 				return true;
@@ -254,7 +257,7 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 		}
 
 		{
-			final String cmpString = procedureDescription.getUnit() == null ? "" : procedureDescription.getUnit();
+			final String cmpString = observedPropertyDescription.getUnit() == null ? "" : observedPropertyDescription.getUnit();
 
 			if (!unitTextField.getText().equals(cmpString)) {
 				return true;
@@ -262,7 +265,7 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 		}
 
 		{
-			final String cmpString = procedureDescription.getMetadata() == null ? "" : procedureDescription.getMetadata();
+			final String cmpString = observedPropertyDescription.getMetadata() == null ? "" : observedPropertyDescription.getMetadata();
 
 			if (!metadataTextArea.getText().equals(cmpString)) {
 				return true;
@@ -283,18 +286,18 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 			}
 
 			if (!getSaved()) {
-				session.save(procedureDescription);
+				session.save(observedPropertyDescription);
 				session.flush();
 			} else {
-				session.update(procedureDescription);
+				session.update(observedPropertyDescription);
 				session.flush();
 			}
 
-			JOptionPane.showMessageDialog(owner, "Procedure successfully saved.", "Procedure saved", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(owner, "Observed property description successfully saved.", "Observed property description saved", JOptionPane.INFORMATION_MESSAGE);
 			return true;
 		} catch (Exception exception) {
-			final String[] messages = { "Procedure could not be saved", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure not saved", messages, exception);
+			final String[] messages = { "Observed property could not be saved", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property description not saved", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -305,8 +308,8 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 		return false;
 	}
 
-	static boolean removeProcedureDescription(ProcedureDescription procedureDescription, Window owner, SessionFactory sessionFactory) {
-		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the procedure and all procedure instances for this procedure.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+	static boolean removeObservedPropertyDescription(ObservedPropertyDescription observedPropertyDescription, Window owner, SessionFactory sessionFactory) {
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the observed property description, all instances for this description and all of their calibration sets.", "Are you sure?", JOptionPane.YES_NO_OPTION);
 
 		if (confirm != JOptionPane.YES_OPTION) {
 			return false;
@@ -317,19 +320,25 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 
 		try {
 			transaction = session.beginTransaction();
-			for (final ProcedureInstance procedureInstance: procedureDescription.getProcedureInstances()) {
-				session.delete(procedureInstance);
+
+			for (final ObservedPropertyInstance observedPropertyInstance: observedPropertyDescription.getObservedPropertyInstances()) {
+				for (final CalibrationSet calibrationSet: observedPropertyInstance.getCalibrationSets()) {
+					session.delete(calibrationSet);
+				}
+
+				session.delete(observedPropertyInstance);
 			}
-			session.delete(procedureDescription);
-			session.flush();
+
+			session.delete(observedPropertyDescription);
+
 			transaction.commit();
 		} catch (Exception exception) {
 			if (transaction != null) {
 				transaction.rollback();
 			}
 
-			final String[] messages = { "Procedure could not be deleted.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedure could not be deleted", messages, exception);
+			final String[] messages = { "Observed property description could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property description could not be deleted", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -346,11 +355,11 @@ public class CreateEditProcedurePanel extends SplitPanel implements DataProvider
 			return;
 		}
 
-		final JButton removeButton = new JButton("Remove procedure");
+		final JButton removeButton = new JButton("Remove observed property description");
 
 		removeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				removeProcedureDescription(procedureDescription, owner, sessionFactory);
+				removeObservedPropertyDescription(observedPropertyDescription, owner, sessionFactory);
 
 				if (removeListener != null) {
 					removeListener.onRemove();

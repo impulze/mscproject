@@ -15,17 +15,17 @@ import javax.swing.JTable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.measurement.ProcedureDescription;
+import de.hzg.measurement.ObservedPropertyDescription;
 
-public class ListProceduresPanel extends SplitPanel implements DataProvider, AddListener {
+public class ListObservedPropertyDescriptionsPanel extends SplitPanel implements DataProvider, AddListener {
 	private static final long serialVersionUID = -2140811495389781461L;
 	private final JTable table;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
 	private AddListener addListener;
-	private EditListener<ProcedureDescription> editListener;
+	private EditListener<ObservedPropertyDescription> editListener;
 
-	public ListProceduresPanel(Window owner, SessionFactory sessionFactory) {
+	public ListObservedPropertyDescriptionsPanel(Window owner, SessionFactory sessionFactory) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
 
@@ -33,8 +33,8 @@ public class ListProceduresPanel extends SplitPanel implements DataProvider, Add
 		table = createTable(dataCreator);
 		setupTable(table);
 
-		setTitle("List procedures");
-		setBottomPanelTitle("Procedures");
+		setTitle("List observed property descriptions");
+		setBottomPanelTitle("Observed property descriptions");
 		getBottomPanel().add(dataCreator.createPanel(table));
 		createForm();
 
@@ -68,19 +68,19 @@ public class ListProceduresPanel extends SplitPanel implements DataProvider, Add
 		final JPanel addSensorPanel = new JPanel();
 
 		addSensorPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		adder.addToPanel(addSensorPanel, "Add procedure", this);
+		adder.addToPanel(addSensorPanel, "Add observed property description", this);
 
 		dataCreator.addPanel(addSensorPanel);
 
-		dataCreator.addInformationMessage("Use right click to add/edit/remove procedures.");
-		dataCreator.addInformationMessage("Use double left click to change procedure values.");
+		dataCreator.addInformationMessage("Use right click to add/edit/remove observed property descriptions.");
+		dataCreator.addInformationMessage("Use double left click to change observed property description values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
 		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
-		final String addString = String.format("Add %s", "procedure");
-		final String editString = String.format("Edit %s", "procedure");
-		final String removeString = String.format("Remove %s", "procedure");
+		final String addString = String.format("Add %s", "observed property description");
+		final String editString = String.format("Edit %s", "observed property description");
+		final String removeString = String.format("Remove %s", "observed property description");
 
 		final TablePopupMenu.ActionListener addActionListener = new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
@@ -92,31 +92,31 @@ public class ListProceduresPanel extends SplitPanel implements DataProvider, Add
 		cellPopupMenu.addItem(addString, addActionListener);
 		cellPopupMenu.addItem(editString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final ProcedureDescriptionTableModel tableModel = (ProcedureDescriptionTableModel)table.getModel();
-				final ProcedureDescription procedureDescription = tableModel.getProcedureDescriptions().get(row);
+				final ObservedPropertyDescriptionTableModel tableModel = (ObservedPropertyDescriptionTableModel)table.getModel();
+				final ObservedPropertyDescription observedPropertyDescription = tableModel.getObservedPropertyDescriptions().get(row);
 
-				onEdit(procedureDescription);
+				onEdit(observedPropertyDescription);
 			}
 		});
 		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final ProcedureDescriptionTableModel tableModel = (ProcedureDescriptionTableModel)table.getModel();
-				removeProcedureDescription(tableModel, row);
+				final ObservedPropertyDescriptionTableModel tableModel = (ObservedPropertyDescriptionTableModel)table.getModel();
+				removeObservedPropertyDescription(tableModel, row);
 			}
 		});
 
-		dataCreator.setCellPopupMenu(cellPopupMenu);
+		dataCreator.setCellPopupMenu(-1, cellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
 
 		return dataCreator.create();
 	}
 
 	void setupTable(JTable table) {
-		final ProcedureDescriptionTableModel tableModel = new ProcedureDescriptionTableModel(owner, sessionFactory);
+		final ObservedPropertyDescriptionTableModel tableModel = new ObservedPropertyDescriptionTableModel(owner, sessionFactory);
 
 		table.setModel(tableModel);
-		table.getColumnModel().getColumn(0).setPreferredWidth(60);
-		table.getColumnModel().getColumn(1).setPreferredWidth(200);
+		table.getColumnModel().getColumn(0).setPreferredWidth(200);
+		table.getColumnModel().getColumn(1).setPreferredWidth(100);
 		table.getColumnModel().getColumn(2).setPreferredWidth(100);
 	}
 
@@ -125,22 +125,22 @@ public class ListProceduresPanel extends SplitPanel implements DataProvider, Add
 
 		try {
 			@SuppressWarnings("unchecked")
-			final List<ProcedureDescription> result = (List<ProcedureDescription>)session
-				.createQuery("FROM ProcedureDescription")
+			final List<ObservedPropertyDescription> result = (List<ObservedPropertyDescription>)session
+				.createQuery("FROM ObservedPropertyDescription")
 				.list();
 
-			for (final ProcedureDescription procedureDescription: result) {
-				procedureDescription.initProcedureDescription();
+			for (final ObservedPropertyDescription observedPropertyDescription: result) {
+				observedPropertyDescription.initObservedPropertyDescription();
 			}
 
-			final ProcedureDescriptionTableModel tableModel = (ProcedureDescriptionTableModel)table.getModel();;
+			final ObservedPropertyDescriptionTableModel tableModel = (ObservedPropertyDescriptionTableModel)table.getModel();;
 
-			tableModel.setProcedureDescriptions(result);
+			tableModel.setObservedPropertyDescriptions(result);
 			tableModel.fireTableDataChanged();
 			return true;
 		} catch (Exception exception) {
-			final String[] messages = { "Procedures could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Procedures not loaded", messages, exception);
+			final String[] messages = { "Observed property descriptions could not be loaded.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property descriptions not loaded", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -151,13 +151,13 @@ public class ListProceduresPanel extends SplitPanel implements DataProvider, Add
 		return false;
 	}
 
-	void removeProcedureDescription(ProcedureDescriptionTableModel tableModel, int row) {
-		final List<ProcedureDescription> procedureDescriptions = tableModel.getProcedureDescriptions();
-		final ProcedureDescription procedureDescription = procedureDescriptions.get(row);
-		final boolean deleted = CreateEditProcedurePanel.removeProcedureDescription(procedureDescription, owner, sessionFactory);
+	void removeObservedPropertyDescription(ObservedPropertyDescriptionTableModel tableModel, int row) {
+		final List<ObservedPropertyDescription> observedPropertyDescriptions = tableModel.getObservedPropertyDescriptions();
+		final ObservedPropertyDescription observedPropertyDescription = observedPropertyDescriptions.get(row);
+		final boolean deleted = CreateEditObservedPropertyDescriptionPanel.removeObservedPropertyDescription(observedPropertyDescription, owner, sessionFactory);
 
 		if (deleted) {
-			procedureDescriptions.remove(row);
+			observedPropertyDescriptions.remove(row);
 			tableModel.fireTableDataChanged();
 		}
 	}
@@ -172,13 +172,13 @@ public class ListProceduresPanel extends SplitPanel implements DataProvider, Add
 		}
 	}
 
-	void setEditListener(EditListener<ProcedureDescription> editListener) {
+	void setEditListener(EditListener<ObservedPropertyDescription> editListener) {
 		this.editListener = editListener;
 	}
 
-	public void onEdit(ProcedureDescription procedureDescription) {
+	public void onEdit(ObservedPropertyDescription observedPropertyDescription) {
 		if (editListener != null) {
-			editListener.onEdit(procedureDescription);
+			editListener.onEdit(observedPropertyDescription);
 		}
 	}
 }

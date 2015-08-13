@@ -30,8 +30,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import de.hzg.measurement.ProcedureDescription;
-import de.hzg.measurement.ProcedureInstance;
+import de.hzg.measurement.CalibrationSet;
+import de.hzg.measurement.ObservedPropertyDescription;
+import de.hzg.measurement.ObservedPropertyInstance;
 import de.hzg.measurement.Sensor;
 
 public class CreateEditSensorPanel extends SplitPanel implements DataProvider, AddListener {
@@ -70,13 +71,13 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider, A
 		createForm();
 
 		setDataProvider(this);
-		sensorToFormAndProcedureInstances();
+		sensorToFormAndObjects();
 	}
 
 	public static Sensor createNewSensor() {
 		final Sensor sensor = new Sensor();
 
-		sensor.setProcedureInstances(new ArrayList<ProcedureInstance>());
+		sensor.setObservedPropertyInstances(new ArrayList<ObservedPropertyInstance>());
 
 		return sensor;
 	}
@@ -135,76 +136,100 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider, A
 
 	private JTable createTableArea(DataCreator dataCreator) {
 		final Adder adder = new Adder();
-		final JPanel addProcedureInstancePanel = new JPanel();
+		final JPanel addObservedPropertyInstancePanel = new JPanel();
 
-		addProcedureInstancePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		adder.addToPanel(addProcedureInstancePanel, "Add sensor instance", this);
+		addObservedPropertyInstancePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		adder.addToPanel(addObservedPropertyInstancePanel, "Add observed property instance", this);
 
-		dataCreator.addPanel(addProcedureInstancePanel);
+		dataCreator.addPanel(addObservedPropertyInstancePanel);
 
-		dataCreator.addInformationMessage("Use right click to add/remove sensor instances.");
-		dataCreator.addInformationMessage("Use double left click to change sensor instance values.");
+		dataCreator.addInformationMessage("Use right click to add/remove observed property instances or edit calibration sets.");
+		dataCreator.addInformationMessage("Use double left click to change observed property instance and calibration set values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
-		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
-		final String addString = String.format("Add %s", "sensor instance");
-		final String removeString = String.format("Remove %s", "sensor instance");
-		final TablePopupMenu.ActionListener addListener = new TablePopupMenu.ActionListener() {
+		final TablePopupMenu observedPropertyInstanceCellPopupMenu = new TablePopupMenu();
+		final TablePopupMenu calibrationSetCellPopupMenu = new TablePopupMenu();
+		final String addObservedPropertyInstanceString = String.format("Add %s", "observed property instance");
+		final String removeObservedPropertyInstanceString = String.format("Remove %s", "observed property instance");
+		final String editCalibrationSetString = String.format("Edit %s", "calibration set");
+		final TablePopupMenu.ActionListener addObservedPropertyInstanceListener = new TablePopupMenu.ActionListener() {
 			public void actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				onAdd();
+				onAddObservedPropertyInstance();
+			}
+		};
+		final TablePopupMenu.ActionListener removeObservedPropertyInstanceListener = new TablePopupMenu.ActionListener() {
+			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				final ObservedPropertyInstanceTableModel tableModel = (ObservedPropertyInstanceTableModel)table.getModel();
+				removeObservedPropertyInstance(tableModel, row);
 			}
 		};
 
-		noCellPopupMenu.addItem(addString, addListener);
-		cellPopupMenu.addItem(addString, addListener);
-		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
-			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final ProcedureInstanceTableModel tableModel = (ProcedureInstanceTableModel)table.getModel();
-				removeProcedureInstance(tableModel, row);
-			}
-		});
+		noCellPopupMenu.addItem(addObservedPropertyInstanceString, addObservedPropertyInstanceListener);
+		observedPropertyInstanceCellPopupMenu.addItem(addObservedPropertyInstanceString, addObservedPropertyInstanceListener);
+		observedPropertyInstanceCellPopupMenu.addItem(removeObservedPropertyInstanceString, removeObservedPropertyInstanceListener);
+		calibrationSetCellPopupMenu.addItem(addObservedPropertyInstanceString,  addObservedPropertyInstanceListener);
+		calibrationSetCellPopupMenu.addItem(removeObservedPropertyInstanceString,  removeObservedPropertyInstanceListener);
+		calibrationSetCellPopupMenu.addItem(editCalibrationSetString, null);
 
-		dataCreator.setCellPopupMenu(cellPopupMenu);
+		dataCreator.setCellPopupMenu(4, observedPropertyInstanceCellPopupMenu);
+		dataCreator.setCellPopupMenu(5, calibrationSetCellPopupMenu);
+		dataCreator.setCellPopupMenu(-1, observedPropertyInstanceCellPopupMenu);
 		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
 
 		return dataCreator.create();
 	}
 
 	void setupTable() {
-		final ProcedureInstanceTableModel tableModel = new ProcedureInstanceTableModel(owner, sessionFactory);
+		final ObservedPropertyInstanceTableModel tableModel = new ObservedPropertyInstanceTableModel(owner, sessionFactory);
 
 		table.setModel(tableModel);
 		table.getColumnModel().getColumn(0).setPreferredWidth(85);
-		table.getColumnModel().getColumn(0).setCellRenderer(new ProcedureDescriptionComboBox.Renderer());
+		table.getColumnModel().getColumn(0).setCellRenderer(new ObservedPropertyDescriptionComboBox.Renderer());
 		table.getColumnModel().getColumn(1).setPreferredWidth(70);
+		table.getColumnModel().getColumn(2).setPreferredWidth(150);
+		table.getColumnModel().getColumn(3).setPreferredWidth(70);
+		table.getColumnModel().getColumn(4).setPreferredWidth(100);
+		table.getColumnModel().getColumn(5).setPreferredWidth(200);
+		table.getColumnModel().getColumn(5).setCellRenderer(new CalibrationSetComboBox.Renderer(false));
 
-		for (int i = 2;  i < 8; i++) {
+		for (int i = 6;  i < 12; i++) {
 			table.getColumnModel().getColumn(i).setPreferredWidth(90);
 			table.getColumnModel().getColumn(i).setCellRenderer(new ParameterTableCellRenderer());
 		}
 
 		final TableRowSorter<TableModel> rowSorter = new TableRowSorter<TableModel>(tableModel);
-		rowSorter.setComparator(0, new Comparator<ProcedureDescription>() {
-			public int compare(ProcedureDescription procedureDescription1, ProcedureDescription procedureDescription2) {
-				return procedureDescription1.getName().compareTo(procedureDescription2.getName());
+
+		rowSorter.setComparator(0, new Comparator<ObservedPropertyDescription>() {
+			public int compare(ObservedPropertyDescription observedPropertyDescription1, ObservedPropertyDescription observedPropertyDescription2) {
+				return observedPropertyDescription1.getName().compareTo(observedPropertyDescription2.getName());
+			}
+		});
+
+		rowSorter.setComparator(5, new Comparator<CalibrationSet>() {
+			public int compare(CalibrationSet calibrationSet1, CalibrationSet calibrationSet2) {
+				return calibrationSet1.getValidStart().compareTo(calibrationSet2.getValidStart());
 			}
 		});
 
 		table.setRowSorter(rowSorter);
 	}
 
-	private void sensorToFormAndProcedureInstances() {
+	private void sensorToFormAndObjects() {
 		nameTextField.setText(sensor.getName());
 		deviceTextField.setText(sensor.getDevice());
 		chckbxActive.setSelected(sensor.getActive());
 
-		final ProcedureInstanceTableModel tableModel = (ProcedureInstanceTableModel)table.getModel();
-		final TableColumn sensorDescriptionColumn = table.getColumnModel().getColumn(0);
-		final ProcedureDescriptionComboBox comboBox = new ProcedureDescriptionComboBox(owner, sessionFactory);
+		final ObservedPropertyInstanceTableModel tableModel = (ObservedPropertyInstanceTableModel)table.getModel();
+		final TableColumn observedPropertyDescriptionColumn = table.getColumnModel().getColumn(0);
+		final TableColumn calibrationSetColumn = table.getColumnModel().getColumn(5);
+		final ObservedPropertyDescriptionComboBox observedPropertyDescriptionComboBox = new ObservedPropertyDescriptionComboBox(owner, sessionFactory);
+		final CalibrationSetComboBox calibrationSetComboBox = new CalibrationSetComboBox(owner, sessionFactory);
 
-		sensorDescriptionColumn.setCellEditor(new DefaultCellEditor(comboBox));
-		tableModel.setProcedureInstances(sensor.getProcedureInstances());
+		observedPropertyDescriptionColumn.setCellEditor(new DefaultCellEditor(observedPropertyDescriptionComboBox));
+		calibrationSetColumn.setCellEditor(new DefaultCellEditor(calibrationSetComboBox));
+
+		tableModel.setObservedPropertyInstances(sensor.getObservedPropertyInstances());
 	}
 
 	private void formToSensor() {
@@ -277,47 +302,75 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider, A
 	}
 
 	public void onAdd() {
-		final AddProcedureInstanceDialog dialog = new AddProcedureInstanceDialog(owner, sessionFactory, sensor);
+		// called from a button
+		onAddObservedPropertyInstance();
+	}
+
+	public void onAddObservedPropertyInstance() {
+		// called from button or popup menu
+		final AddObservedPropertyInstanceDialog dialog = new AddObservedPropertyInstanceDialog(owner, sessionFactory, sensor);
 		dialog.pack();
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
-		final ProcedureInstance procedureInstance = dialog.getResult();
 
-		if (procedureInstance != null) {
-			final ProcedureInstanceTableModel tableModel = (ProcedureInstanceTableModel)table.getModel();
+		final ObservedPropertyInstance observedPropertyInstance = dialog.getResult();
+		final CalibrationSetComboBox calibrationSetComboBox = new CalibrationSetComboBox(owner, sessionFactory);
+		final TableColumn calibrationSetColumn = table.getColumnModel().getColumn(5);
+
+		calibrationSetColumn.setCellEditor(new DefaultCellEditor(calibrationSetComboBox));
+
+		if (observedPropertyInstance != null) {
+			final ObservedPropertyInstanceTableModel tableModel = (ObservedPropertyInstanceTableModel)table.getModel();
 
 			tableModel.fireTableDataChanged();
 		}
 	}
 
-	private void removeProcedureInstance(ProcedureInstanceTableModel tableModel, int row) {
-		final List<ProcedureInstance> procedureInstances = tableModel.getProcedureInstances();
-		final ProcedureInstance procedureInstance = procedureInstances.get(row);
-		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor instance.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+	private void removeObservedPropertyInstance(ObservedPropertyInstanceTableModel tableModel, int row) {
+		final List<ObservedPropertyInstance> observedPropertyInstances = tableModel.getObservedPropertyInstances();
+		final ObservedPropertyInstance observedPropertyInstance = observedPropertyInstances.get(row);
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the observed property instance and all calibration sets belonging to this instance.", "Are you sure?", JOptionPane.YES_NO_OPTION);
 
 		if (confirm != JOptionPane.YES_OPTION) {
 			return;
 		}
 
 		final Session session = sessionFactory.openSession();
+		Transaction transaction = null;
+
 		try {
-			session.delete(procedureInstance);
-			session.flush();
-			procedureInstances.remove(row);
+			transaction = session.beginTransaction();
+
+			for (final CalibrationSet calibrationSet: observedPropertyInstance.getCalibrationSets()) {
+				session.delete(calibrationSet);
+			}
+
+			session.delete(observedPropertyInstance);
+			transaction.commit();
+			observedPropertyInstances.remove(row);
 			tableModel.fireTableDataChanged();
 		} catch (Exception exception) {
-			final String[] messages = { "Sensor instance could not be deleted.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor instance could not be deleted", messages, exception);
+			if (transaction != null) {
+				transaction.rollback();
+			}
+
+			final String[] messages = { "Observed property instance could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property instance could not be deleted", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 		} finally {
 			session.close();
 		}
+
+		final CalibrationSetComboBox calibrationSetComboBox = new CalibrationSetComboBox(owner, sessionFactory);
+		final TableColumn calibrationSetColumn = table.getColumnModel().getColumn(5);
+
+		calibrationSetColumn.setCellEditor(new DefaultCellEditor(calibrationSetComboBox));
 	}
 
 	static boolean removeSensor(Sensor sensor, Window owner, SessionFactory sessionFactory) {
-		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor and all sensor instances for this sensor.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor, all observed property instances for this sensor and all calibration sets for those observed property instances.", "Are you sure?", JOptionPane.YES_NO_OPTION);
 
 		if (confirm != JOptionPane.YES_OPTION) {
 			return false;
@@ -328,11 +381,16 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider, A
 
 		try {
 			transaction = session.beginTransaction();
-			for (final ProcedureInstance probeInstance: sensor.getProcedureInstances()) {
-				session.delete(probeInstance);
+
+			for (final ObservedPropertyInstance observedPropertyInstance: sensor.getObservedPropertyInstances()) {
+				for (final CalibrationSet calibrationSet: observedPropertyInstance.getCalibrationSets()) {
+					session.delete(calibrationSet);
+				}
+
+				session.delete(observedPropertyInstance);
 			}
+
 			session.delete(sensor);
-			session.flush();
 			transaction.commit();
 		} catch (Exception exception) {
 			if (transaction != null) {
