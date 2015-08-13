@@ -122,12 +122,10 @@ public class Configuration {
 			final String urlString = getTextValue(element, "url");
 			final URL url = new URL(urlString);
 			final String query = getTextValue(element, "query");
-			final Integer interval = getIntValue(element, "interval");
 
 			httpSenderConfiguration.setBasicAuth(basicAuth);
 			httpSenderConfiguration.setURL(url);
 			httpSenderConfiguration.setQuery(query);
-			httpSenderConfiguration.setInterval(interval);
 
 			addObject("http_sender", httpSenderConfiguration);
 		}

@@ -49,7 +49,6 @@ public class Sender implements Runnable {
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private final SessionFactory sessionFactory;
 	private final String basicAuth;
-	private final Integer interval;
 	private final String urlString;
 	private final String queryString;
 	private ScheduledFuture<?> scheduledFuture;
@@ -63,7 +62,6 @@ public class Sender implements Runnable {
 
 		this.sessionFactory = hibernateUtil.getSessionFactory();
 		this.basicAuth = httpSenderConfiguration.getBasicAuth();
-		this.interval = httpSenderConfiguration.getInterval();
 		this.urlString = url.toString();
 		this.queryString = httpSenderConfiguration.getQuery();
 		this.observedPropertyInstances = getObservedPropertyInstances(sessionFactory);
@@ -94,7 +92,7 @@ public class Sender implements Runnable {
 	}
 
 	public void start() {
-		scheduledFuture = scheduler.scheduleAtFixedRate(this, 0, this.interval, TimeUnit.SECONDS);
+		scheduledFuture = scheduler.scheduleAtFixedRate(this, 0, 600, TimeUnit.SECONDS);
 	}
 
 	private static String getQueryString() {

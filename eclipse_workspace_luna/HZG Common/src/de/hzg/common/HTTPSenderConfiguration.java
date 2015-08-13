@@ -6,7 +6,6 @@ public class HTTPSenderConfiguration {
 	private String basicAuth;
 	private URL url;
 	private String query;
-	private Integer interval;
 
 	public String getBasicAuth() {
 		return basicAuth;
@@ -30,13 +29,5 @@ public class HTTPSenderConfiguration {
 
 	public void setQuery(String query) {
 		this.query = query;
-	}
-
-	public Integer getInterval() {
-		return interval;
-	}
-
-	public void setInterval(Integer interval) {
-		this.interval = interval;
 	}
 };
