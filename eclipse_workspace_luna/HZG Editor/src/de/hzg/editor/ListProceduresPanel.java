@@ -15,17 +15,17 @@ import javax.swing.JTable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.measurement.Probe;
+import de.hzg.measurement.ProcedureDescription;
 
-public class ListProbesPanel extends SplitPanel implements DataProvider, AddListener {
-	private static final long serialVersionUID = 3643030501235973505L;
+public class ListProceduresPanel extends SplitPanel implements DataProvider, AddListener {
+	private static final long serialVersionUID = -2140811495389781461L;
 	private final JTable table;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
 	private AddListener addListener;
-	private EditListener<Probe> editListener;
+	private EditListener<ProcedureDescription> editListener;
 
-	public ListProbesPanel(Window owner, SessionFactory sessionFactory) {
+	public ListProceduresPanel(Window owner, SessionFactory sessionFactory) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
 
@@ -33,8 +33,8 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 		table = createTable(dataCreator);
 		setupTable(table);
 
-		setTitle("List probes");
-		setBottomPanelTitle("Probes");
+		setTitle("List procedures");
+		setBottomPanelTitle("Procedures");
 		getBottomPanel().add(dataCreator.createPanel(table));
 		createForm();
 
@@ -65,22 +65,22 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 
 	private JTable createTable(DataCreator dataCreator) {
 		final Adder adder = new Adder();
-		final JPanel addProbePanel = new JPanel();
+		final JPanel addSensorPanel = new JPanel();
 
-		addProbePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		adder.addToPanel(addProbePanel, "Add probe", this);
+		addSensorPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		adder.addToPanel(addSensorPanel, "Add procedure", this);
 
-		dataCreator.addPanel(addProbePanel);
+		dataCreator.addPanel(addSensorPanel);
 
-		dataCreator.addInformationMessage("Use right click to add/edit/remove probes.");
-		dataCreator.addInformationMessage("Use double left click to change probe values.");
+		dataCreator.addInformationMessage("Use right click to add/edit/remove procedures.");
+		dataCreator.addInformationMessage("Use double left click to change procedure values.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
 		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
-		final String addString = String.format("Add %s", "probe");
-		final String editString = String.format("Edit %s", "probe");
-		final String removeString = String.format("Remove %s", "probe");
+		final String addString = String.format("Add %s", "procedure");
+		final String editString = String.format("Edit %s", "procedure");
+		final String removeString = String.format("Remove %s", "procedure");
 
 		final TablePopupMenu.ActionListener addActionListener = new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
@@ -92,16 +92,16 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 		cellPopupMenu.addItem(addString, addActionListener);
 		cellPopupMenu.addItem(editString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final ProbeTableModel tableModel = (ProbeTableModel)table.getModel();
-				final Probe probe = tableModel.getProbes().get(row);
+				final ProcedureDescriptionTableModel tableModel = (ProcedureDescriptionTableModel)table.getModel();
+				final ProcedureDescription procedureDescription = tableModel.getProcedureDescriptions().get(row);
 
-				onEdit(probe);
+				onEdit(procedureDescription);
 			}
 		});
 		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final ProbeTableModel tableModel = (ProbeTableModel)table.getModel();
-				removeProbe(tableModel, row);
+				final ProcedureDescriptionTableModel tableModel = (ProcedureDescriptionTableModel)table.getModel();
+				removeProcedureDescription(tableModel, row);
 			}
 		});
 
@@ -112,11 +112,11 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 	}
 
 	void setupTable(JTable table) {
-		final ProbeTableModel tableModel = new ProbeTableModel(owner, sessionFactory);
+		final ProcedureDescriptionTableModel tableModel = new ProcedureDescriptionTableModel(owner, sessionFactory);
 
 		table.setModel(tableModel);
 		table.getColumnModel().getColumn(0).setPreferredWidth(60);
-		table.getColumnModel().getColumn(1).setPreferredWidth(100);
+		table.getColumnModel().getColumn(1).setPreferredWidth(200);
 		table.getColumnModel().getColumn(2).setPreferredWidth(100);
 	}
 
@@ -125,22 +125,22 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 
 		try {
 			@SuppressWarnings("unchecked")
-			final List<Probe> result = (List<Probe>)session
-				.createQuery("FROM Probe")
+			final List<ProcedureDescription> result = (List<ProcedureDescription>)session
+				.createQuery("FROM ProcedureDescription")
 				.list();
 
-			for (final Probe probe: result) {
-				probe.initProbe();
+			for (final ProcedureDescription procedureDescription: result) {
+				procedureDescription.initProcedureDescription();
 			}
 
-			final ProbeTableModel tableModel = (ProbeTableModel)table.getModel();;
+			final ProcedureDescriptionTableModel tableModel = (ProcedureDescriptionTableModel)table.getModel();;
 
-			tableModel.setProbes(result);
+			tableModel.setProcedureDescriptions(result);
 			tableModel.fireTableDataChanged();
 			return true;
 		} catch (Exception exception) {
-			final String[] messages = { "Probes could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Probes not loaded", messages, exception);
+			final String[] messages = { "Procedures could not be loaded.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedures not loaded", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -151,13 +151,13 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 		return false;
 	}
 
-	void removeProbe(ProbeTableModel tableModel, int row) {
-		final List<Probe> probes = tableModel.getProbes();
-		final Probe probe = probes.get(row);
-		final boolean deleted = CreateEditProbePanel.removeProbe(probe, owner, sessionFactory);
+	void removeProcedureDescription(ProcedureDescriptionTableModel tableModel, int row) {
+		final List<ProcedureDescription> procedureDescriptions = tableModel.getProcedureDescriptions();
+		final ProcedureDescription procedureDescription = procedureDescriptions.get(row);
+		final boolean deleted = CreateEditProcedurePanel.removeProcedureDescription(procedureDescription, owner, sessionFactory);
 
 		if (deleted) {
-			probes.remove(row);
+			procedureDescriptions.remove(row);
 			tableModel.fireTableDataChanged();
 		}
 	}
@@ -172,13 +172,13 @@ public class ListProbesPanel extends SplitPanel implements DataProvider, AddList
 		}
 	}
 
-	void setEditListener(EditListener<Probe> editListener) {
+	void setEditListener(EditListener<ProcedureDescription> editListener) {
 		this.editListener = editListener;
 	}
 
-	public void onEdit(Probe probe) {
+	public void onEdit(ProcedureDescription procedureDescription) {
 		if (editListener != null) {
-			editListener.onEdit(probe);
+			editListener.onEdit(procedureDescription);
 		}
 	}
 }

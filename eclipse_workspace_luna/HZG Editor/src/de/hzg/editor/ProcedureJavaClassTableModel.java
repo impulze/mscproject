@@ -4,16 +4,16 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-public class SensorJavaClassTableModel extends AbstractTableModel {
+public class ProcedureJavaClassTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = -7111186243559108891L;
-	private List<String> sensorClassNames;
+	private List<String> procedureClassNames;
 
-	public List<String> getSensorClassNames() {
-		return sensorClassNames;
+	public List<String> getProcedureClassNames() {
+		return procedureClassNames;
 	}
 
-	public void setSensorClassNames(List<String> sensorClassNames) {
-		this.sensorClassNames = sensorClassNames;
+	public void setProcedureClassNames(List<String> procedureClassNames) {
+		this.procedureClassNames = procedureClassNames;
 	}
 
 	@Override
@@ -23,22 +23,22 @@ public class SensorJavaClassTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		if (sensorClassNames == null) {
+		if (procedureClassNames == null) {
 			return 0;
 		}
 
-		return sensorClassNames.size();
+		return procedureClassNames.size();
 	}
 
 	@Override
 	public Object getValueAt(int row, int column) {
-		if (sensorClassNames.size() < row) {
+		if (procedureClassNames.size() < row) {
 			return null;
 		}
 
-		final String sensorClassName = sensorClassNames.get(row);
+		final String procedureClassName = procedureClassNames.get(row);
 
-		return sensorClassName;
+		return procedureClassName;
 	}
 
 	public Class<?> getColumnClass(int column) {

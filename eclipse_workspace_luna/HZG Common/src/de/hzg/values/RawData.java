@@ -2,19 +2,19 @@ package de.hzg.values;
 
 import java.util.Date;
 
-import de.hzg.measurement.SensorInstance;
+import de.hzg.measurement.ProcedureInstance;
 
 public class RawData implements ValueData<Integer> {
 	private Long id;
-	private SensorInstance sensorInstance;
+	private ProcedureInstance procedureInstance;
 	private Date date = new Date();
 	private Integer value;
 
 	public RawData() {
 	}
 
-	public RawData(SensorInstance sensorInstance, Integer value) {
-		this.sensorInstance = sensorInstance;
+	public RawData(ProcedureInstance procedureInstance, Integer value) {
+		this.procedureInstance = procedureInstance;
 		this.value = value;
 	}
 
@@ -26,12 +26,12 @@ public class RawData implements ValueData<Integer> {
 		this.id = id;
 	}
 
-	public SensorInstance getSensorInstance() {
-		return sensorInstance;
+	public ProcedureInstance getProcedureInstance() {
+		return procedureInstance;
 	}
 
-	public void setSensorInstance(SensorInstance sensorInstance) {
-		this.sensorInstance = sensorInstance;
+	public void setProcedureInstance(ProcedureInstance procedureInstance) {
+		this.procedureInstance = procedureInstance;
 	}
 
 	public Date getDate() {

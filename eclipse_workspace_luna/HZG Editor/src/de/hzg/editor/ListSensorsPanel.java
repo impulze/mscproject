@@ -15,15 +15,15 @@ import javax.swing.JTable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import de.hzg.measurement.SensorDescription;
+import de.hzg.measurement.Sensor;
 
 public class ListSensorsPanel extends SplitPanel implements DataProvider, AddListener {
-	private static final long serialVersionUID = -2140811495389781461L;
+	private static final long serialVersionUID = 3643030501235973505L;
 	private final JTable table;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
 	private AddListener addListener;
-	private EditListener<SensorDescription> editListener;
+	private EditListener<Sensor> editListener;
 
 	public ListSensorsPanel(Window owner, SessionFactory sessionFactory) {
 		this.owner = owner;
@@ -92,16 +92,16 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider, AddLis
 		cellPopupMenu.addItem(addString, addActionListener);
 		cellPopupMenu.addItem(editString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final SensorDescriptionTableModel tableModel = (SensorDescriptionTableModel)table.getModel();
-				final SensorDescription sensorDescription = tableModel.getSensorDescriptions().get(row);
+				final SensorTableModel tableModel = (SensorTableModel)table.getModel();
+				final Sensor sensor = tableModel.getSensors().get(row);
 
-				onEdit(sensorDescription);
+				onEdit(sensor);
 			}
 		});
 		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final SensorDescriptionTableModel tableModel = (SensorDescriptionTableModel)table.getModel();
-				removeSensorDescription(tableModel, row);
+				final SensorTableModel tableModel = (SensorTableModel)table.getModel();
+				removeSensor(tableModel, row);
 			}
 		});
 
@@ -112,11 +112,11 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider, AddLis
 	}
 
 	void setupTable(JTable table) {
-		final SensorDescriptionTableModel tableModel = new SensorDescriptionTableModel(owner, sessionFactory);
+		final SensorTableModel tableModel = new SensorTableModel(owner, sessionFactory);
 
 		table.setModel(tableModel);
 		table.getColumnModel().getColumn(0).setPreferredWidth(60);
-		table.getColumnModel().getColumn(1).setPreferredWidth(200);
+		table.getColumnModel().getColumn(1).setPreferredWidth(100);
 		table.getColumnModel().getColumn(2).setPreferredWidth(100);
 	}
 
@@ -125,17 +125,17 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider, AddLis
 
 		try {
 			@SuppressWarnings("unchecked")
-			final List<SensorDescription> result = (List<SensorDescription>)session
-				.createQuery("FROM SensorDescription")
+			final List<Sensor> result = (List<Sensor>)session
+				.createQuery("FROM Sensor")
 				.list();
 
-			for (final SensorDescription sensorDescription: result) {
-				sensorDescription.initSensorDescription();
+			for (final Sensor sensor: result) {
+				sensor.initSensor();
 			}
 
-			final SensorDescriptionTableModel tableModel = (SensorDescriptionTableModel)table.getModel();;
+			final SensorTableModel tableModel = (SensorTableModel)table.getModel();;
 
-			tableModel.setSensorDescriptions(result);
+			tableModel.setSensors(result);
 			tableModel.fireTableDataChanged();
 			return true;
 		} catch (Exception exception) {
@@ -151,13 +151,13 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider, AddLis
 		return false;
 	}
 
-	void removeSensorDescription(SensorDescriptionTableModel tableModel, int row) {
-		final List<SensorDescription> sensorDescriptions = tableModel.getSensorDescriptions();
-		final SensorDescription sensorDescription = sensorDescriptions.get(row);
-		final boolean deleted = CreateEditSensorPanel.removeSensorDescription(sensorDescription, owner, sessionFactory);
+	void removeSensor(SensorTableModel tableModel, int row) {
+		final List<Sensor> sensors = tableModel.getSensors();
+		final Sensor sensor = sensors.get(row);
+		final boolean deleted = CreateEditSensorPanel.removeSensor(sensor, owner, sessionFactory);
 
 		if (deleted) {
-			sensorDescriptions.remove(row);
+			sensors.remove(row);
 			tableModel.fireTableDataChanged();
 		}
 	}
@@ -172,13 +172,13 @@ public class ListSensorsPanel extends SplitPanel implements DataProvider, AddLis
 		}
 	}
 
-	void setEditListener(EditListener<SensorDescription> editListener) {
+	void setEditListener(EditListener<Sensor> editListener) {
 		this.editListener = editListener;
 	}
 
-	public void onEdit(SensorDescription sensorDescription) {
+	public void onEdit(Sensor sensor) {
 		if (editListener != null) {
-			editListener.onEdit(sensorDescription);
+			editListener.onEdit(sensor);
 		}
 	}
 }

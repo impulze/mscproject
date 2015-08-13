@@ -19,9 +19,9 @@ import org.hibernate.SessionFactory;
 
 import de.hzg.common.Configuration;
 import de.hzg.common.HibernateUtil;
-import de.hzg.common.SensorClassesConfiguration;
-import de.hzg.measurement.Probe;
-import de.hzg.measurement.SensorDescription;
+import de.hzg.common.ProcedureClassesConfiguration;
+import de.hzg.measurement.ProcedureDescription;
+import de.hzg.measurement.Sensor;
 import de.hzg.values.CalculatedData;
 import de.hzg.values.RawData;
 
@@ -29,14 +29,14 @@ public class Editor {
 	private JFrame frame;
 	private SessionFactory sessionFactory;
 	private Component currentComponent = null;
-	private static SensorClassesConfiguration sensorClassesConfiguration;
+	private static ProcedureClassesConfiguration procedureClassesConfiguration;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					final Configuration configuration = new Configuration();
-					sensorClassesConfiguration = configuration.getSensorClassesConfiguration();
+					procedureClassesConfiguration = configuration.getProcedureClassesConfiguration();
 					final HibernateUtil hibernateUtil = new HibernateUtil(configuration);
 					final Editor editor = new Editor();
 					editor.sessionFactory = hibernateUtil.getSessionFactory();
@@ -72,50 +72,8 @@ public class Editor {
 		});
 		mnFile.add(mntmExit);
 
-		JMenu mnProbe = new JMenu("Edit");
-		menuBar_1.add(mnProbe);
-
-		JMenuItem mntmCreateProbe = new JMenuItem("Create probe");
-		mntmCreateProbe.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (isDirtyCheck()) {
-					setupCreateProbePanel();
-				}
-			}
-		});
-		mnProbe.add(mntmCreateProbe);
-
-		JMenuItem mntmEditProbe = new JMenuItem("Edit probe");
-		mntmEditProbe.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (isDirtyCheck()) {
-					final EditProbeDialog dialog = new EditProbeDialog(frame, sessionFactory);
-					dialog.pack();
-					dialog.setLocationRelativeTo(frame);
-					dialog.setVisible(true);
-					final Probe probe = dialog.getResult();
-
-					if (probe != null) {
-						final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, probe);
-						setupEditProbePanel(probePanel);
-					}
-				}
-			}
-		});
-		mnProbe.add(mntmEditProbe);
-
-		JMenuItem mntmListProbes = new JMenuItem("List probes");
-		mntmListProbes.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (isDirtyCheck()) {
-					setupListProbesPanel();
-				}
-			}
-		});
-		mnProbe.add(mntmListProbes);
-
-		JSeparator separator_1 = new JSeparator();
-		mnProbe.add(separator_1);
+		JMenu mnEdit = new JMenu("Edit");
+		menuBar_1.add(mnEdit);
 
 		JMenuItem mntmCreateSensor = new JMenuItem("Create sensor");
 		mntmCreateSensor.addActionListener(new ActionListener() {
@@ -125,7 +83,7 @@ public class Editor {
 				}
 			}
 		});
-		mnProbe.add(mntmCreateSensor);
+		mnEdit.add(mntmCreateSensor);
 
 		JMenuItem mntmEditSensor = new JMenuItem("Edit sensor");
 		mntmEditSensor.addActionListener(new ActionListener() {
@@ -135,16 +93,16 @@ public class Editor {
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
 					dialog.setVisible(true);
-					final SensorDescription sensorDescription = dialog.getResult();
+					final Sensor sensor = dialog.getResult();
 
-					if (sensorDescription != null) {
-						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, sensorDescription);
+					if (sensor != null) {
+						final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensor);
 						setupEditSensorPanel(sensorPanel);
 					}
 				}
 			}
 		});
-		mnProbe.add(mntmEditSensor);
+		mnEdit.add(mntmEditSensor);
 
 		JMenuItem mntmListSensors = new JMenuItem("List sensors");
 		mntmListSensors.addActionListener(new ActionListener() {
@@ -154,52 +112,94 @@ public class Editor {
 				}
 			}
 		});
-		mnProbe.add(mntmListSensors);
+		mnEdit.add(mntmListSensors);
 
-		JSeparator separator_2 = new JSeparator();
-		mnProbe.add(separator_2);
+		JSeparator separator_1 = new JSeparator();
+		mnEdit.add(separator_1);
 
-		JMenuItem mntmCreateSensorClass = new JMenuItem("Create sensor class");
-		mntmCreateSensorClass.addActionListener(new ActionListener() {
+		JMenuItem mntmCreateProcedure = new JMenuItem("Create procedure");
+		mntmCreateProcedure.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					setupCreateSensorJavaClassPanel();
+					setupCreateProcedurePanel();
 				}
 			}
 		});
-		mnProbe.add(mntmCreateSensorClass);
+		mnEdit.add(mntmCreateProcedure);
 
-		JMenuItem mntmEditSensorClass = new JMenuItem("Edit sensor class");
-		mntmEditSensorClass.addActionListener(new ActionListener() {
+		JMenuItem mntmEditProcedure = new JMenuItem("Edit procedure");
+		mntmEditProcedure.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final EditSensorJavaClassDialog dialog = new EditSensorJavaClassDialog(frame, sensorClassesConfiguration);
+					final EditProcedureDialog dialog = new EditProcedureDialog(frame, sessionFactory);
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
 					dialog.setVisible(true);
-					final SensorJavaClass sensorJavaClass = dialog.getResult();
+					final ProcedureDescription procedureDescription = dialog.getResult();
 
-					if (sensorJavaClass != null) {
-						final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sessionFactory, sensorClassesConfiguration, sensorJavaClass);
-						setupEditSensorJavaClassPanel(sensorJavaClassPanel);
+					if (procedureDescription != null) {
+						final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, procedureDescription);
+						setupEditProcedurePanel(procedurePanel);
 					}
 				}
 			}
 		});
-		mnProbe.add(mntmEditSensorClass);
+		mnEdit.add(mntmEditProcedure);
 
-		JMenuItem mntmListSensorClasses = new JMenuItem("List sensor classes");
-		mntmListSensorClasses.addActionListener(new ActionListener() {
+		JMenuItem mntmListProcedures = new JMenuItem("List procedures");
+		mntmListProcedures.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					setupListSensorJavaClassesPanel();
+					setupListProceduresPanel();
 				}
 			}
 		});
-		mnProbe.add(mntmListSensorClasses);
+		mnEdit.add(mntmListProcedures);
+
+		JSeparator separator_2 = new JSeparator();
+		mnEdit.add(separator_2);
+
+		JMenuItem mntmCreateProcedureClass = new JMenuItem("Create procedure class");
+		mntmCreateProcedureClass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					setupCreateProcedureJavaClassPanel();
+				}
+			}
+		});
+		mnEdit.add(mntmCreateProcedureClass);
+
+		JMenuItem mntmEditProcedureClass = new JMenuItem("Edit procedure class");
+		mntmEditProcedureClass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					final EditProcedureJavaClassDialog dialog = new EditProcedureJavaClassDialog(frame, procedureClassesConfiguration);
+					dialog.pack();
+					dialog.setLocationRelativeTo(frame);
+					dialog.setVisible(true);
+					final ProcedureJavaClass procedureJavaClass = dialog.getResult();
+
+					if (procedureJavaClass != null) {
+						final CreateEditProcedureJavaClassPanel procedureJavaClassPanel = new CreateEditProcedureJavaClassPanel(frame, sessionFactory, procedureClassesConfiguration, procedureJavaClass);
+						setupEditProcedureJavaClassPanel(procedureJavaClassPanel);
+					}
+				}
+			}
+		});
+		mnEdit.add(mntmEditProcedureClass);
+
+		JMenuItem mntmListProcedureClasses = new JMenuItem("List procedure classes");
+		mntmListProcedureClasses.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					setupListProcedureJavaClassesPanel();
+				}
+			}
+		});
+		mnEdit.add(mntmListProcedureClasses);
 
 		JSeparator separator_3 = new JSeparator();
-		mnProbe.add(separator_3);
+		mnEdit.add(separator_3);
 
 		JMenuItem mntmListRawValues = new JMenuItem("List raw values");
 		mntmListRawValues.addActionListener(new ActionListener() {
@@ -211,7 +211,7 @@ public class Editor {
 				}
 			}
 		});
-		mnProbe.add(mntmListRawValues);
+		mnEdit.add(mntmListRawValues);
 
 		JMenuItem mntmListCalculatedValues = new JMenuItem("List calculated values");
 		mntmListCalculatedValues.addActionListener(new ActionListener() {
@@ -223,7 +223,7 @@ public class Editor {
 				}
 			}
 		});
-		mnProbe.add(mntmListCalculatedValues);
+		mnEdit.add(mntmListCalculatedValues);
 
 		JMenu mnHelp = new JMenu("Help");
 		menuBar_1.add(mnHelp);
@@ -252,13 +252,13 @@ public class Editor {
 		final Session session = sessionFactory.openSession();
 		try {
 			@SuppressWarnings("unchecked")
-			final List<SensorDescription> result = (List<SensorDescription>)session
-				.createQuery("FROM  SensorDescription WHERE name = :name")
+			final List<ProcedureDescription> result = (List<ProcedureDescription>)session
+				.createQuery("FROM  ProcedureDescription WHERE name = :name")
 				.setParameter("name", "Vbatt")
 				.list();
-			final SensorDescription sensorDescription = result.get(0);
-			final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, sensorDescription);
-			setupEditSensorPanel(sensorPanel);
+			final ProcedureDescription procedureDescription = result.get(0);
+			final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, procedureDescription);
+			setupEditProcedurePanel(procedurePanel);
 		} finally {
 			session.close();
 		}
@@ -278,12 +278,12 @@ public class Editor {
 	}
 
 	private boolean isDirty() {
-		if (currentComponent instanceof CreateEditProbePanel) {
-			return ((CreateEditProbePanel)currentComponent).isDirty();
-		} else if (currentComponent instanceof CreateEditSensorPanel) {
+		if (currentComponent instanceof CreateEditSensorPanel) {
 			return ((CreateEditSensorPanel)currentComponent).isDirty();
-		} else if (currentComponent instanceof CreateEditSensorJavaClassPanel) {
-			return ((CreateEditSensorJavaClassPanel)currentComponent).isDirty();
+		} else if (currentComponent instanceof CreateEditProcedurePanel) {
+			return ((CreateEditProcedurePanel)currentComponent).isDirty();
+		} else if (currentComponent instanceof CreateEditProcedureJavaClassPanel) {
+			return ((CreateEditProcedureJavaClassPanel)currentComponent).isDirty();
 		}
 
 		return false;
@@ -300,53 +300,9 @@ public class Editor {
 		return clear;
 	}
 
-	private void setupCreateProbePanel() {
-		final Probe newProbe = CreateEditProbePanel.createNewProbe();
-		final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, newProbe);
-
-		probePanel.setTitle("Create probe");
-		switchPanel("Create probe", probePanel);
-
-		probePanel.setSavedHandler(new SavedHandler() {
-			@Override
-			public void onSave() {
-				setupEditProbePanel(probePanel);
-			}
-		});
-	}
-
-	private void setupEditProbePanel(CreateEditProbePanel probePanel) {
-		probePanel.setSaved(true);
-		probePanel.setTitle("Edit probe");
-		probePanel.showEditFunctions();
-		probePanel.setRemoveListener(new RemoveListener() {
-			public void onRemove() {
-				setupListProbesPanel();
-			}
-		});
-		switchPanel("Edit probe", probePanel);
-	}
-
-	private void setupListProbesPanel() {
-		final ListProbesPanel listProbesPanel = new ListProbesPanel(frame, sessionFactory);
-		listProbesPanel.setAddListener(new AddListener() {
-			public void onAdd() {
-				setupCreateProbePanel();
-			}
-		});
-		listProbesPanel.setEditListener(new EditListener<Probe>() {
-			public void onEdit(Probe probe) {
-				final CreateEditProbePanel probePanel = new CreateEditProbePanel(frame, sessionFactory, probe);
-				setupEditProbePanel(probePanel);
-			}
-		});
-
-		switchPanel("List probes", listProbesPanel);
-	}
-
 	private void setupCreateSensorPanel() {
-		final SensorDescription newSensorDescription= CreateEditSensorPanel.createNewSensorDescription();
-		final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, newSensorDescription);
+		final Sensor newSensor = CreateEditSensorPanel.createNewSensor();
+		final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, newSensor);
 
 		sensorPanel.setTitle("Create sensor");
 		switchPanel("Create sensor", sensorPanel);
@@ -378,9 +334,9 @@ public class Editor {
 				setupCreateSensorPanel();
 			}
 		});
-		listSensorsPanel.setEditListener(new EditListener<SensorDescription>() {
-			public void onEdit(SensorDescription sensorDescription) {
-				final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensorClassesConfiguration, sensorDescription);
+		listSensorsPanel.setEditListener(new EditListener<Sensor>() {
+			public void onEdit(Sensor sensor) {
+				final CreateEditSensorPanel sensorPanel = new CreateEditSensorPanel(frame, sessionFactory, sensor);
 				setupEditSensorPanel(sensorPanel);
 			}
 		});
@@ -388,48 +344,92 @@ public class Editor {
 		switchPanel("List sensors", listSensorsPanel);
 	}
 
-	private void setupCreateSensorJavaClassPanel() {
-		final SensorJavaClass newSensorJavaClass = CreateEditSensorJavaClassPanel.createNewSensorJavaClass(sensorClassesConfiguration);
-		final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sessionFactory, sensorClassesConfiguration, newSensorJavaClass);
+	private void setupCreateProcedurePanel() {
+		final ProcedureDescription newProcedureDescription= CreateEditProcedurePanel.createNewProcedureDescription();
+		final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, newProcedureDescription);
 
-		sensorJavaClassPanel.setTitle("Create sensor class");
-		switchPanel("Create sensor class", sensorJavaClassPanel);
+		procedurePanel.setTitle("Create procedure");
+		switchPanel("Create procedure", procedurePanel);
 
-		sensorJavaClassPanel.setSavedHandler(new SavedHandler() {
+		procedurePanel.setSavedHandler(new SavedHandler() {
 			@Override
 			public void onSave() {
-				setupEditSensorJavaClassPanel(sensorJavaClassPanel);
+				setupEditProcedurePanel(procedurePanel);
 			}
 		});
 	}
 
-	private void setupEditSensorJavaClassPanel(CreateEditSensorJavaClassPanel sensorJavaClassPanel) {
-		// In terms of sensorJavaClassPanel being saved basically means it's on the filesystem
-		sensorJavaClassPanel.setSaved(true);
-		sensorJavaClassPanel.setTitle("Edit sensor class");
-		sensorJavaClassPanel.showEditFunctions();
-		sensorJavaClassPanel.setRemoveListener(new RemoveListener() {
+	private void setupEditProcedurePanel(CreateEditProcedurePanel procedurePanel) {
+		procedurePanel.setSaved(true);
+		procedurePanel.setTitle("Edit procedure");
+		procedurePanel.showEditFunctions();
+		procedurePanel.setRemoveListener(new RemoveListener() {
 			public void onRemove() {
-				setupListSensorJavaClassesPanel();
+				setupListProceduresPanel();
 			}
 		});
-		switchPanel("Edit sensor class", sensorJavaClassPanel);
+		switchPanel("Edit procedure", procedurePanel);
 	}
 
-	private void setupListSensorJavaClassesPanel() {
-		final ListSensorJavaClassesPanel listSensorClassesPanel = new ListSensorJavaClassesPanel(frame, sessionFactory, sensorClassesConfiguration);
-		listSensorClassesPanel.setAddListener(new AddListener() {
+	private void setupListProceduresPanel() {
+		final ListProceduresPanel listProceduresPanel = new ListProceduresPanel(frame, sessionFactory);
+		listProceduresPanel.setAddListener(new AddListener() {
 			public void onAdd() {
-				setupCreateSensorJavaClassPanel();
+				setupCreateProcedurePanel();
 			}
 		});
-		listSensorClassesPanel.setEditListener(new EditListener<SensorJavaClass>() {
-			public void onEdit(SensorJavaClass sensorJavaClass) {
-				final CreateEditSensorJavaClassPanel sensorJavaClassPanel = new CreateEditSensorJavaClassPanel(frame, sessionFactory, sensorClassesConfiguration, sensorJavaClass);
-				setupEditSensorJavaClassPanel(sensorJavaClassPanel);
+		listProceduresPanel.setEditListener(new EditListener<ProcedureDescription>() {
+			public void onEdit(ProcedureDescription procedureDescription) {
+				final CreateEditProcedurePanel procedurePanel = new CreateEditProcedurePanel(frame, sessionFactory, procedureClassesConfiguration, procedureDescription);
+				setupEditProcedurePanel(procedurePanel);
 			}
 		});
 
-		switchPanel("List sensor classes", listSensorClassesPanel);
+		switchPanel("List procedures", listProceduresPanel);
+	}
+
+	private void setupCreateProcedureJavaClassPanel() {
+		final ProcedureJavaClass newProcedureJavaClass = CreateEditProcedureJavaClassPanel.createNewProcedureJavaClass(procedureClassesConfiguration);
+		final CreateEditProcedureJavaClassPanel procedureJavaClassPanel = new CreateEditProcedureJavaClassPanel(frame, sessionFactory, procedureClassesConfiguration, newProcedureJavaClass);
+
+		procedureJavaClassPanel.setTitle("Create procedure class");
+		switchPanel("Create procedure class", procedureJavaClassPanel);
+
+		procedureJavaClassPanel.setSavedHandler(new SavedHandler() {
+			@Override
+			public void onSave() {
+				setupEditProcedureJavaClassPanel(procedureJavaClassPanel);
+			}
+		});
+	}
+
+	private void setupEditProcedureJavaClassPanel(CreateEditProcedureJavaClassPanel procedureJavaClassPanel) {
+		// In terms of procedureJavaClassPanel being saved basically means it's on the filesystem
+		procedureJavaClassPanel.setSaved(true);
+		procedureJavaClassPanel.setTitle("Edit procedure class");
+		procedureJavaClassPanel.showEditFunctions();
+		procedureJavaClassPanel.setRemoveListener(new RemoveListener() {
+			public void onRemove() {
+				setupListProcedureJavaClassesPanel();
+			}
+		});
+		switchPanel("Edit procedure class", procedureJavaClassPanel);
+	}
+
+	private void setupListProcedureJavaClassesPanel() {
+		final ListProcedureJavaClassesPanel listProcedureClassesPanel = new ListProcedureJavaClassesPanel(frame, sessionFactory, procedureClassesConfiguration);
+		listProcedureClassesPanel.setAddListener(new AddListener() {
+			public void onAdd() {
+				setupCreateProcedureJavaClassPanel();
+			}
+		});
+		listProcedureClassesPanel.setEditListener(new EditListener<ProcedureJavaClass>() {
+			public void onEdit(ProcedureJavaClass procedureJavaClass) {
+				final CreateEditProcedureJavaClassPanel procedureJavaClassPanel = new CreateEditProcedureJavaClassPanel(frame, sessionFactory, procedureClassesConfiguration, procedureJavaClass);
+				setupEditProcedureJavaClassPanel(procedureJavaClassPanel);
+			}
+		});
+
+		switchPanel("List procedure classes", listProcedureClassesPanel);
 	}
 }

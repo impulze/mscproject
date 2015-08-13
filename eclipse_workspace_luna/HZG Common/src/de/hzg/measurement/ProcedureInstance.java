@@ -1,6 +1,6 @@
 package de.hzg.measurement;
 
-public class SensorInstance {
+public class ProcedureInstance {
 	private Long id;
 	private Integer address;
 	private Double parameter1;
@@ -9,8 +9,8 @@ public class SensorInstance {
 	private Double parameter4;
 	private Double parameter5;
 	private Double parameter6;
-	private Probe probe;
-	private SensorDescription sensorDescription;
+	private Sensor sensor;
+	private ProcedureDescription procedureDescription;
 
 	public Long getId() {
 		return id;
@@ -76,20 +76,20 @@ public class SensorInstance {
 		this.parameter6 = parameter6;
 	}
 
-	public Probe getProbe() {
-		return probe;
+	public Sensor getSensor() {
+		return sensor;
 	}
 
-	public void setProbe(Probe probe) {
-		this.probe = probe;
+	public void setSensor(Sensor sensor) {
+		this.sensor = sensor;
 	}
 
-	public SensorDescription getSensorDescription() {
-		return sensorDescription;
+	public ProcedureDescription getProcedureDescription() {
+		return procedureDescription;
 	}
 
-	public void setSensorDescription(SensorDescription sensorDescription) {
-		this.sensorDescription = sensorDescription;
+	public void setProcedureDescription(ProcedureDescription procedureDescription) {
+		this.procedureDescription = procedureDescription;
 	}
 
 	public void getParameters(double[] parameters) {

@@ -56,10 +56,10 @@ public class Configuration {
 			parseDatabases(databaseList);
 		}
 
-		final NodeList sensorClassesList = root.getElementsByTagName("sensor_classes");
+		final NodeList procedureClassesList = root.getElementsByTagName("procedure_classes");
 
-		if (sensorClassesList != null) {
-			parseSensorClasses(sensorClassesList);
+		if (procedureClassesList != null) {
+			parseProcedureClasses(procedureClassesList);
 		}
 
 		final NodeList httpSenderList = root.getElementsByTagName("http_sender");
@@ -102,15 +102,15 @@ public class Configuration {
 		}
 	}
 
-	public SensorClassesConfiguration getSensorClassesConfiguration() throws ConfigurationNotFound {
+	public ProcedureClassesConfiguration getProcedureClassesConfiguration() throws ConfigurationNotFound {
 		@SuppressWarnings("unchecked")
-		final List<SensorClassesConfiguration> sensorClassesConfigurations = (List<SensorClassesConfiguration>)map.get("sensor_classes");
+		final List<ProcedureClassesConfiguration> procedureClassesConfigurations = (List<ProcedureClassesConfiguration>)map.get("procedure_classes");
 
-		if (sensorClassesConfigurations != null) {
-			return sensorClassesConfigurations.get(0);
+		if (procedureClassesConfigurations != null) {
+			return procedureClassesConfigurations.get(0);
 		}
 
-		throw new ConfigurationNotFound(String.format("Sensor classes configuration not found."));
+		throw new ConfigurationNotFound(String.format("Procedure classes configuration not found."));
 	}
 
 	private void parseHTTPSender(NodeList nodeList) throws MalformedURLException {
@@ -144,16 +144,16 @@ public class Configuration {
 		throw new ConfigurationNotFound(String.format("HTTP Sender configuration not found."));
 	}
 
-	private void parseSensorClasses(NodeList nodeList) {
+	private void parseProcedureClasses(NodeList nodeList) {
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			final Element element = (Element)nodeList.item(i);
-			final SensorClassesConfiguration sensorClassesConfiguration = new SensorClassesConfiguration();
+			final ProcedureClassesConfiguration procedureClassesConfiguration = new ProcedureClassesConfiguration();
 
 			final String homeDirectory = System.getProperty("user.home");
 			final String sourceDirectory = getTextValue(element, "source_directory");
-			sensorClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
+			procedureClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
 
-			addObject("sensor_classes", sensorClassesConfiguration);
+			addObject("procedure_classes", procedureClassesConfiguration);
 		}
 	}
 

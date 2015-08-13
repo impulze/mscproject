@@ -29,17 +29,17 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import de.hzg.common.SensorClassesConfiguration;
-import de.hzg.measurement.SensorDescription;
-import de.hzg.measurement.SensorInstance;
+import de.hzg.common.ProcedureClassesConfiguration;
+import de.hzg.measurement.ProcedureDescription;
+import de.hzg.measurement.ProcedureInstance;
 
-public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataProvider {
+public class CreateEditProcedureJavaClassPanel extends SplitPanel implements DataProvider {
 	private static final long serialVersionUID = 4736407909177124580L;
 	private final JTextField classNameTextField;
 	private final JTextArea classTextArea;
 	private final Window owner;
-	private final SensorClassesConfiguration sensorClassesConfiguration;
-	private final SensorJavaClass sensorJavaClass;
+	private final ProcedureClassesConfiguration procedureClassesConfiguration;
+	private final ProcedureJavaClass procedureJavaClass;
 	private boolean inputSaved = false;
 	private RemoveListener removeListener;
 	private SequentialGroup horizontalButtonGroup;
@@ -47,11 +47,11 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	private boolean editFunctionsShown = false;
 	private SessionFactory sessionFactory;
 
-	public CreateEditSensorJavaClassPanel(Window owner, SessionFactory sessionFactory, SensorClassesConfiguration sensorClassesConfiguration, SensorJavaClass sensorJavaClass) {
+	public CreateEditProcedureJavaClassPanel(Window owner, SessionFactory sessionFactory, ProcedureClassesConfiguration procedureClassesConfiguration, ProcedureJavaClass procedureJavaClass) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
-		this.sensorClassesConfiguration = sensorClassesConfiguration;
-		this.sensorJavaClass = sensorJavaClass;
+		this.procedureClassesConfiguration = procedureClassesConfiguration;
+		this.procedureJavaClass = procedureJavaClass;
 
 		classNameTextField = new JTextField();
 		classNameTextField.setColumns(30);
@@ -65,24 +65,24 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		createForm();
 
 		setDataProvider(this);
-		sensorJavaClassToFormAndClass();
+		procedureJavaClassToFormAndClass();
 		setClassFilter();
 
-		inputSaved = sensorJavaClass.isLoaded();
+		inputSaved = procedureJavaClass.isLoaded();
 	}
 
-	public static SensorJavaClass createNewSensorJavaClass(SensorClassesConfiguration sensorClassesConfiguration) {
-		final SensorJavaClass sensorJavaClass = new SensorJavaClass(sensorClassesConfiguration);
+	public static ProcedureJavaClass createNewProcedureJavaClass(ProcedureClassesConfiguration procedureClassesConfiguration) {
+		final ProcedureJavaClass procedureJavaClass = new ProcedureJavaClass(procedureClassesConfiguration);
 
 		try {
-			sensorJavaClass.setName("Example");
+			procedureJavaClass.setName("Example");
 		} catch (InvalidIdentifierException exception) {
 			assert(false);
 		}
 
-		sensorJavaClass.setText(getClassTemplate("Example"));
+		procedureJavaClass.setText(getClassTemplate("Example"));
 
-		return sensorJavaClass;
+		return procedureJavaClass;
 	}
 
 	private void createForm() {
@@ -129,8 +129,8 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 
 	private JTextArea createClassTextArea(DataCreator dataCreator) {
 		dataCreator.addInformationMessage("For now only very basic operations are supported, see the manual.");
-		dataCreator.addInformationMessage("The compiler will be invoked in: '" + sensorClassesConfiguration.getSourceDirectory() + "'");
-		dataCreator.addInformationMessage("Compiler and arguments: '" + SensorJavaClass.getCompilerInvocation() + "'");
+		dataCreator.addInformationMessage("The compiler will be invoked in: '" + procedureClassesConfiguration.getSourceDirectory() + "'");
+		dataCreator.addInformationMessage("Compiler and arguments: '" + ProcedureJavaClass.getCompilerInvocation() + "'");
 
 		final JPanel classInteractions = new JPanel();
 		final JButton saveButton = getActionButton("Save class");
@@ -148,7 +148,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 					JOptionPane.showMessageDialog(owner, message, "Unsaved class", JOptionPane.ERROR_MESSAGE);
 
 				} else {
-					SensorJavaClass.compileTasks(owner, sensorClassesConfiguration, sensorJavaClass.getName());
+					ProcedureJavaClass.compileTasks(owner, procedureClassesConfiguration, procedureJavaClass.getName());
 				}
 			}
 		});
@@ -175,11 +175,11 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 	}
 
 	private static String getClassTemplate(String name) {
-		return "package de.hzg.sensors;\n" +
+		return "package de.hzg.procedures;\n" +
 "\n" +
-"import de.hzg.measurement.BaseSensor;\n" +
+"import de.hzg.measurement.BaseProcedure;\n" +
 "\n" +
-"public class " + name + " extends BaseSensor {\n" +
+"public class " + name + " extends BaseProcedure {\n" +
 "\t@Override\n" +
 "\tpublic double calibrate(double rawValue) {\n" +
 "\t/* The parameters are stored in the base class.\n" +
@@ -195,22 +195,22 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 "}";
 	}
 
-	private void sensorJavaClassToFormAndClass() {
-		classNameTextField.setText(sensorJavaClass.getName());
-		classTextArea.setText(sensorJavaClass.getText());
+	private void procedureJavaClassToFormAndClass() {
+		classNameTextField.setText(procedureJavaClass.getName());
+		classTextArea.setText(procedureJavaClass.getText());
 	}
 
-	private void formToSensorJavaClass() throws InvalidIdentifierException {
-		sensorJavaClass.setName(classNameTextField.getText());
+	private void formToProcedureJavaClass() throws InvalidIdentifierException {
+		procedureJavaClass.setName(classNameTextField.getText());
 	}
 
-	private void classToSensorJavaClass() {
-		sensorJavaClass.setText(classTextArea.getText());
+	private void classToProcedureJavaClass() {
+		procedureJavaClass.setText(classTextArea.getText());
 	}
 
 	private boolean dirtyName() {
 		{
-			final String cmpString = sensorJavaClass.getName() == null ? "" : sensorJavaClass.getName();
+			final String cmpString = procedureJavaClass.getName() == null ? "" : procedureJavaClass.getName();
 
 			if (!classNameTextField.getText().equals(cmpString)) {
 				return true;
@@ -226,7 +226,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		}
 
 		{
-			final String cmpString = sensorJavaClass.getText() == null ? "" : sensorJavaClass.getText();
+			final String cmpString = procedureJavaClass.getText() == null ? "" : procedureJavaClass.getText();
 
 			if (!classTextArea.getText().equals(cmpString)) {
 				return true;
@@ -240,13 +240,13 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		if (title.equals("Save information")) {
 			// first make sure the identifier is valid
 
-			final boolean deleteOldFile = sensorJavaClass.isLoaded() && (dirtyName() || !inputSaved);
+			final boolean deleteOldFile = procedureJavaClass.isLoaded() && (dirtyName() || !inputSaved);
 
 			try {
-				formToSensorJavaClass();
+				formToProcedureJavaClass();
 			} catch (InvalidIdentifierException exception) {
-				final String[] messages = { "Sensor class has an invalid identifier.", "An exception occured." };
-				final JDialog dialog = new ExceptionDialog(owner, "Sensor class has an invalid identifier", messages, exception);
+				final String[] messages = { "Procedure class has an invalid identifier.", "An exception occured." };
+				final JDialog dialog = new ExceptionDialog(owner, "Procedure class has an invalid identifier", messages, exception);
 				dialog.pack();
 				dialog.setLocationRelativeTo(owner);
 				dialog.setVisible(true);
@@ -255,15 +255,15 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 
 			if (deleteOldFile) {
 				final String message = String.format(
-					"The sensor class was previously loaded from the filesystem.\n" +
+					"The procedure class was previously loaded from the filesystem.\n" +
 					"Changing the name will result in the old file being deleted and the new one being saved.\n");
 
-				JOptionPane.showMessageDialog(owner, message, "Sensor class will be moved", JOptionPane.WARNING_MESSAGE);
+				JOptionPane.showMessageDialog(owner, message, "Procedure class will be moved", JOptionPane.WARNING_MESSAGE);
 				try {
-					sensorJavaClass.deleteLoadedInstance();
+					procedureJavaClass.deleteLoadedInstance();
 				} catch (IOException exception) {
-					final String[] messages = { "Old sensor class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of sensor classes." };
-					final JDialog dialog = new ExceptionDialog(owner, "Old sensor class cannot be deleted", messages, exception);
+					final String[] messages = { "Old procedure class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of procedure classes." };
+					final JDialog dialog = new ExceptionDialog(owner, "Old procedure class cannot be deleted", messages, exception);
 					dialog.pack();
 					dialog.setLocationRelativeTo(owner);
 					dialog.setVisible(true);
@@ -272,9 +272,9 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 
 			// name was changed, update classtextarea
 			updateClassTextArea();
-			classToSensorJavaClass();
+			classToProcedureJavaClass();
 		} else {
-			classToSensorJavaClass();
+			classToProcedureJavaClass();
 		}
 
 		// always save
@@ -283,12 +283,12 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 
 	private boolean saveFile() {
 		try {
-			sensorJavaClass.save();
-			JOptionPane.showMessageDialog(owner, "Sensor class successfully saved.", "Sensor saved", JOptionPane.INFORMATION_MESSAGE);
+			procedureJavaClass.save();
+			JOptionPane.showMessageDialog(owner, "Procedure class successfully saved.", "Procedure saved", JOptionPane.INFORMATION_MESSAGE);
 			inputSaved = true;
 		} catch (IOException exception) {
-			final String[] messages = { "Sensor class cannot be saved.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor class cannot be saved", messages, exception);
+			final String[] messages = { "Procedure class cannot be saved.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedure class cannot be saved", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -308,7 +308,7 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		if (matcher.find()) {
 			final int introBeginOffset = matcher.start(1);
 			final int introEndOffset = matcher.end(1);
-			classTextArea.replaceRange(sensorJavaClass.getName(), introBeginOffset, introEndOffset);
+			classTextArea.replaceRange(procedureJavaClass.getName(), introBeginOffset, introEndOffset);
 		}
 
 		setClassFilter();
@@ -323,16 +323,16 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 			final DocumentFilter lineFilter = new ClassFilter(classTextArea, editBeginOffset, editEndOffset);
 			((AbstractDocument)classTextArea.getDocument()).setDocumentFilter(lineFilter);
 		} catch (BadLocationException exception) {
-			final String[] messages = { "Sensor class has a wrong length.", "This will most likely cause runtime errors, plesae fix this manually.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor class has a wrong length", messages, exception);
+			final String[] messages = { "Procedure class has a wrong length.", "This will most likely cause runtime errors, plesae fix this manually.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedure class has a wrong length", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 		}
 	}
 
-	static boolean removeSensorJavaClass(SensorJavaClass sensorJavaClass, Window owner, SessionFactory sessionFactory) {
-		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor Java class and all sensor descriptions and instances referring to it.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+	static boolean removeProcedureJavaClass(ProcedureJavaClass procedureJavaClass, Window owner, SessionFactory sessionFactory) {
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the procedure Java class and all procedure descriptions and instances referring to it.", "Are you sure?", JOptionPane.YES_NO_OPTION);
 
 		if (confirm != JOptionPane.YES_OPTION) {
 			return false;
@@ -344,19 +344,19 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		transaction = session.beginTransaction();
 		try {
 			@SuppressWarnings("unchecked")
-			final List<SensorDescription> tempResult = (List<SensorDescription>)session
-				.createQuery("FROM SensorDescription WHERE classname = :classname")
-				.setParameter("classname", sensorJavaClass.getName())
+			final List<ProcedureDescription> tempResult = (List<ProcedureDescription>)session
+				.createQuery("FROM ProcedureDescription WHERE classname = :classname")
+				.setParameter("classname", procedureJavaClass.getName())
 				.list();
 
-			for (final SensorDescription sensorDescription: tempResult) {
-				sensorDescription.initSensorDescription();
+			for (final ProcedureDescription procedureDescription: tempResult) {
+				procedureDescription.initProcedureDescription();
 
-				for (final SensorInstance sensorInstance: sensorDescription.getSensorInstances()) {
-					session.delete(sensorInstance);
+				for (final ProcedureInstance procedureInstance: procedureDescription.getProcedureInstances()) {
+					session.delete(procedureInstance);
 				}
 
-				session.delete(sensorDescription);
+				session.delete(procedureDescription);
 			}
 
 			session.flush();
@@ -366,8 +366,8 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 				transaction.rollback();
 			}
 
-			final String[] messages = { "Sensor descriptions and instances could not be deleted.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor descriptions and instances could not be deleted", messages, exception);
+			final String[] messages = { "Procedure descriptions and instances could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedure descriptions and instances could not be deleted", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -376,10 +376,10 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 		}
 
 		try {
-			sensorJavaClass.deleteLoadedInstance();
+			procedureJavaClass.deleteLoadedInstance();
 		} catch (IOException exception) {
-			final String[] messages = { "Sensor class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of sensor classes." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor class cannot be deleted", messages, exception);
+			final String[] messages = { "Procedure class cannot be deleted.", "An exception occured.", "Please do this manually in the directory of procedure classes." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedure class cannot be deleted", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -393,11 +393,11 @@ public class CreateEditSensorJavaClassPanel extends SplitPanel implements DataPr
 			return;
 		}
 
-		final JButton removeButton = new JButton("Remove sensor");
+		final JButton removeButton = new JButton("Remove procedure");
 
 		removeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				removeSensorJavaClass(sensorJavaClass, owner, sessionFactory);
+				removeProcedureJavaClass(procedureJavaClass, owner, sessionFactory);
 
 				if (removeListener != null) {
 					removeListener.onRemove();

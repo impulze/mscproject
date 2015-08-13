@@ -20,8 +20,8 @@
 			<column name="timestamp" not-null="true" />
 		</property>
 
-		<many-to-one name="sensorInstance" class="de.hzg.measurement.SensorInstance">
-			<column name="sensor_instance_id" />
+		<many-to-one name="procedureInstance" class="de.hzg.measurement.ProcedureInstance">
+			<column name="procedure_instance_id" />
 		</many-to-one>
 	</class>
 </hibernate-mapping>

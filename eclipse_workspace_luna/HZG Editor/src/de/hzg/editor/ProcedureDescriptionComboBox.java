@@ -14,40 +14,40 @@ import javax.swing.table.TableCellRenderer;
 
 import org.hibernate.SessionFactory;
 
-import de.hzg.measurement.Probe;
+import de.hzg.measurement.ProcedureDescription;
 
-public class ProbeComboBox extends JComboBox<Probe> {
-	private static final long serialVersionUID = 723731398929179486L;
+public class ProcedureDescriptionComboBox extends JComboBox<ProcedureDescription> {
+	private static final long serialVersionUID = 8250871093133166653L;
 
-	public ProbeComboBox(Window owner, SessionFactory sessionFactory) {
-		final List<Probe> probes = MeasurementQueries.getProbes(owner, sessionFactory);
+	public ProcedureDescriptionComboBox(Window owner, SessionFactory sessionFactory) {
+		final List<ProcedureDescription> procedureDescriptions = MeasurementQueries.getProcedureDescriptions(owner, sessionFactory);
 
-		for (final Probe probe: probes) {
-			addItem(probe);
+		for (final ProcedureDescription procedureDescription: procedureDescriptions) {
+			addItem(procedureDescription);
 		}
 
 		setRenderer(new Renderer());
 	}
 
-	static class Renderer implements ListCellRenderer<Probe>, TableCellRenderer {
+	static class Renderer implements ListCellRenderer<ProcedureDescription>, TableCellRenderer {
 		private static final BasicComboBoxRenderer defaultRenderer = new BasicComboBoxRenderer();
 		private static final DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
 
-		private Object getRenderingObject(Probe value) {
+		private Object getRenderingObject(ProcedureDescription value) {
 			final String displayText = value == null ? "" : value.getName();
 
 			return displayText;
 		}
 
-		public Component getListCellRendererComponent(JList<? extends Probe> list, Probe value, int index, boolean isSelected, boolean cellHasFocus) {
-			final Object renderingObject = getRenderingObject((Probe)value);
+		public Component getListCellRendererComponent(JList<? extends ProcedureDescription> list, ProcedureDescription value, int index, boolean isSelected, boolean cellHasFocus) {
+			final Object renderingObject = getRenderingObject((ProcedureDescription)value);
 
 			return defaultRenderer.getListCellRendererComponent(list, renderingObject, index, isSelected, cellHasFocus);
 		}
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-			final Object renderingObject = getRenderingObject((Probe)value);
+			final Object renderingObject = getRenderingObject((ProcedureDescription)value);
 
 			return defaultTableCellRenderer.getTableCellRendererComponent(table, renderingObject, isSelected, hasFocus, row, column);
 		}

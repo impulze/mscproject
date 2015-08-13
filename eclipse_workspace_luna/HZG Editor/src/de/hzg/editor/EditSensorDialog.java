@@ -8,26 +8,26 @@ import javax.swing.JLabel;
 
 import org.hibernate.SessionFactory;
 
-import de.hzg.measurement.SensorDescription;
+import de.hzg.measurement.Sensor;
 
-public class EditSensorDialog extends EditDialog<SensorDescription> {
-	private static final long serialVersionUID = 7612051986074038024L;
-	private SensorDescription sensorDescription;
+public class EditSensorDialog extends EditDialog<Sensor> {
+	private static final long serialVersionUID = -4236878158400999625L;
+	private Sensor sensor;
 
 	public EditSensorDialog(Window owner, SessionFactory sessionFactory) {
 		super(owner, "Select sensor to edit");
 
+		final SensorComboBox sensorComboBox = new SensorComboBox(owner, sessionFactory);
 		final JLabel sensorNameLabel = new JLabel("Sensor name:");
-		final SensorDescriptionComboBox sensorDescriptionComboBox = new SensorDescriptionComboBox(owner, sessionFactory);
 
-		sensorNameLabel.setLabelFor(sensorDescriptionComboBox);
+		sensorNameLabel.setLabelFor(sensorComboBox);
 
 		getContentPanel().add(sensorNameLabel);
-		getContentPanel().add(sensorDescriptionComboBox);
+		getContentPanel().add(sensorComboBox);
 
 		setOKListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				EditSensorDialog.this.sensorDescription = (SensorDescription)sensorDescriptionComboBox.getSelectedItem();
+				EditSensorDialog.this.sensor = (Sensor)sensorComboBox.getSelectedItem();
 
 				setVisible(false);
 				dispose();
@@ -35,7 +35,7 @@ public class EditSensorDialog extends EditDialog<SensorDescription> {
 		});
 	}
 
-	protected SensorDescription getResult() {
-		return sensorDescription;
+	protected Sensor getResult() {
+		return sensor;
 	}
 }

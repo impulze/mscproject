@@ -21,18 +21,18 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import de.hzg.common.SensorClassesConfiguration;
+import de.hzg.common.ProcedureClassesConfiguration;
 
-public class SensorJavaClass {
+public class ProcedureJavaClass {
 	private String name;
 	private String nameLoaded;
 	private String text;
-	private final SensorClassesConfiguration sensorClassesConfiguration;
+	private final ProcedureClassesConfiguration procedureClassesConfiguration;
 	private static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 	private static final StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
-	SensorJavaClass(SensorClassesConfiguration sensorClassesConfiguration) {
-		this.sensorClassesConfiguration = sensorClassesConfiguration;
+	ProcedureJavaClass(ProcedureClassesConfiguration procedureClassesConfiguration) {
+		this.procedureClassesConfiguration = procedureClassesConfiguration;
 	}
 
 	public String getName() {
@@ -72,27 +72,27 @@ public class SensorJavaClass {
 	}
 
 	public void load() throws IOException {
-		text = load(sensorClassesConfiguration, name);
+		text = load(procedureClassesConfiguration, name);
 		nameLoaded = name;
 	}
 
 	public void save() throws IOException {
-		save(sensorClassesConfiguration, name, text);
+		save(procedureClassesConfiguration, name, text);
 		nameLoaded = name;
 	}
 
 	public void deleteLoadedInstance() throws IOException {
 		if (nameLoaded != null) {
-			delete(sensorClassesConfiguration, nameLoaded);
+			delete(procedureClassesConfiguration, nameLoaded);
 			nameLoaded = null;
 		}
 	}
 
-	public static List<String> listNames(SensorClassesConfiguration sensorClassesConfiguration, Window owner) {
-		final String sourceDirectory = sensorClassesConfiguration.getSourceDirectory();
-		final String packageDirectory = SensorClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
+	public static List<String> listNames(ProcedureClassesConfiguration procedureClassesConfiguration, Window owner) {
+		final String sourceDirectory = procedureClassesConfiguration.getSourceDirectory();
+		final String packageDirectory = ProcedureClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
 		final String walkDirectory = sourceDirectory + File.separatorChar + packageDirectory + File.separatorChar;
-		final List<String> sensorClassNames = new ArrayList<String>();
+		final List<String> procedureClassNames = new ArrayList<String>();
 
 		try {
 			Files.walkFileTree(Paths.get(walkDirectory), new SimpleFileVisitor<Path>() {
@@ -101,40 +101,40 @@ public class SensorJavaClass {
 					final String name = path.getFileName().toString();
 
 					if (name.endsWith(Kind.SOURCE.extension)) {
-						sensorClassNames.add(name.substring(0, name.length() - Kind.SOURCE.extension.length()));
+						procedureClassNames.add(name.substring(0, name.length() - Kind.SOURCE.extension.length()));
 					}
 
 					return FileVisitResult.CONTINUE;
 				}
 			});
 		} catch (IOException exception) {
-			final String[] messages = { "Sensor classes cannot be determined.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor classes cannot be determined", messages, exception);
+			final String[] messages = { "Procedure classes cannot be determined.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedure classes cannot be determined", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 		}
 
-		return sensorClassNames;
+		return procedureClassNames;
 	}
-	private static String load(SensorClassesConfiguration sensorClassesConfiguration, String name) throws IOException {
-		final String inputPath = getInputPath(sensorClassesConfiguration, name);
+	private static String load(ProcedureClassesConfiguration procedureClassesConfiguration, String name) throws IOException {
+		final String inputPath = getInputPath(procedureClassesConfiguration, name);
 		final byte[] rawText = Files.readAllBytes(Paths.get(inputPath));
 		return new String(rawText, Charset.defaultCharset());
 	}
 
-	private static void save(SensorClassesConfiguration sensorClassesConfiguration, String name, String text) throws IOException {
-		final String inputPath = getInputPath(sensorClassesConfiguration, name); 
+	private static void save(ProcedureClassesConfiguration procedureClassesConfiguration, String name, String text) throws IOException {
+		final String inputPath = getInputPath(procedureClassesConfiguration, name); 
 		final byte[] rawText = text.getBytes();
 		Files.write(Paths.get(inputPath), rawText);
 	}
 
-	private static void delete(SensorClassesConfiguration sensorClassesConfiguration, String name) throws IOException {
-		final String inputPath = getInputPath(sensorClassesConfiguration, name); 
+	private static void delete(ProcedureClassesConfiguration procedureClassesConfiguration, String name) throws IOException {
+		final String inputPath = getInputPath(procedureClassesConfiguration, name); 
 		Files.delete(Paths.get(inputPath));
 	}
 
-	public static boolean compileTasks(Window owner, SensorClassesConfiguration sensorClassesConfiguration, String... names) {
+	public static boolean compileTasks(Window owner, ProcedureClassesConfiguration procedureClassesConfiguration, String... names) {
 		final CompileOutputDialog dialog = new CompileOutputDialog(owner);
 		final StringBuilder writerStringBuilder = new StringBuilder();
 		final Writer writer = new Writer() {
@@ -171,7 +171,7 @@ public class SensorJavaClass {
 		final String[] inputPaths = new String[names.length];
 
 		for (int i = 0; i < names.length; i++) {
-			inputPaths[i] = getInputPath(sensorClassesConfiguration, names[i]);
+			inputPaths[i] = getInputPath(procedureClassesConfiguration, names[i]);
 		}
 
 		final CompilerSwingWorker worker = new CompilerSwingWorker(owner, dialog, writer, inputPaths, fileManager, compiler);
@@ -185,9 +185,9 @@ public class SensorJavaClass {
 		return worker.result();
 	}
 
-	private static String getInputPath(SensorClassesConfiguration sensorClassesConfiguration, String name) {
-		final String sourceDirectory = sensorClassesConfiguration.getSourceDirectory();
-		final String packageDirectory = SensorClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
+	private static String getInputPath(ProcedureClassesConfiguration procedureClassesConfiguration, String name) {
+		final String sourceDirectory = procedureClassesConfiguration.getSourceDirectory();
+		final String packageDirectory = ProcedureClassesConfiguration.CLASSES_PACKAGE.replace('.', File.separatorChar);
 
 		return sourceDirectory + File.separatorChar + packageDirectory + File.separatorChar + name + Kind.SOURCE.extension;
 	}
@@ -200,15 +200,15 @@ public class SensorJavaClass {
 		return "";
 	}
 
-	public static SensorJavaClass loadByName(SensorClassesConfiguration sensorClassesConfiguration, Window owner, String name) {
+	public static ProcedureJavaClass loadByName(ProcedureClassesConfiguration procedureClassesConfiguration, Window owner, String name) {
 
-		final SensorJavaClass sensorJavaClass = new SensorJavaClass(sensorClassesConfiguration);
+		final ProcedureJavaClass procedureJavaClass = new ProcedureJavaClass(procedureClassesConfiguration);
 
 		try {
-			sensorJavaClass.setName(name);
+			procedureJavaClass.setName(name);
 		} catch (InvalidIdentifierException exception) {
-			final String[] messages = { "Sensor class has an invalid identifier.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor class has an invalid identifier", messages, exception);
+			final String[] messages = { "Procedure class has an invalid identifier.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedure class has an invalid identifier", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
@@ -216,16 +216,16 @@ public class SensorJavaClass {
 		}
 
 		try {
-			sensorJavaClass.load();
+			procedureJavaClass.load();
 		} catch (IOException exception) {
-			final String[] messages = { "Sensor class could not be loaded.", "An exception occured." };
-			final JDialog dialog = new ExceptionDialog(owner, "Sensor class not loaded", messages, exception);
+			final String[] messages = { "Procedure class could not be loaded.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Procedure class not loaded", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
 			return null;
 		}
 
-		return sensorJavaClass;
+		return procedureJavaClass;
 	}
 }

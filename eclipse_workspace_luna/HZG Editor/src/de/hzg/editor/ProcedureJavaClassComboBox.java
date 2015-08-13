@@ -6,13 +6,13 @@ import java.util.List;
 
 import javax.swing.JComboBox;
 
-import de.hzg.common.SensorClassesConfiguration;
+import de.hzg.common.ProcedureClassesConfiguration;
 
-public class SensorJavaClassComboBox extends JComboBox<String> {
+public class ProcedureJavaClassComboBox extends JComboBox<String> {
 	private static final long serialVersionUID = 3702996956310374279L;
 
-	public SensorJavaClassComboBox(Window owner, SensorClassesConfiguration sensorClassesConfiguration) {
-		final List<String> names = SensorJavaClass.listNames(sensorClassesConfiguration, owner);
+	public ProcedureJavaClassComboBox(Window owner, ProcedureClassesConfiguration procedureClassesConfiguration) {
+		final List<String> names = ProcedureJavaClass.listNames(procedureClassesConfiguration, owner);
 
 		if (names != null) {
 			Collections.sort(names);

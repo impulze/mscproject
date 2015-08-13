@@ -15,37 +15,37 @@ import org.hibernate.SessionFactory;
 
 import de.hzg.common.ExceptionUtil;
 import de.hzg.common.HibernateUtil;
-import de.hzg.measurement.Probe;
+import de.hzg.measurement.Procedure;
+import de.hzg.measurement.ProcedureDescription;
+import de.hzg.measurement.ProcedureInstance;
 import de.hzg.measurement.Sensor;
-import de.hzg.measurement.SensorDescription;
-import de.hzg.measurement.SensorInstance;
 import de.hzg.values.BinaryData;
 import de.hzg.values.BinaryDataInputStream;
 import de.hzg.values.CalculatedData;
 import de.hzg.values.RawData;
 
-public class ProbeHandler implements Runnable {
-	private static final Logger logger = Logger.getLogger(ProbeHandler.class.getName());
-	private final Probe probe;
+public class SensorHandler implements Runnable {
+	private static final Logger logger = Logger.getLogger(SensorHandler.class.getName());
+	private final Sensor sensor;
 	private final Communicator communicator;
 	private final BinaryDataInputStream binaryDataInputStream;
 	private boolean shutdown = false;
 	private boolean finished = false;
-	private final Map<Integer, Sensor> sensors = new HashMap<Integer, Sensor>();
-	private Set<Integer> missingSensors = new HashSet<Integer>();
+	private final Map<Integer, Procedure> procedures = new HashMap<Integer, Procedure>();
+	private Set<Integer> missingProcedures = new HashSet<Integer>();
 	private final SessionFactory sessionFactory;
 	private Session session;
 	private final AtomicBoolean needsFlush = new AtomicBoolean(false);
 
-	public ProbeHandler(HibernateUtil hibernateUtil, Probe probe, ClassLoader classLoader) throws ProbeHandlerSetupException {
-		this.probe = probe;
+	public SensorHandler(HibernateUtil hibernateUtil, Sensor sensor, ClassLoader classLoader) throws SensorHandlerSetupException {
+		this.sensor = sensor;
 		sessionFactory = hibernateUtil.getSessionFactory();
 
 		try {
-			this.communicator = new Communicator(probe.getDevice());
+			this.communicator = new Communicator(sensor.getDevice());
 		} catch (CommunicatorSetupException exception) {
-			logger.severe("Cannot setup communicator for probe handler with probe '" + probe.getName() + "'");
-			throw new ProbeHandlerSetupException();
+			logger.severe("Cannot setup communicator for sensor handler with sensor '" + sensor.getName() + "'");
+			throw new SensorHandlerSetupException();
 		}
 
 		try {
@@ -57,50 +57,50 @@ public class ProbeHandler implements Runnable {
 			throw exception;
 		}
 
-		final List<SensorInstance> sensorInstances = probe.getSensorInstances();
+		final List<ProcedureInstance> procedureInstances = sensor.getProcedureInstances();
 
-		for (final SensorInstance sensorInstance: sensorInstances) {
-			final SensorDescription sensorDescription = sensorInstance.getSensorDescription();
+		for (final ProcedureInstance procedureInstance: procedureInstances) {
+			final ProcedureDescription procedureDescription = procedureInstance.getProcedureDescription();
 
 			// class name for the calculations
-			final String className = "de.hzg.sensors." + sensorDescription.getClassName();
-			final Class<?> sensorClass;
+			final String className = "de.hzg.procedures." + procedureDescription.getClassName();
+			final Class<?> procedureClass;
 
 			try {
-				sensorClass = classLoader.loadClass(className);
+				procedureClass = classLoader.loadClass(className);
 			} catch (ClassNotFoundException exception) {
-				logger.severe("The probe handler with probe '" + probe.getName() + "' uses formula class '" + className + "' which cannot be loaded.");
-				throw new ProbeHandlerSetupException();
+				logger.severe("The sensor handler with sensor '" + sensor.getName() + "' uses formula class '" + className + "' which cannot be loaded.");
+				throw new SensorHandlerSetupException();
 			}
 
-			final Object sensorObject;
+			final Object procedureObject;
 
 			try {
-				sensorObject = sensorClass.newInstance();
+				procedureObject = procedureClass.newInstance();
 			} catch (InstantiationException|IllegalAccessException exception) {
-				logger.severe("The formula class '" + sensorClass.getName() + "' used in probe handler with probe '" + probe.getName() + "' is not suitable for instantiation.");
-				throw new ProbeHandlerSetupException();
+				logger.severe("The formula class '" + procedureClass.getName() + "' used in sensor handler with sensor '" + sensor.getName() + "' is not suitable for instantiation.");
+				throw new SensorHandlerSetupException();
 			}
 
-			final Sensor sensor = (Sensor)sensorObject;
+			final Procedure compiledProcedure = (Procedure)procedureObject;
 
-			sensor.setSensorInstance(sensorInstance);
-			sensor.setSensorDescription(sensorDescription);
-			sensor.updateCalibrationParameters();
+			compiledProcedure.setProcedureInstance(procedureInstance);
+			compiledProcedure.setProcedureDescription(procedureDescription);
+			compiledProcedure.updateCalibrationParameters();
 
-			sensors.put(sensorInstance.getAddress(), sensor);
+			procedures.put(procedureInstance.getAddress(), compiledProcedure);
 		}
 	}
 
 	@Override
 	public void run() {
-		logger.info("Handling probe: " + probe.getName());
+		logger.info("Handling sensor: " + sensor.getName());
 		session = sessionFactory.openSession();
 
 		try {
 			doRun();
 		} catch (InterruptedException exception) {
-			logger.info("ProbeHandler was interruped.");
+			logger.info("SensorHandler was interruped.");
 		} finally {
 			session.close();
 
@@ -117,24 +117,24 @@ public class ProbeHandler implements Runnable {
 
 	private void handleBinaryData(BinaryData binaryData) {
 		final int address = binaryData.getAddress();
-		final Sensor sensor = sensors.get(address);
+		final Procedure compiledProcedure = procedures.get(address);
 
 		if (sensor == null) {
-			if (!missingSensors.contains(address)) {
-				logger.severe("The probe handler with probe '" + probe.getName() + "' received raw data for address '" + address + "' which no sensor can calibrate.");
-				missingSensors.add(address);
+			if (!missingProcedures.contains(address)) {
+				logger.severe("The sensor handler with sensor '" + sensor.getName() + "' received raw data for address '" + address + "' which no sensor can calibrate.");
+				missingProcedures.add(address);
 			}
 
 			return;
 		}
 
-		final SensorInstance sensorInstance = sensor.getSensorInstance();
+		final ProcedureInstance procedureInstance = compiledProcedure.getProcedureInstance();
 		final int rawValue = binaryData.getValue();
-		final double calculatedValue = sensor.calibrate(rawValue);
+		final double calculatedValue = compiledProcedure.calibrate(rawValue);
 
-		//System.out.println("calibrated data with sensor '" + sensor.getSensorDescription().getName() + "': " + calibratedValue);
-		final RawData rawData = new RawData(sensorInstance, rawValue);
-		final CalculatedData calculatedData = new CalculatedData(sensorInstance, calculatedValue);
+		//System.out.println("calibrated data with sensor '" + sensor.getProcedureDescription().getName() + "': " + calibratedValue);
+		final RawData rawData = new RawData(procedureInstance, rawValue);
+		final CalculatedData calculatedData = new CalculatedData(procedureInstance, calculatedValue);
 
 		session.save(rawData);
 		session.save(calculatedData);

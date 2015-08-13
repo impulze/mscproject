@@ -16,28 +16,28 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.hibernate.SessionFactory;
 
-import de.hzg.common.SensorClassesConfiguration;
+import de.hzg.common.ProcedureClassesConfiguration;
 
-public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvider, AddListener {
+public class ListProcedureJavaClassesPanel extends SplitPanel implements DataProvider, AddListener {
 	private static final long serialVersionUID = -6614179124616055688L;
 	private final JTable table;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
-	private final SensorClassesConfiguration sensorClassesConfiguration;
+	private final ProcedureClassesConfiguration procedureClassesConfiguration;
 	private AddListener addListener;
-	private EditListener<SensorJavaClass> editListener;
+	private EditListener<ProcedureJavaClass> editListener;
 
-	public ListSensorJavaClassesPanel(Window owner, SessionFactory sessionFactory, SensorClassesConfiguration sensorClassesConfiguration) {
+	public ListProcedureJavaClassesPanel(Window owner, SessionFactory sessionFactory, ProcedureClassesConfiguration procedureClassesConfiguration) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
-		this.sensorClassesConfiguration = sensorClassesConfiguration;
+		this.procedureClassesConfiguration = procedureClassesConfiguration;
 
 		final DataCreator dataCreator = new DataCreator();
 		table = createTable(dataCreator);
 		setupTable(table);
 
-		setTitle("List sensor classes");
-		setBottomPanelTitle("Sensor classes");
+		setTitle("List procedure classes");
+		setBottomPanelTitle("Procedure classes");
 		getBottomPanel().add(dataCreator.createPanel(table));
 		createForm();
 
@@ -79,21 +79,21 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 
 	private JTable createTable(DataCreator dataCreator) {
 		final Adder adder = new Adder();
-		final JPanel addSensorClassPanel = new JPanel();
+		final JPanel addProcedureClassPanel = new JPanel();
 
-		addSensorClassPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		adder.addToPanel(addSensorClassPanel, "Add sensor class", this);
+		addProcedureClassPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		adder.addToPanel(addProcedureClassPanel, "Add procedure class", this);
 
-		dataCreator.addPanel(addSensorClassPanel);
+		dataCreator.addPanel(addProcedureClassPanel);
 
-		dataCreator.addInformationMessage("Use right click to add/edit/remove sensor classes.");
+		dataCreator.addInformationMessage("Use right click to add/edit/remove procedure classes.");
 		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
 
 		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
 		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
-		final String addString = String.format("Add %s", "sensor class");
-		final String editString = String.format("Edit %s", "sensor class");
-		final String removeString = String.format("Remove %s", "sensor class");
+		final String addString = String.format("Add %s", "procedure class");
+		final String editString = String.format("Edit %s", "procedure class");
+		final String removeString = String.format("Remove %s", "procedure class");
 
 		final TablePopupMenu.ActionListener addActionListener = new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
@@ -105,17 +105,17 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 		cellPopupMenu.addItem(addString, addActionListener);
 		cellPopupMenu.addItem(editString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final SensorJavaClassTableModel tableModel = (SensorJavaClassTableModel)table.getModel();
-				final String name = tableModel.getSensorClassNames().get(row);
-				final SensorJavaClass sensorJavaClass = SensorJavaClass.loadByName(sensorClassesConfiguration, owner, name);
+				final ProcedureJavaClassTableModel tableModel = (ProcedureJavaClassTableModel)table.getModel();
+				final String name = tableModel.getProcedureClassNames().get(row);
+				final ProcedureJavaClass procedureJavaClass = ProcedureJavaClass.loadByName(procedureClassesConfiguration, owner, name);
 
-				onEdit(sensorJavaClass);
+				onEdit(procedureJavaClass);
 			}
 		});
 		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
 			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
-				final SensorJavaClassTableModel tableModel = (SensorJavaClassTableModel)table.getModel();
-				removeSensorJavaClass(tableModel, row);
+				final ProcedureJavaClassTableModel tableModel = (ProcedureJavaClassTableModel)table.getModel();
+				removeProcedureJavaClass(tableModel, row);
 			}
 		});
 
@@ -126,19 +126,19 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 	}
 
 	void setupTable(JTable table) {
-		final SensorJavaClassTableModel tableModel = new SensorJavaClassTableModel();
+		final ProcedureJavaClassTableModel tableModel = new ProcedureJavaClassTableModel();
 
 		table.setModel(tableModel);
 		table.getColumnModel().getColumn(0).setPreferredWidth(100);
 	}
 
 	public boolean provide(String title) {
-		final SensorJavaClassTableModel tableModel = (SensorJavaClassTableModel)table.getModel();
+		final ProcedureJavaClassTableModel tableModel = (ProcedureJavaClassTableModel)table.getModel();
 
 		if (title.equals("Refresh list")) {
-			final List<String> sensorClassNames = SensorJavaClass.listNames(sensorClassesConfiguration, owner);
+			final List<String> procedureClassNames = ProcedureJavaClass.listNames(procedureClassesConfiguration, owner);
 
-			tableModel.setSensorClassNames(sensorClassNames);
+			tableModel.setProcedureClassNames(procedureClassNames);
 			tableModel.fireTableDataChanged();
 			return true;
 		} else if (title.equals("Compile classes")) {
@@ -150,14 +150,14 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 		return false;
 	}
 
-	void removeSensorJavaClass(SensorJavaClassTableModel tableModel, int row) {
-		final List<String> sensorClassNames = tableModel.getSensorClassNames();
-		final String name = sensorClassNames.get(row);
-		final SensorJavaClass sensorJavaClass = SensorJavaClass.loadByName(sensorClassesConfiguration, owner, name);
-		final boolean deleted = CreateEditSensorJavaClassPanel.removeSensorJavaClass(sensorJavaClass, owner, sessionFactory);
+	void removeProcedureJavaClass(ProcedureJavaClassTableModel tableModel, int row) {
+		final List<String> procedureClassNames = tableModel.getProcedureClassNames();
+		final String name = procedureClassNames.get(row);
+		final ProcedureJavaClass procedureJavaClass = ProcedureJavaClass.loadByName(procedureClassesConfiguration, owner, name);
+		final boolean deleted = CreateEditProcedureJavaClassPanel.removeProcedureJavaClass(procedureJavaClass, owner, sessionFactory);
 
 		if (deleted) {
-			sensorClassNames.remove(row);
+			procedureClassNames.remove(row);
 			tableModel.fireTableDataChanged();
 		}
 	}
@@ -172,13 +172,13 @@ public class ListSensorJavaClassesPanel extends SplitPanel implements DataProvid
 		}
 	}
 
-	void setEditListener(EditListener<SensorJavaClass> editListener) {
+	void setEditListener(EditListener<ProcedureJavaClass> editListener) {
 		this.editListener = editListener;
 	}
 
-	public void onEdit(SensorJavaClass sensorJavaClass) {
+	public void onEdit(ProcedureJavaClass procedureJavaClass) {
 		if (editListener != null) {
-			editListener.onEdit(sensorJavaClass);
+			editListener.onEdit(procedureJavaClass);
 		}
 	}
 }

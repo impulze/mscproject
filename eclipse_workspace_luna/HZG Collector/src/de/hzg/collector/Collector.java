@@ -14,37 +14,37 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import de.hzg.common.HibernateUtil;
-import de.hzg.measurement.Probe;
+import de.hzg.measurement.Sensor;
 
 public class Collector implements Runnable {
 	private static final Logger logger = Logger.getLogger(Collector.class.getName());
-	private List<Thread> probeHandlerThreads = new ArrayList<Thread>();
-	private List<ProbeHandler> probeHandlers = new ArrayList<ProbeHandler>();
+	private List<Thread> sensorHandlerThreads = new ArrayList<Thread>();
+	private List<SensorHandler> sensorHandlers = new ArrayList<SensorHandler>();
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private ScheduledFuture<?> flushFuture = null;
 
 	public Collector(HibernateUtil hibernateUtil, ClassLoader classLoader) {
 		final SessionFactory sessionFactory = hibernateUtil.getSessionFactory();
 		final Session session = sessionFactory.openSession();
-		final String queryString = "FROM Probe WHERE active = true";
+		final String queryString = "FROM Sensor WHERE active = true";
 		final Query query = session.createQuery(queryString);
 		@SuppressWarnings("unchecked")
-		final List<Probe> activeProbes = query.list();
+		final List<Sensor> activeSensors = query.list();
 
-		for (final Probe activeProbe: activeProbes) {
-			final ProbeHandler probeHandler;
+		for (final Sensor activeSensor: activeSensors) {
+			final SensorHandler sensorHandler;
 
-			logger.info("Starting handler for active probe: " + activeProbe.getName());
+			logger.info("Starting handler for active sensor: " + activeSensor.getName());
 
 			try {
-				probeHandler = new ProbeHandler(hibernateUtil, activeProbe, classLoader);
-			} catch (ProbeHandlerSetupException exception) {
-				logger.severe("Error creating ProbeHandler instance for '" + activeProbe.getName() + "'");
+				sensorHandler = new SensorHandler(hibernateUtil, activeSensor, classLoader);
+			} catch (SensorHandlerSetupException exception) {
+				logger.severe("Error creating SensorHandler instance for '" + activeSensor.getName() + "'");
 				continue;
 			}
 
-			probeHandlers.add(probeHandler);
-			probeHandlerThreads.add(new Thread(probeHandler));
+			sensorHandlers.add(sensorHandler);
+			sensorHandlerThreads.add(new Thread(sensorHandler));
 		}
 
 		session.close();
@@ -52,15 +52,15 @@ public class Collector implements Runnable {
 
 	@Override
 	public void run() {
-		for (final Thread probeHandlerThread: probeHandlerThreads) {
-			probeHandlerThread.start();
+		for (final Thread sensorHandlerThread: sensorHandlerThreads) {
+			sensorHandlerThread.start();
 		}
 
 		flushFuture = scheduler.scheduleAtFixedRate(new Runnable() {
 			@Override
 			public void run() {
-				for (final ProbeHandler probeHandler: probeHandlers) {
-					probeHandler.setNeedsFlush();
+				for (final SensorHandler sensorHandler: sensorHandlers) {
+					sensorHandler.setNeedsFlush();
 				}
 			}
 		}, 0, 15, TimeUnit.SECONDS);
@@ -68,32 +68,32 @@ public class Collector implements Runnable {
 
 	public boolean finished() {
 		synchronized (this) {
-			for (final Iterator<ProbeHandler> iterator = probeHandlers.iterator();
+			for (final Iterator<SensorHandler> iterator = sensorHandlers.iterator();
 			     iterator.hasNext();) {
-				final ProbeHandler probeHandler = iterator.next();
+				final SensorHandler sensorHandler = iterator.next();
 
-				if (probeHandler.finished()) {
-					final int probeHandlerThreadIndex = probeHandlerThreads.indexOf(probeHandler);
-					final Thread probeHandlerThread = probeHandlerThreads.get(probeHandlerThreadIndex);
+				if (sensorHandler.finished()) {
+					final int sensorHandlerThreadIndex = sensorHandlerThreads.indexOf(sensorHandler);
+					final Thread sensorHandlerThread = sensorHandlerThreads.get(sensorHandlerThreadIndex);
 					iterator.remove();
-					probeHandlerThreads.remove(probeHandlerThread);
+					sensorHandlerThreads.remove(sensorHandlerThread);
 				}
 			}
 
-			return probeHandlers.size() == 0 && flushFuture.isDone();
+			return sensorHandlers.size() == 0 && flushFuture.isDone();
 		}
 	}
 
 	public void shutdown() {
 		synchronized (this) {
-			for (final Iterator<ProbeHandler> iterator = probeHandlers.iterator();
+			for (final Iterator<SensorHandler> iterator = sensorHandlers.iterator();
 			     iterator.hasNext();) {
-				final ProbeHandler probeHandler = iterator.next();
-				final int probeHandlerThreadIndex = probeHandlerThreads.indexOf(probeHandler);
-				final Thread probeHandlerThread = probeHandlerThreads.get(probeHandlerThreadIndex);
+				final SensorHandler sensorHandler = iterator.next();
+				final int sensorHandlerThreadIndex = sensorHandlerThreads.indexOf(sensorHandler);
+				final Thread sensorHandlerThread = sensorHandlerThreads.get(sensorHandlerThreadIndex);
 
-				probeHandler.shutdown();
-				probeHandlerThread.interrupt();
+				sensorHandler.shutdown();
+				sensorHandlerThread.interrupt();
 			}
 
 			flushFuture.cancel(true);

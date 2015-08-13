@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.hibernate.Hibernate;
 
-public class SensorDescription {
+public class ProcedureDescription {
 	private Long id;
 	private String name;
 	private String className;
 	private String unit;
 	private String metadata;
-	private List<SensorInstance> sensorInstances;
+	private List<ProcedureInstance> procedureInstances;
 
 	public Long getId() {
 		return id;
@@ -47,19 +47,19 @@ public class SensorDescription {
 		this.metadata = metadata;
 	}
 
-	public List<SensorInstance> getSensorInstances() {
-		return sensorInstances;
+	public List<ProcedureInstance> getProcedureInstances() {
+		return procedureInstances;
 	}
 
-	public void setSensorInstances(List<SensorInstance> sensorInstances) {
-		this.sensorInstances = sensorInstances;
+	public void setprocedureInstances(List<ProcedureInstance> procedureInstances) {
+		this.procedureInstances = procedureInstances;
 	}
 
-	public void initSensorDescription() {
-		Hibernate.initialize(getSensorInstances());
+	public void initProcedureDescription() {
+		Hibernate.initialize(getProcedureInstances());
 
-		for (final SensorInstance sensorInstance: getSensorInstances()) {
-			Hibernate.initialize(sensorInstance.getProbe());
+		for (final ProcedureInstance procedureInstance: getProcedureInstances()) {
+			Hibernate.initialize(procedureInstance.getSensor());
 		}
 	}
 }

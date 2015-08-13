@@ -2,11 +2,11 @@ package de.hzg.values;
 
 import java.util.Date;
 
-import de.hzg.measurement.SensorInstance;
+import de.hzg.measurement.ProcedureInstance;
 
 public interface ValueData<T> {
-	SensorInstance getSensorInstance();
-	void setSensorInstance(SensorInstance sensorInstance);
+	ProcedureInstance getProcedureInstance();
+	void setProcedureInstance(ProcedureInstance procedureInstance);
 
 	Date getDate();
 	void setDate(Date date);

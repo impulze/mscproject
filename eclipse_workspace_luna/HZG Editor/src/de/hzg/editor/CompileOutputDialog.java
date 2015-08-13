@@ -30,7 +30,7 @@ public class CompileOutputDialog extends JDialog {
 	private String currentFileName;
 
 	public CompileOutputDialog(Window owner) {
-		super(owner, "Output during compilation of sensor class(es)", Dialog.ModalityType.APPLICATION_MODAL);
+		super(owner, "Output during compilation of procedure class(es)", Dialog.ModalityType.APPLICATION_MODAL);
 
 		final JLabel topLabel = new JLabel("The following output was created during compilation of the files:\n");
 		final JPanel topPanel = new JPanel();

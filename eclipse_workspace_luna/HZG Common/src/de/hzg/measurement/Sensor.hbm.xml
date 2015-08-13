@@ -3,10 +3,10 @@
           "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
           "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-	<class name="de.hzg.measurement.Probe" table="probes">
+	<class name="de.hzg.measurement.Sensor" table="sensors">
 		<id name="id" column="id">
 			<generator class="native">
-				<param name="sequence">probes_id_seq</param>
+				<param name="sequence">sensors_id_seq</param>
 			</generator>
 		</id>
 
@@ -22,9 +22,9 @@
 			<column name="device" length="255" not-null="true" />
 		</property>
 
-		<bag name="sensorInstances" table="sensor_instances">
-			<key column="probe_id" not-null="true" />
-			<one-to-many class="de.hzg.measurement.SensorInstance" />
+		<bag name="procedureInstances" table="procedure_instances">
+			<key column="sensor_id" not-null="true" />
+			<one-to-many class="de.hzg.measurement.ProcedureInstance" />
 		</bag>
 	</class>
 </hibernate-mapping>

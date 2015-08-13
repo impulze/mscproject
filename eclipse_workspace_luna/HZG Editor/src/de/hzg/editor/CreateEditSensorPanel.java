@@ -4,74 +4,81 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import de.hzg.common.SensorClassesConfiguration;
-import de.hzg.measurement.SensorDescription;
-import de.hzg.measurement.SensorInstance;
+import de.hzg.measurement.ProcedureDescription;
+import de.hzg.measurement.ProcedureInstance;
+import de.hzg.measurement.Sensor;
 
-public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
-	private static final long serialVersionUID = 4302743064914251776L;
+public class CreateEditSensorPanel extends SplitPanel implements DataProvider, AddListener {
+	private static final long serialVersionUID = 5644942285449679689L;
 	private final JTextField nameTextField;
-	private final JComboBox<String> classNameComboBox;
-	private final JTextField unitTextField;
-	private final JTextArea metadataTextArea;
+	private final JTextField deviceTextField;
+	private final JCheckBox chckbxActive;
+	private final JTable table;
 	private final Window owner;
 	private final SessionFactory sessionFactory;
-	private SensorDescription sensorDescription;
+	private final Sensor sensor;
 	private RemoveListener removeListener;
 	private SequentialGroup horizontalButtonGroup;
 	private ParallelGroup verticalButtonGroup;
 	private boolean editFunctionsShown = false;
 
-	public CreateEditSensorPanel(Window owner, SessionFactory sessionFactory, SensorClassesConfiguration sensorClassesConfiguration, SensorDescription sensorDescription) {
+	public CreateEditSensorPanel(Window owner, SessionFactory sessionFactory, Sensor sensor) {
 		this.owner = owner;
 		this.sessionFactory = sessionFactory;
-		this.sensorDescription = sensorDescription;
+		this.sensor = sensor;
 
 		nameTextField = new JTextField();
 		nameTextField.setColumns(20);
 
-		classNameComboBox = new SensorJavaClassComboBox(owner, sensorClassesConfiguration);
+		deviceTextField = new JTextField();
+		deviceTextField.setColumns(10);
 
-		unitTextField = new JTextField();
-		unitTextField.setColumns(10);
+		chckbxActive = new JCheckBox("active");
 
 		final DataCreator dataCreator = new DataCreator();
-		metadataTextArea = createMetadataTextArea(dataCreator);
-		setupMetadataTextArea();
+		table = createTableArea(dataCreator);
+		setupTable();
 
-		setBottomPanelTitle("Metadata");
-		getBottomPanel().add(dataCreator.createPanel(metadataTextArea));
+		setBottomPanelTitle("Sensors");
+		getBottomPanel().add(dataCreator.createPanel(table));
 		createForm();
 
 		setDataProvider(this);
-		sensorDescriptionToFormAndMetadata();
+		sensorToFormAndProcedureInstances();
 	}
 
-	public static SensorDescription createNewSensorDescription() {
-		final SensorDescription sensorDescription = new SensorDescription();
+	public static Sensor createNewSensor() {
+		final Sensor sensor = new Sensor();
 
-		sensorDescription.setMetadata(getMetadataTemplate());
+		sensor.setProcedureInstances(new ArrayList<ProcedureInstance>());
 
-		return sensorDescription;
+		return sensor;
 	}
 
 	private void createForm() {
@@ -82,20 +89,16 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 		final JLabel lblName = new JLabel("Name:");
 		lblName.setLabelFor(nameTextField);
 
-		final JLabel lblClassName = new JLabel("Name of Java Class:");
-		lblClassName.setLabelFor(classNameComboBox);
-
-		final JLabel lblUnit = new JLabel("Unit:");
-		lblUnit.setLabelFor(unitTextField);
+		final JLabel lblDevice = new JLabel("Device:");
+		lblDevice.setLabelFor(deviceTextField);
 
 		final ParallelGroup labelsLayout = topPanelLayout.createParallelGroup(Alignment.TRAILING)
 			.addComponent(lblName)
-			.addComponent(lblClassName)
-			.addComponent(lblUnit);
+			.addComponent(lblDevice);
 		final ParallelGroup inputsLayout = topPanelLayout.createParallelGroup(Alignment.LEADING)
+			.addComponent(deviceTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 			.addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-			.addComponent(classNameComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-			.addComponent(unitTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+			.addComponent(chckbxActive);
 		final SequentialGroup labelsWithInputsLayout = topPanelLayout.createSequentialGroup()
 			.addGroup(labelsLayout)
 			.addPreferredGap(ComponentPlacement.RELATED)
@@ -116,9 +119,9 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 			.addContainerGap()
 			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblName).addComponent(nameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 			.addPreferredGap(ComponentPlacement.RELATED)
-			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblClassName).addComponent(classNameComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblDevice).addComponent(deviceTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 			.addPreferredGap(ComponentPlacement.RELATED)
-			.addGroup(topPanelLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblUnit).addComponent(unitTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+			.addComponent(chckbxActive)
 			.addGap(8)
 			.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 			.addGroup(verticalButtonGroup)
@@ -130,115 +133,99 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 		getTopPanel().setLayout(topPanelLayout);
 	}
 
-	private JTextArea createMetadataTextArea(DataCreator dataCreator) {
-		final JTextArea newTextArea = new JTextArea();
+	private JTable createTableArea(DataCreator dataCreator) {
+		final Adder adder = new Adder();
+		final JPanel addProcedureInstancePanel = new JPanel();
 
-		dataCreator.addInformationMessage("A valid SensorML 2.0 document is required here.");
+		addProcedureInstancePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		adder.addToPanel(addProcedureInstancePanel, "Add sensor instance", this);
 
-		final JPanel metadataInteractions = new JPanel();
-		final JButton saveButton = getActionButton("Save metadata");
-		final JButton useTemplateButton = new JButton("Use template");
+		dataCreator.addPanel(addProcedureInstancePanel);
 
-		useTemplateButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				newTextArea.setText(getMetadataTemplate());
+		dataCreator.addInformationMessage("Use right click to add/remove sensor instances.");
+		dataCreator.addInformationMessage("Use double left click to change sensor instance values.");
+		dataCreator.addInformationMessage("Click column header to sort ascending/descending.");
+
+		final TablePopupMenu noCellPopupMenu = new TablePopupMenu();
+		final TablePopupMenu cellPopupMenu = new TablePopupMenu();
+		final String addString = String.format("Add %s", "sensor instance");
+		final String removeString = String.format("Remove %s", "sensor instance");
+		final TablePopupMenu.ActionListener addListener = new TablePopupMenu.ActionListener() {
+			public void actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				onAdd();
+			}
+		};
+
+		noCellPopupMenu.addItem(addString, addListener);
+		cellPopupMenu.addItem(addString, addListener);
+		cellPopupMenu.addItem(removeString, new TablePopupMenu.ActionListener() {
+			public void  actionPerformed(JTable table, int row, int column, ActionEvent event) {
+				final ProcedureInstanceTableModel tableModel = (ProcedureInstanceTableModel)table.getModel();
+				removeProcedureInstance(tableModel, row);
 			}
 		});
 
-		metadataInteractions.setLayout(new FlowLayout(FlowLayout.LEFT));
-		metadataInteractions.add(saveButton);
-		metadataInteractions.add(useTemplateButton);
+		dataCreator.setCellPopupMenu(cellPopupMenu);
+		dataCreator.setNoCellPopupMenu(noCellPopupMenu);
 
-		dataCreator.addPanel(metadataInteractions);
-
-		// popups for the textarea?
-		return newTextArea;
+		return dataCreator.create();
 	}
 
-	private void setupMetadataTextArea() {
+	void setupTable() {
+		final ProcedureInstanceTableModel tableModel = new ProcedureInstanceTableModel(owner, sessionFactory);
+
+		table.setModel(tableModel);
+		table.getColumnModel().getColumn(0).setPreferredWidth(85);
+		table.getColumnModel().getColumn(0).setCellRenderer(new ProcedureDescriptionComboBox.Renderer());
+		table.getColumnModel().getColumn(1).setPreferredWidth(70);
+
+		for (int i = 2;  i < 8; i++) {
+			table.getColumnModel().getColumn(i).setPreferredWidth(90);
+			table.getColumnModel().getColumn(i).setCellRenderer(new ParameterTableCellRenderer());
+		}
+
+		final TableRowSorter<TableModel> rowSorter = new TableRowSorter<TableModel>(tableModel);
+		rowSorter.setComparator(0, new Comparator<ProcedureDescription>() {
+			public int compare(ProcedureDescription procedureDescription1, ProcedureDescription procedureDescription2) {
+				return procedureDescription1.getName().compareTo(procedureDescription2.getName());
+			}
+		});
+
+		table.setRowSorter(rowSorter);
 	}
 
-	private static String getMetadataTemplate() {
-		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-"<sml:PhysicalComponent gml:id=\"MY_SENSOR\" xmlns:sml=\"http://www.opengis.net/sensorml/2.0\"\n" +
-" xmlns:swe=\"http://www.opengis.net/swe/2.0\"\n" +
-" xmlns:gml=\"http://www.opengis.net/gml/3.2\"\n" +
-" xmlns:gmd=\"http://www.isotc211.org/2005/gmd\"\n" +
-" xmlns:gco=\"http://www.isotc211.org/2005/gco\"\n" +
-" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-" xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n" +
-" xsi:schemaLocation=\"http://www.opengis.net/sensorml/2.0 ./sensorML/2.0.0/sensorML.xsd\">\n" +
-"   <!-- ================================================= -->\n" +
-"   <!--                  System Description               -->\n" +
-"   <!-- ================================================= -->\n" +
-"   <gml:description> Temperature sensor on my window </gml:description>\n" +
-"   <gml:identifier codeSpace=\"uid\">myCompany.com.63547</gml:identifier>\n" +
-"    <!-- ================================================= -->\n" +
-"   <!--             Observed Property = Output            -->\n" +
-"   <!-- ================================================= -->\n" +
-"   <sml:outputs>\n" +
-"      <sml:OutputList>\n" +
-"         <sml:output name=\"temp\">\n" +
-"            <swe:Quantity definition=\"http://sweet.jpl.nasa.gov/2.2/quanTemperature.owl#Temperature\">\n" +
-"               <swe:label>Air Temperature</swe:label>\n" +
-"               <swe:uom code=\"Cel\"/>\n" +
-"            </swe:Quantity>\n" +
-"         </sml:output>\n" +
-"      </sml:OutputList>\n" +
-"   </sml:outputs>\n" +
-"   <!-- ================================================= -->\n" +
-"   <!--                  Sensor Location                  -->\n" +
-"   <!-- ================================================= -->\n" +
-"   <sml:position>\n" +
-"      <gml:Point gml:id=\"stationLocation\" srsName=\"http://www.opengis.net/def/crs/EPSG/0/4326\">\n" +
-"         <gml:coordinates>47.8 88.56</gml:coordinates>\n" +
-"      </gml:Point>\n" +
-"   </sml:position>\n" +
-"</sml:PhysicalComponent>";
+	private void sensorToFormAndProcedureInstances() {
+		nameTextField.setText(sensor.getName());
+		deviceTextField.setText(sensor.getDevice());
+		chckbxActive.setSelected(sensor.getActive());
+
+		final ProcedureInstanceTableModel tableModel = (ProcedureInstanceTableModel)table.getModel();
+		final TableColumn sensorDescriptionColumn = table.getColumnModel().getColumn(0);
+		final ProcedureDescriptionComboBox comboBox = new ProcedureDescriptionComboBox(owner, sessionFactory);
+
+		sensorDescriptionColumn.setCellEditor(new DefaultCellEditor(comboBox));
+		tableModel.setProcedureInstances(sensor.getProcedureInstances());
 	}
 
-	private void sensorDescriptionToFormAndMetadata() {
-		nameTextField.setText(sensorDescription.getName());
-		classNameComboBox.setSelectedItem(sensorDescription.getClassName());
-		unitTextField.setText(sensorDescription.getUnit());
-		metadataTextArea.setText(sensorDescription.getMetadata());
-	}
-
-	private void formToSensorDescription() {
+	private void formToSensor() {
 		if (nameTextField.getText().length() == 0) {
-			sensorDescription.setName(null);
+			sensor.setName(null);
 		} else {
-			sensorDescription.setName(nameTextField.getText());
+			sensor.setName(nameTextField.getText());
 		}
 
-		final String selectedClassName = (String)classNameComboBox.getSelectedItem();
-
-		if (selectedClassName == null) {
-			sensorDescription.setClassName(null);
+		if (deviceTextField.getText().length() == 0) {
+			sensor.setDevice(null);
 		} else {
-			assert(selectedClassName.length() != 0);
-			sensorDescription.setClassName(selectedClassName);
+			sensor.setDevice(deviceTextField.getText());
 		}
 
-		if (unitTextField.getText().length() == 0) {
-			sensorDescription.setUnit(null);
-		} else {
-			sensorDescription.setUnit(unitTextField.getText());
-		}
-	}
-
-	private void metadataToSensorDescription() {
-		if (metadataTextArea.getText().length() == 0) {
-			sensorDescription.setMetadata(null);
-		} else {
-			sensorDescription.setMetadata(metadataTextArea.getText());
-		}
+		sensor.setActive(chckbxActive.isSelected());
 	}
 
 	public boolean isDirty() {
 		{
-			final String cmpString = sensorDescription.getName() == null ? "" : sensorDescription.getName();
+			final String cmpString = sensor.getName() == null ? "" : sensor.getName();
 
 			if (!nameTextField.getText().equals(cmpString)) {
 				return true;
@@ -246,27 +233,15 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 		}
 
 		{
-			final String cmpString = sensorDescription.getClassName() == null ? "" : sensorDescription.getClassName();
+			final String cmpString = sensor.getDevice() == null ? "" : sensor.getDevice();
 
-			if (classNameComboBox.getSelectedItem() != null && !classNameComboBox.getSelectedItem().equals(cmpString)) {
+			if (!deviceTextField.getText().equals(cmpString)) {
 				return true;
 			}
 		}
 
-		{
-			final String cmpString = sensorDescription.getUnit() == null ? "" : sensorDescription.getUnit();
-
-			if (!unitTextField.getText().equals(cmpString)) {
-				return true;
-			}
-		}
-
-		{
-			final String cmpString = sensorDescription.getMetadata() == null ? "" : sensorDescription.getMetadata();
-
-			if (!metadataTextArea.getText().equals(cmpString)) {
-				return true;
-			}
+		if (chckbxActive.isSelected() != sensor.getActive()) {
+			return true;
 		}
 
 		return super.isDirty();
@@ -276,24 +251,20 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 		final Session session = sessionFactory.openSession();
 
 		try {
-			if (title.equals("Save information")) {
-				formToSensorDescription();
-			} else {
-				metadataToSensorDescription();
-			}
+			formToSensor();
 
 			if (!getSaved()) {
-				session.save(sensorDescription);
+				session.save(sensor);
 				session.flush();
 			} else {
-				session.update(sensorDescription);
+				session.update(sensor);
 				session.flush();
 			}
 
 			JOptionPane.showMessageDialog(owner, "Sensor successfully saved.", "Sensor saved", JOptionPane.INFORMATION_MESSAGE);
 			return true;
 		} catch (Exception exception) {
-			final String[] messages = { "Sensor could not be saved", "An exception occured." };
+			final String[] messages = { "Sensor could not be saved.", "An exception occured." };
 			final JDialog dialog = new ExceptionDialog(owner, "Sensor not saved", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
@@ -305,7 +276,47 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 		return false;
 	}
 
-	static boolean removeSensorDescription(SensorDescription sensorDescription, Window owner, SessionFactory sessionFactory) {
+	public void onAdd() {
+		final AddProcedureInstanceDialog dialog = new AddProcedureInstanceDialog(owner, sessionFactory, sensor);
+		dialog.pack();
+		dialog.setLocationRelativeTo(owner);
+		dialog.setVisible(true);
+		final ProcedureInstance procedureInstance = dialog.getResult();
+
+		if (procedureInstance != null) {
+			final ProcedureInstanceTableModel tableModel = (ProcedureInstanceTableModel)table.getModel();
+
+			tableModel.fireTableDataChanged();
+		}
+	}
+
+	private void removeProcedureInstance(ProcedureInstanceTableModel tableModel, int row) {
+		final List<ProcedureInstance> procedureInstances = tableModel.getProcedureInstances();
+		final ProcedureInstance procedureInstance = procedureInstances.get(row);
+		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor instance.", "Are you sure?", JOptionPane.YES_NO_OPTION);
+
+		if (confirm != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		final Session session = sessionFactory.openSession();
+		try {
+			session.delete(procedureInstance);
+			session.flush();
+			procedureInstances.remove(row);
+			tableModel.fireTableDataChanged();
+		} catch (Exception exception) {
+			final String[] messages = { "Sensor instance could not be deleted.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Sensor instance could not be deleted", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+		} finally {
+			session.close();
+		}
+	}
+
+	static boolean removeSensor(Sensor sensor, Window owner, SessionFactory sessionFactory) {
 		final int confirm = JOptionPane.showConfirmDialog(owner, "This will remove the sensor and all sensor instances for this sensor.", "Are you sure?", JOptionPane.YES_NO_OPTION);
 
 		if (confirm != JOptionPane.YES_OPTION) {
@@ -317,10 +328,10 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 
 		try {
 			transaction = session.beginTransaction();
-			for (final SensorInstance sensorInstance: sensorDescription.getSensorInstances()) {
-				session.delete(sensorInstance);
+			for (final ProcedureInstance probeInstance: sensor.getProcedureInstances()) {
+				session.delete(probeInstance);
 			}
-			session.delete(sensorDescription);
+			session.delete(sensor);
 			session.flush();
 			transaction.commit();
 		} catch (Exception exception) {
@@ -350,7 +361,7 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 
 		removeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				removeSensorDescription(sensorDescription, owner, sessionFactory);
+				removeSensor(sensor, owner, sessionFactory);
 
 				if (removeListener != null) {
 					removeListener.onRemove();
@@ -368,4 +379,4 @@ public class CreateEditSensorPanel extends SplitPanel implements DataProvider  {
 	void setRemoveListener(RemoveListener removeListener) {
 		this.removeListener = removeListener;
 	}
-}
+};
