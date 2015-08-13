@@ -35,7 +35,7 @@ public class ValueTableModel<T extends ValueData<E>, E> extends AbstractTableMod
 	}
 
 	public int getColumnCount() {
-		return 3;
+		return 8;
 	}
 
 	public int getRowCount() {
@@ -60,6 +60,11 @@ public class ValueTableModel<T extends ValueData<E>, E> extends AbstractTableMod
 			case 0: return dateFormat.format(value.getDate());
 			case 1: return sensorName + "/" + observedPropertyName;
 			case 2: return value.getValue();
+			case 3: return value.getAverage();
+			case 4: return value.getMin();
+			case 5: return value.getMax();
+			case 6: return value.getMedian();
+			case 7: return value.getStddev();
 			default: assert(false);
 		}
 
@@ -67,12 +72,12 @@ public class ValueTableModel<T extends ValueData<E>, E> extends AbstractTableMod
 	}
 
 	public Class<?> getColumnClass(int column) {
-		final Class<?>[] columnClasses = { String.class /* TODO: see above */, String.class, classType };
+		final Class<?>[] columnClasses = { String.class /* TODO: see above */, String.class, classType, Double.class, classType, classType, classType, Double.class };
 		return columnClasses[column];
 	}
 
 	public String getColumnName(int column) {
-		final String[] columnNames = { "Date", "Sensor/Observed property", "Value" };
+		final String[] columnNames = { "Date", "Sensor/Observed property", "Value", "Average", "Min", "Max", "Median", "Standard deviation" };
 		return columnNames[column];
 	}
 

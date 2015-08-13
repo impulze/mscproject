@@ -47,7 +47,7 @@ public class ListObservedPropertyJavaClassesPanel extends SplitPanel implements 
 
 	private void createForm() {
 		final JButton actionButton = getActionButton("Refresh list");
-		final JButton checkClassesButton = getActionButton("Check classes");
+		//final JButton checkClassesButton = getActionButton("Check classes");
 		final JButton compileClassesButton = getActionButton("Compile classes");
 
 		final GroupLayout topPanelLayout = new GroupLayout(getTopPanel());
@@ -56,14 +56,14 @@ public class ListObservedPropertyJavaClassesPanel extends SplitPanel implements 
 			.addContainerGap()
 			.addComponent(actionButton)
 			.addPreferredGap(ComponentPlacement.RELATED)
-			.addComponent(checkClassesButton)
+			//.addComponent(checkClassesButton)
 			.addPreferredGap(ComponentPlacement.RELATED)
 			.addComponent(compileClassesButton)
 			.addContainerGap(251, Short.MAX_VALUE);
 
 		final ParallelGroup verticalButtonGroup = topPanelLayout.createParallelGroup(Alignment.BASELINE)
 			.addComponent(actionButton)
-			.addComponent(checkClassesButton)
+			//.addComponent(checkClassesButton)
 			.addComponent(compileClassesButton);
 
 		final SequentialGroup verticalLayoutWithGaps = topPanelLayout.createSequentialGroup()
@@ -142,10 +142,12 @@ public class ListObservedPropertyJavaClassesPanel extends SplitPanel implements 
 			tableModel.fireTableDataChanged();
 			return true;
 		} else if (title.equals("Compile classes")) {
+			final List<String> names = ObservedPropertyJavaClass.listNames(observedPropertyClassesConfiguration, owner);
+			ObservedPropertyJavaClass.compileTasks(owner, observedPropertyClassesConfiguration, names);
 			System.out.println("Compile classes");
-		} else if (title.equals("Check classes")) {
+		}/* else if (title.equals("Check classes")) {
 			System.out.println("Check classes");
-		}
+		}*/
 
 		return false;
 	}

@@ -75,6 +75,7 @@ public class ListValuesPanel<T extends ValueData<E>, E> extends SplitPanel imple
 		table.getColumnModel().getColumn(0).setPreferredWidth(200);
 		table.getColumnModel().getColumn(1).setPreferredWidth(300);
 		table.getColumnModel().getColumn(2).setPreferredWidth(140);
+		table.getColumnModel().getColumn(7).setPreferredWidth(140);
 	}
 
 	public boolean provide(String title) {

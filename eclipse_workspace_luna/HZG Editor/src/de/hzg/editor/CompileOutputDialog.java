@@ -29,9 +29,12 @@ public class CompileOutputDialog extends JDialog {
 	private JTextArea currentTextArea;
 	private String currentPath;
 	private String currentFileName;
+	private JPanel contentPanel;
 
 	public CompileOutputDialog(Window owner) {
 		super(owner, "Output during compilation of observed property class(es)", Dialog.ModalityType.APPLICATION_MODAL);
+
+		contentPanel = new JPanel();
 
 		final JLabel topLabel = new JLabel("The following output was created during compilation of the files:\n");
 		final JPanel topPanel = new JPanel();
@@ -53,7 +56,8 @@ public class CompileOutputDialog extends JDialog {
 		layout = new GridBagLayout();
 		final GridBagConstraints constraints = new GridBagConstraints();
 
-		getContentPane().setLayout(layout);
+		contentPanel.setLayout(layout);
+		//getContentPane().setLayout(layout);
 
 		constraints.fill = GridBagConstraints.BOTH;
 
@@ -62,13 +66,16 @@ public class CompileOutputDialog extends JDialog {
 		constraints.gridwidth = 2;
 		constraints.gridheight = 1;
 		layout.setConstraints(topPanel, constraints);
-		getContentPane().add(topPanel);
+		//getContentPane().add(topPanel);
+		contentPanel.add(topPanel);
 
 		getRootPane().setDefaultButton(okButton);
 
 		setResizable(true);
 
 		currentLine = 1;
+
+		setContentPane(new JScrollPane(contentPanel));
 	}
 
 	private void setLabel(Icon icon) {
@@ -81,7 +88,8 @@ public class CompileOutputDialog extends JDialog {
 			labelLine = currentLine;
 		} else {
 			layout.removeLayoutComponent(currentLabel);
-			getContentPane().remove(currentLabel);
+			//getContentPane().remove(currentLabel);
+			contentPanel.remove(currentLabel);
 			currentLabel = new JLabel(icon);
 		}
 
@@ -90,7 +98,8 @@ public class CompileOutputDialog extends JDialog {
 		constraints.gridheight = currentLine + 1 - labelLine;
 
 		layout.setConstraints(currentLabel,  constraints);
-		getContentPane().add(currentLabel);
+		//getContentPane().add(currentLabel);
+		contentPanel.add(currentLabel);
 	}
 
 	public void newTask(String name) {
@@ -103,7 +112,8 @@ public class CompileOutputDialog extends JDialog {
 		constraints.gridwidth = 2;
 
 		layout.setConstraints(nameLabel, constraints);
-		getContentPane().add(nameLabel);
+		//getContentPane().add(nameLabel);
+		contentPanel.add(nameLabel);
 
 		currentLine++;
 		currentLabel = null;
@@ -118,13 +128,15 @@ public class CompileOutputDialog extends JDialog {
 		currentTextArea.setEditable(false);
 		final JScrollPane scrollPane = new JScrollPane(currentTextArea);
 		layout.setConstraints(scrollPane, constraints);
-		getContentPane().add(scrollPane);
+		//getContentPane().add(scrollPane);
+		contentPanel.add(scrollPane);
 		currentLine++;
 
 		currentPath = name;
 		currentFileName = Paths.get(name).getFileName().toString();
 
-		getContentPane().revalidate();
+		//getContentPane().revalidate();
+		contentPanel.revalidate();
 		pack();
 	}
 
@@ -136,7 +148,8 @@ public class CompileOutputDialog extends JDialog {
 			currentTextArea.append(message + "\n");
 		}
 
-		getContentPane().revalidate();
+		//getContentPane().revalidate();
+		contentPanel.revalidate();
 		pack();
 	}
 
@@ -145,7 +158,8 @@ public class CompileOutputDialog extends JDialog {
 			setLabel(UIManager.getIcon("OptionPane.errorIcon"));
 		}
 
-		getContentPane().revalidate();
+		//getContentPane().revalidate();
+		contentPanel.revalidate();
 		pack();
 	}
 
@@ -158,9 +172,11 @@ public class CompileOutputDialog extends JDialog {
 		constraints.gridwidth = 2;
 
 		layout.setConstraints(buttonPane, constraints);
-		getContentPane().add(buttonPane);
+		//getContentPane().add(buttonPane);
+		contentPanel.add(buttonPane);
 
-		getContentPane().revalidate();
+		//getContentPane().revalidate();
+		contentPanel.revalidate();
 		pack();
 	}
 }

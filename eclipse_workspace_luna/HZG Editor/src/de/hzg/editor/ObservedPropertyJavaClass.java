@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JDialog;
@@ -139,6 +140,10 @@ public class ObservedPropertyJavaClass {
 	}
 
 	public static boolean compileTasks(Window owner, ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, String... names) {
+		return compileTasks(owner, observedPropertyClassesConfiguration, Arrays.asList(names));
+	}
+
+	public static boolean compileTasks(Window owner, ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration, List<String> names) {
 		final CompileOutputDialog dialog = new CompileOutputDialog(owner);
 		final StringBuilder writerStringBuilder = new StringBuilder();
 		final Writer writer = new Writer() {
@@ -172,10 +177,11 @@ public class ObservedPropertyJavaClass {
 			}
 		};
 
-		final String[] inputPaths = new String[names.length];
+		final String[] inputPaths = new String[names.size()];
+		int i = 0;
 
-		for (int i = 0; i < names.length; i++) {
-			inputPaths[i] = getInputPath(observedPropertyClassesConfiguration, names[i]);
+		for (final String name: names) {
+			inputPaths[i++] = getInputPath(observedPropertyClassesConfiguration, name);
 		}
 
 		final CompilerSwingWorker worker = new CompilerSwingWorker(owner, dialog, writer, inputPaths, fileManager, compiler);
