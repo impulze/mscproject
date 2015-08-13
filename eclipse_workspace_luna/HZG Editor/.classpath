@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/HZG Common"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v7.0"/>
 	<classpathentry kind="lib" path="/usr/share/java/tomcat-juli.jar"/>
+	<classpathentry kind="lib" path="/usr/share/java/swingx.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

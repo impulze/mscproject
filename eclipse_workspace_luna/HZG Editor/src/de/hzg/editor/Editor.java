@@ -20,6 +20,7 @@ import org.hibernate.SessionFactory;
 import de.hzg.common.Configuration;
 import de.hzg.common.HibernateUtil;
 import de.hzg.common.ObservedPropertyClassesConfiguration;
+import de.hzg.measurement.CalibrationSet;
 import de.hzg.measurement.ObservedPropertyDescription;
 import de.hzg.measurement.Sensor;
 import de.hzg.values.CalculatedData;
@@ -131,7 +132,7 @@ public class Editor {
 		mntmEditObservedProperty.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (isDirtyCheck()) {
-					final EditObservedPropertyDialog dialog = new EditObservedPropertyDialog(frame, sessionFactory);
+					final EditObservedPropertyDescriptionDialog dialog = new EditObservedPropertyDescriptionDialog(frame, sessionFactory);
 					dialog.pack();
 					dialog.setLocationRelativeTo(frame);
 					dialog.setVisible(true);
@@ -158,6 +159,48 @@ public class Editor {
 
 		JSeparator separator_2 = new JSeparator();
 		mnEdit.add(separator_2);
+
+		JMenuItem mntmCreateCalibrationSet = new JMenuItem("Create calibration set");
+		mntmCreateCalibrationSet.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					setupCreateCalibrationSetPanel();
+				}
+			}
+		});
+		mnEdit.add(mntmCreateCalibrationSet);
+
+		JMenuItem mntmEditCalibrationSet = new JMenuItem("Edit calibration set");
+		mntmEditCalibrationSet.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					final EditCalibrationSetDialog dialog = new EditCalibrationSetDialog(frame, sessionFactory);
+					dialog.pack();
+					dialog.setLocationRelativeTo(frame);
+					dialog.setVisible(true);
+					final CalibrationSet calibrationSet = dialog.getResult();
+
+					if (calibrationSet != null) {
+						final CreateEditCalibrationSetPanel createEditCalibrationSetPanel = new CreateEditCalibrationSetPanel(frame, sessionFactory, calibrationSet);
+						setupEditCalibrationSetPanel(createEditCalibrationSetPanel);
+					}
+				}
+			}
+		});
+		mnEdit.add(mntmEditCalibrationSet);
+
+		JMenuItem mntmListCalibrationSets = new JMenuItem("List calibration sets");
+		mntmListCalibrationSets.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (isDirtyCheck()) {
+					setupListCalibrationSetsPanel();
+				}
+			}
+		});
+		mnEdit.add(mntmListCalibrationSets);
+
+		JSeparator separator_3 = new JSeparator();
+		mnEdit.add(separator_3);
 
 		JMenuItem mntmCreateObservedPropertyClass = new JMenuItem("Create observed property class");
 		mntmCreateObservedPropertyClass.addActionListener(new ActionListener() {
@@ -198,8 +241,8 @@ public class Editor {
 		});
 		mnEdit.add(mntmListObservedPropertyClasses);
 
-		JSeparator separator_3 = new JSeparator();
-		mnEdit.add(separator_3);
+		JSeparator separator_4 = new JSeparator();
+		mnEdit.add(separator_4);
 
 		JMenuItem mntmListRawValues = new JMenuItem("List raw values");
 		mntmListRawValues.addActionListener(new ActionListener() {
@@ -231,8 +274,8 @@ public class Editor {
 		JMenuItem mntmHandbook = new JMenuItem("Handbook");
 		mnHelp.add(mntmHandbook);
 
-		JSeparator separator_4 = new JSeparator();
-		mnHelp.add(separator_4);
+		JSeparator separator_5 = new JSeparator();
+		mnHelp.add(separator_5);
 
 		JMenuItem mntmAboutHZGEditor = new JMenuItem("About HZG Editor");
 		mntmAboutHZGEditor.addActionListener(new ActionListener() {
@@ -393,6 +436,50 @@ public class Editor {
 		});
 
 		switchPanel("List observed property descriptions", listObservedPropertyDescriptionsPanel);
+	}
+
+	private void setupCreateCalibrationSetPanel() {
+		final CalibrationSet newCalibrationSet = CreateEditCalibrationSetPanel.createNewCalibrationSet();
+		final CreateEditCalibrationSetPanel calibrationSetPanel = new CreateEditCalibrationSetPanel(frame, sessionFactory, newCalibrationSet);
+
+		calibrationSetPanel.setTitle("Create calibration set");
+		switchPanel("Create calibration set", calibrationSetPanel);
+
+		calibrationSetPanel.setSavedHandler(new SavedHandler() {
+			@Override
+			public void onSave() {
+				setupEditCalibrationSetPanel(calibrationSetPanel);
+			}
+		});
+	}
+
+	private void setupEditCalibrationSetPanel(CreateEditCalibrationSetPanel calibrationSetPanel) {
+		calibrationSetPanel.setSaved(true);
+		calibrationSetPanel.setTitle("Edit calibration set");
+		calibrationSetPanel.showEditFunctions();
+		calibrationSetPanel.setRemoveListener(new RemoveListener() {
+			public void onRemove() {
+				setupListCalibrationSetsPanel();
+			}
+		});
+		switchPanel("Edit calibration set", calibrationSetPanel);
+	}
+
+	private void setupListCalibrationSetsPanel() {
+		final ListCalibrationSetsPanel listCalibrationSetsPanel = new ListCalibrationSetsPanel(frame, sessionFactory);
+		listCalibrationSetsPanel.setAddListener(new AddListener() {
+			public void onAdd() {
+				setupCreateCalibrationSetPanel();
+			}
+		});
+		listCalibrationSetsPanel.setEditListener(new EditListener<CalibrationSet>() {
+			public void onEdit(CalibrationSet calibrationSet) {
+				final CreateEditCalibrationSetPanel calibrationSetPanel = new CreateEditCalibrationSetPanel(frame, sessionFactory, calibrationSet);
+				setupEditCalibrationSetPanel(calibrationSetPanel);
+			}
+		});
+
+		switchPanel("List calibration sets", listCalibrationSetsPanel);
 	}
 
 	private void setupCreateObservedPropertyJavaClassPanel() {

@@ -208,7 +208,7 @@ public class CreateEditObservedPropertyDescriptionPanel extends SplitPanel imple
 		metadataTextArea.setText(observedPropertyDescription.getMetadata());
 	}
 
-	private void formToSensorDescription() {
+	private void formToObservedPropertyDescription() {
 		if (nameTextField.getText().length() == 0) {
 			observedPropertyDescription.setName(null);
 		} else {
@@ -231,7 +231,7 @@ public class CreateEditObservedPropertyDescriptionPanel extends SplitPanel imple
 		}
 	}
 
-	private void metadataToSensorDescription() {
+	private void metadataToObservedPropertyDescription() {
 		if (metadataTextArea.getText().length() == 0) {
 			observedPropertyDescription.setMetadata(null);
 		} else {
@@ -280,9 +280,9 @@ public class CreateEditObservedPropertyDescriptionPanel extends SplitPanel imple
 
 		try {
 			if (title.equals("Save information")) {
-				formToSensorDescription();
+				formToObservedPropertyDescription();
 			} else {
-				metadataToSensorDescription();
+				metadataToObservedPropertyDescription();
 			}
 
 			if (!getSaved()) {

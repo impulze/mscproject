@@ -9,9 +9,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import de.hzg.measurement.CalibrationSet;
+import de.hzg.measurement.ObservedPropertyDescription;
 import de.hzg.measurement.ObservedPropertyInstance;
 import de.hzg.measurement.Sensor;
-import de.hzg.measurement.ObservedPropertyDescription;
 
 public class MeasurementQueries {
 	public static CalibrationSet getActiveCalibrationSet(Window owner, SessionFactory sessionFactory, ObservedPropertyInstance observedPropertyInstance) {
@@ -19,7 +19,6 @@ public class MeasurementQueries {
 		final CalibrationSet result;
 
 		try {
-			@SuppressWarnings("unchecked")
 			final CalibrationSet tempResult = (CalibrationSet)session
 				.createQuery("FROM CalibrationSet WHERE active = true AND observedPropertyInstance = :observedPropertyInstance")
 				.setParameter("observedPropertyInstance",  observedPropertyInstance)
@@ -74,8 +73,8 @@ public class MeasurementQueries {
 				.createQuery("FROM ObservedPropertyDescription")
 				.list();
 
-			for (final ObservedPropertyDescription sensorDescription: tempResult) {
-				sensorDescription.initObservedPropertyDescription();
+			for (final ObservedPropertyDescription observedPropertyDescription: tempResult) {
+				observedPropertyDescription.initObservedPropertyDescription();
 			}
 
 			result = tempResult;
@@ -140,6 +139,35 @@ public class MeasurementQueries {
 		} catch (Exception exception) {
 			final String[] messages = { "Calibration sets could not be loaded.", "An exception occured." };
 			final JDialog dialog = new ExceptionDialog(owner, "Calibration sets could not loaded", messages, exception);
+			dialog.pack();
+			dialog.setLocationRelativeTo(owner);
+			dialog.setVisible(true);
+			throw exception;
+		} finally {
+			session.close();
+		}
+
+		return result;
+	}
+
+	public static List<ObservedPropertyInstance> getObservedPropertyInstances(Window owner, SessionFactory sessionFactory) {
+		final Session session = sessionFactory.openSession();
+		final List<ObservedPropertyInstance> result;
+
+		try {
+			@SuppressWarnings("unchecked")
+			final List<ObservedPropertyInstance> tempResult = (List<ObservedPropertyInstance>)session
+				.createQuery("FROM ObservedPropertyInstance")
+				.list();
+
+			for (final ObservedPropertyInstance observedPropertyInstance: tempResult) {
+				observedPropertyInstance.initObservedPropertyInstance();
+			}
+
+			result = tempResult;
+		} catch (Exception exception) {
+			final String[] messages = { "Observed property instances could not be loaded.", "An exception occured." };
+			final JDialog dialog = new ExceptionDialog(owner, "Observed property instances could not loaded", messages, exception);
 			dialog.pack();
 			dialog.setLocationRelativeTo(owner);
 			dialog.setVisible(true);
