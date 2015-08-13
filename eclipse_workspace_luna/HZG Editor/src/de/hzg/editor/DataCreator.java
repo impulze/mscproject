@@ -116,18 +116,23 @@ public class DataCreator {
 
 	private JPanel createInformationMessageIconPanel() {
 		final Icon informationIcon = UIManager.getIcon("OptionPane.informationIcon");
-		final double scale = 0.5;
-		final int newWidth = (int)(scale * informationIcon.getIconWidth());
-		final int newHeight= (int)(scale * informationIcon.getIconWidth());
-		final Image image = ((ImageIcon)informationIcon).getImage();
-		final Image newImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-		final Icon newIcon = new ImageIcon(newImage);
-		final JLabel iconLabel = new JLabel(newIcon);
 		final JPanel iconLabelPanel = new JPanel();
 
 		iconLabelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		iconLabelPanel.add(iconLabel);
 
+		if (informationIcon instanceof ImageIcon) {
+			final double scale = 0.5;
+			final int newWidth = (int)(scale * informationIcon.getIconWidth());
+			final int newHeight= (int)(scale * informationIcon.getIconWidth());
+			final Image image = ((ImageIcon)informationIcon).getImage();
+			final Image newImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+			final Icon newIcon = new ImageIcon(newImage);
+
+			iconLabelPanel.add(new JLabel(newIcon));
+		} else {
+			iconLabelPanel.add(new JLabel(informationIcon));
+		}
+	
 		return iconLabelPanel;
 	}
 

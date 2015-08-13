@@ -16,6 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -23,6 +24,7 @@ public class Configuration {
 	public static String DEFAULT_PATH = buildDefaultPath();
 	private Map<String, Object> map = new HashMap<String, Object>();
 	private static Logger logger = Logger.getLogger(Configuration.class.getName());
+	private static Configuration instance;
 
 	public Configuration() throws ConfigurationSetupException, Exception {
 		this(DEFAULT_PATH);
@@ -68,6 +70,19 @@ public class Configuration {
 			parseHTTPSender(httpSenderList);
 		}
 
+		final NodeList sosList = root.getElementsByTagName("sos");
+
+		if (sosList != null) {
+			parseSOSList(sosList);
+		}
+
+		if (instance == null) {
+			instance = this;
+		}
+	}
+
+	public static Configuration getInstance() {
+		return instance;
 	}
 
 	public DatabaseConfiguration getDatabaseConfiguration(String id) throws ConfigurationNotFound {
@@ -87,7 +102,13 @@ public class Configuration {
 
 	private void parseDatabases(NodeList nodeList) {
 		for (int i = 0; i < nodeList.getLength(); i++) {
-			final Element element = (Element)nodeList.item(i);
+			final Node node = nodeList.item(i);
+
+			if (!(node instanceof Element)) {
+				continue;
+			}
+
+			final Element element = (Element)node;
 			final String id = element.getAttribute("id");
 			final DatabaseConfiguration databaseConfiguration = new DatabaseConfiguration(id);
 
@@ -113,9 +134,45 @@ public class Configuration {
 		throw new ConfigurationNotFound(String.format("Observed property classes configuration not found."));
 	}
 
+	private void parseObservedPropertyClasses(NodeList nodeList) {
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			final Node node = nodeList.item(i);
+
+			if (!(node instanceof Element)) {
+				continue;
+			}
+
+			final Element element = (Element)node;
+			final ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration = new ObservedPropertyClassesConfiguration();
+
+			final String homeDirectory = System.getProperty("user.home");
+			final String sourceDirectory = getTextValue(element, "source_directory");
+			observedPropertyClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
+
+			addObject("observed_property_classes", observedPropertyClassesConfiguration);
+		}
+	}
+
+	public HTTPSenderConfiguration getHTTPSenderConfiguration() throws ConfigurationNotFound {
+		@SuppressWarnings("unchecked")
+		final List<HTTPSenderConfiguration> httpSenderConfigurations = (List<HTTPSenderConfiguration>)map.get("http_sender");
+
+		if (httpSenderConfigurations != null) {
+			return httpSenderConfigurations.get(0);
+		}
+
+		throw new ConfigurationNotFound(String.format("HTTP Sender configuration not found."));
+	}
+
 	private void parseHTTPSender(NodeList nodeList) throws MalformedURLException {
 		for (int i = 0; i < nodeList.getLength(); i++) {
-			final Element element = (Element)nodeList.item(i);
+			final Node node = nodeList.item(i);
+
+			if (!(node instanceof Element)) {
+				continue;
+			}
+
+			final Element element = (Element)node;
 			final HTTPSenderConfiguration httpSenderConfiguration = new HTTPSenderConfiguration();
 
 			final String basicAuth = getTextValue(element, "basic_auth");
@@ -131,27 +188,112 @@ public class Configuration {
 		}
 	}
 
-	public HTTPSenderConfiguration getHTTPSenderConfiguration() throws ConfigurationNotFound {
+	public SOSConfiguration getSOSConfiguration() throws ConfigurationNotFound {
 		@SuppressWarnings("unchecked")
-		final List<HTTPSenderConfiguration> httpSenderConfigurations = (List<HTTPSenderConfiguration>)map.get("http_sender");
+		final List<SOSConfiguration> sosConfigurations = (List<SOSConfiguration>)map.get("sos");
 
-		if (httpSenderConfigurations != null) {
-			return httpSenderConfigurations.get(0);
+		if (sosConfigurations != null) {
+			return sosConfigurations.get(0);
 		}
 
-		throw new ConfigurationNotFound(String.format("HTTP Sender configuration not found."));
+		throw new ConfigurationNotFound(String.format("SOS configuration not found."));
 	}
 
-	private void parseObservedPropertyClasses(NodeList nodeList) {
+	private void parseSOSList(NodeList nodeList) {
+		Logger LOG = Logger.getLogger("Foom");
+
 		for (int i = 0; i < nodeList.getLength(); i++) {
-			final Element element = (Element)nodeList.item(i);
-			final ObservedPropertyClassesConfiguration observedPropertyClassesConfiguration = new ObservedPropertyClassesConfiguration();
+			final Node node = nodeList.item(i);
+			LOG.info("parsing sos: " + node);
 
-			final String homeDirectory = System.getProperty("user.home");
-			final String sourceDirectory = getTextValue(element, "source_directory");
-			observedPropertyClassesConfiguration.setSourceDirectory(sourceDirectory.replace("~", homeDirectory));
+			if (!(node instanceof Element)) {
+				continue;
+			}
 
-			addObject("observed_property_classes", observedPropertyClassesConfiguration);
+			final Element element = (Element)node;
+			final SOSConfiguration sosConfiguration = new SOSConfiguration();
+
+			String identifierPrefix = getTextValue(element, "identifier_prefix");
+
+			if (identifierPrefix == null) {
+				identifierPrefix = new String();
+			} else {
+				identifierPrefix += "/";
+			}
+
+			sosConfiguration.setProcedureIdentifierPrefix(identifierPrefix);
+			sosConfiguration.setOfferingIdentifierPrefix(identifierPrefix);
+			sosConfiguration.setFeatureOfInterestIdentifierPrefix(identifierPrefix);
+			sosConfiguration.setObservablePropertyIdentifierPrefix(identifierPrefix);
+
+			final NodeList children = element.getChildNodes();
+
+			LOG.info("logging children: " + children);
+
+			if (children == null) {
+				continue;
+			}
+
+			for (int j = 0; j < children.getLength(); j++) {
+				final Node childNode = children.item(j);
+
+				if (!(childNode instanceof Element)) {
+					continue;
+				}
+
+				final Element childElement = (Element)childNode;
+
+				LOG.info("logging child: " + childElement);
+				LOG.info("logging child tag: " + childElement.getTagName());
+				if (childElement.getTagName().equals("procedures")) {
+					LOG.info("setting procedure identifier");
+					final String procedureIdentifierPrefix = getTextValue(childElement, "identifier_prefix");
+
+					if (procedureIdentifierPrefix != null) {
+						LOG.info("setting proc id to: " + procedureIdentifierPrefix);
+						sosConfiguration.setProcedureIdentifierPrefix(sosConfiguration.getProcedureIdentifierPrefix() + procedureIdentifierPrefix + "/");
+					}
+				}
+
+				if (childElement.getTagName().equals("offering")) {
+					final String offeringIdentifierPrefix = getTextValue(childElement, "identifier_prefix");
+
+					if (offeringIdentifierPrefix != null) {
+						sosConfiguration.setOfferingIdentifierPrefix(sosConfiguration.getOfferingIdentifierPrefix() + offeringIdentifierPrefix + "/");
+					}
+
+					final String offeringName = getTextValue(childElement, "name");
+					sosConfiguration.setOfferingName(offeringName);
+				}
+
+				if (childElement.getTagName().equals("feature_of_interest")) {
+					final String featureOfInterestIdentifierPrefix = getTextValue(childElement, "identifier_prefix");
+
+					if (featureOfInterestIdentifierPrefix != null) {
+						sosConfiguration.setFeatureOfInterestIdentifierPrefix(sosConfiguration.getFeatureOfInterestIdentifierPrefix() + featureOfInterestIdentifierPrefix + "/");
+					}
+
+					final String featureOfInterestName = getTextValue(childElement, "name");
+					sosConfiguration.setFeatureOfInterestName(featureOfInterestName);
+				}
+
+				if (childElement.getTagName().equals("observable_properties")) {
+					final String observablePropertyIdentifierPrefix = getTextValue(childElement, "identifier_prefix");
+
+					if (observablePropertyIdentifierPrefix != null) {
+						sosConfiguration.setObservablePropertyIdentifierPrefix(sosConfiguration.getObservablePropertyIdentifierPrefix() + observablePropertyIdentifierPrefix + "/");
+					}
+				}
+			}
+
+			if (sosConfiguration.getProcedureIdentifierPrefix().isEmpty() ||
+			    sosConfiguration.getOfferingIdentifierPrefix().isEmpty() ||
+			    sosConfiguration.getFeatureOfInterestIdentifierPrefix().isEmpty() ||
+			    sosConfiguration.getObservablePropertyIdentifierPrefix().isEmpty()) {
+				throw new RuntimeException("One of the identifier prefixes is empty.");
+			}
+
+			addObject("sos", sosConfiguration);
 		}
 	}
 
@@ -163,8 +305,12 @@ public class Configuration {
 		final NodeList nodeList = element.getElementsByTagName(tagName);
 
 		if (nodeList != null && nodeList.getLength() > 0) {
-			final Element subElement = (Element)nodeList.item(0);
-			return subElement.getFirstChild().getNodeValue();
+			final Node subNode = nodeList.item(0);
+
+			if (subNode instanceof Element) {
+				final Element subElement = (Element)subNode;
+				return subElement.getFirstChild().getNodeValue();
+			}
 		}
 
 		return null;

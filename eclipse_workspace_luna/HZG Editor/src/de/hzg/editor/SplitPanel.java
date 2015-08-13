@@ -99,17 +99,22 @@ public class SplitPanel extends JPanel {
 	}
 
 	protected JPanel makeGridIcon(Icon icon) {
-		final double scale = 0.5;
-		final int newWidth = (int)(scale * icon.getIconWidth());
-		final int newHeight= (int)(scale * icon.getIconWidth());
-		final Image image = ((ImageIcon)icon).getImage();
-		final Image newImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-		final Icon newIcon = new ImageIcon(newImage);
-		final JLabel gridIconLabel = new JLabel(newIcon);
 		final JPanel gridIconLabelPanel = new JPanel();
 
 		gridIconLabelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		gridIconLabelPanel.add(gridIconLabel);
+
+		if (icon instanceof ImageIcon) {
+			final double scale = 0.5;
+			final int newWidth = (int)(scale * icon.getIconWidth());
+			final int newHeight= (int)(scale * icon.getIconWidth());
+			final Image image = ((ImageIcon)icon).getImage();
+			final Image newImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+			final Icon newIcon = new ImageIcon(newImage);
+
+			gridIconLabelPanel.add(new JLabel(newIcon));
+		} else {
+			gridIconLabelPanel.add(new JLabel(icon));
+		}
 
 		return gridIconLabelPanel;
 	}
