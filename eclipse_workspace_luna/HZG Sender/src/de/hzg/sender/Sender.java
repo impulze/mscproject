@@ -29,6 +29,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.type.DoubleType;
 import org.hibernate.type.LongType;
 import org.hibernate.type.TimestampType;
@@ -78,7 +79,11 @@ public class Sender implements Runnable {
 		final List<ObservedPropertyInstance> observedPropertyInstances;
 
 		try {
-			observedPropertyInstances= session.createQuery("FROM ObservedPropertyInstance").list();
+			observedPropertyInstances= session
+				.createCriteria(ObservedPropertyInstance.class)
+				.add(Restrictions.eq("useInterval", true))
+				.add(Restrictions.eq("isRaw", false))
+				.list();
 
 			for (final ObservedPropertyInstance observedPropertyInstance: observedPropertyInstances) {
 				Hibernate.initialize(observedPropertyInstance.getSensor());
