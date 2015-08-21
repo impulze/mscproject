@@ -3,7 +3,7 @@
               Any modifications will be overwritten.
               To include a user specific buildfile here, simply create one in the same
               directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. --><project basedir="." default="build" name="HZG Collector">
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="HZG Sender">
     <property environment="env"/>
     <property name="HZG Common.location" value="../HZG Common"/>
     <property name="debuglevel" value="source,lines,vars"/>
@@ -55,13 +55,12 @@
         <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
         <path refid="hibernate4.userclasspath"/>
     </path>
-    <path id="HZG Collector.classpath">
+    <path id="HZG Sender.classpath">
         <pathelement location="build/classes"/>
         <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
         <path refid="Web App Libraries.libraryclasspath"/>
         <path refid="EAR Libraries.libraryclasspath"/>
         <path refid="HZG Common.classpath"/>
-        <pathelement location="../../../../../usr/share/java/commons-math3.jar"/>
     </path>
     <target name="init">
         <mkdir dir="build/classes"/>
@@ -85,7 +84,7 @@
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="build/classes" includeantruntime="false" source="${source}" target="${target}">
             <src path="src"/>
-            <classpath refid="HZG Collector.classpath"/>
+            <classpath refid="HZG Sender.classpath"/>
         </javac>
     </target>
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>

@@ -7,6 +7,7 @@
     <property environment="env"/>
     <property name="HZG Collector.location" value="../HZG Collector"/>
     <property name="HZG Editor.location" value="../HZG Editor"/>
+    <property name="HZG Sender.location" value="../HZG Sender"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.7"/>
     <property name="source" value="1.7"/>
@@ -78,5 +79,7 @@
         <ant antfile="build.xml" dir="${HZG Collector.location}" inheritAll="false" target="build"/>
         <ant antfile="build.xml" dir="${HZG Editor.location}" inheritAll="false" target="clean"/>
         <ant antfile="build.xml" dir="${HZG Editor.location}" inheritAll="false" target="build"/>
+        <ant antfile="build.xml" dir="${HZG Sender.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build.xml" dir="${HZG Sender.location}" inheritAll="false" target="build"/>
     </target>
 </project>

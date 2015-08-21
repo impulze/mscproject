@@ -57,6 +57,7 @@
         <path refid="HZG Common.classpath"/>
         <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
         <pathelement location="../../../../../usr/share/java/tomcat-juli.jar"/>
+        <pathelement location="../../../../../usr/share/java/swingx.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
@@ -86,11 +87,6 @@
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
     <target name="Editor">
         <java classname="de.hzg.editor.Editor" failonerror="true" fork="yes">
-            <classpath refid="HZG Editor.classpath"/>
-        </java>
-    </target>
-    <target name="EditDialog">
-        <java classname="de.hzg.editor.EditDialog" failonerror="true" fork="yes">
             <classpath refid="HZG Editor.classpath"/>
         </java>
     </target>
